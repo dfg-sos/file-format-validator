@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="replicate_changesets.rb" copyright="OpenStreetMap and contributors" attribution="https://www.openstreetmap.org/copyright" license="https://opendatacommons.org/licenses/odbl/1-0/">
+  <changeset id="85601851" created_at="2020-05-22T09:45:22Z" closed_at="2020-05-22T10:48:19Z" open="false" num_changes="7" user="uk_jay" uid="599652" min_lat="51.2771125" max_lat="51.3266468" min_lon="-0.1391606" max_lon="-0.0400596" comments_count="0">
+    <tag k="comment" v="MapThePaths update"/>
+    <tag k="created_by" v="MapThePaths"/>
+  </changeset>
+  <changeset id="85602013" created_at="2020-05-22T09:48:07Z" closed_at="2020-05-22T10:48:08Z" open="false" num_changes="1" user="pilotrobert" uid="494790" min_lat="52.3861603" max_lat="52.3862323" min_lon="4.8432111" max_lon="4.8432191" comments_count="0">
+    <tag k="created_by" v="Potlatch 2"/>
+    <tag k="build" v="2.5-83-g28c84372"/>
+    <tag k="comment" v="NL Bretten"/>
+    <tag k="version" v="2.5"/>
+  </changeset>
+  <changeset id="85602069" created_at="2020-05-22T09:48:56Z" closed_at="2020-05-22T10:48:56Z" open="false" num_changes="0" user="bnilima" uid="10192122" comments_count="0">
+    <tag k="hashtags" v="#MapWithAI"/>
+    <tag k="changesets_count" v="8842"/>
+    <tag k="locale" v="en-US"/>
+    <tag k="imagery_used" v="Mapbox Satellite;Esri World Imagery (Clarity) Beta"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="Added Driveway. #MapWithAI &amp; #https://wiki.openstreetmap.org/wiki/Facebook_AI-Assisted_Road_Tracing"/>
+  </changeset>
+  <changeset id="85605823" created_at="2020-05-22T10:47:52Z" closed_at="2020-05-22T10:48:33Z" open="false" num_changes="228" user="DamonMonyo_ImportAccount" uid="9419063" min_lat="-6.8873499" max_lat="-6.7401281" min_lon="37.7065024" max_lon="39.2453976" comments_count="0">
+    <tag k="source" v="Fb maxar"/>
+    <tag k="hashtags" v="#mapwithai;#Tanzania"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="#mapwithai #Tanzania alignment of roads,changing tags as well combining roads."/>
+  </changeset>
+  <changeset id="85605827" created_at="2020-05-22T10:48:02Z" closed_at="2020-05-22T10:48:05Z" open="false" num_changes="169" user="Keramikos" uid="10409695" min_lat="-32.827166" max_lat="-32.8163951" min_lon="27.186137" max_lon="27.2087721" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Improved the alignment of unclassified and residential ways"/>
+  </changeset>
+  <changeset id="85605828" created_at="2020-05-22T10:48:04Z" closed_at="2020-05-22T10:48:04Z" open="false" num_changes="1" user="Daern" uid="6752607" min_lat="32.0579274" max_lat="32.0596923" min_lon="35.048425" max_lon="35.0517586" comments_count="0">
+    <tag k="changesets_count" v="5108"/>
+    <tag k="imagery_used" v="Mapbox Satellite"/>
+    <tag k="locale" v="uk"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="track fix"/>
+  </changeset>
+  <changeset id="85605829" created_at="2020-05-22T10:48:05Z" closed_at="2020-05-22T10:48:06Z" open="false" num_changes="1" user="АСП АСП" uid="10678368" min_lat="42.6880405" max_lat="42.688166" min_lon="46.5681807" max_lon="46.5684165" comments_count="0">
+    <tag k="changesets_count" v="18"/>
+    <tag k="imagery_used" v="Bing aerial imagery"/>
+    <tag k="locale" v="ru"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="КАРТА ОСМ"/>
+  </changeset>
+  <changeset id="85605830" created_at="2020-05-22T10:48:06Z" closed_at="2020-05-22T10:48:06Z" open="false" num_changes="1" user="MihaiBarbulescu" uid="10734163" min_lat="46.764531" max_lat="46.7649694" min_lon="23.6239181" max_lon="23.6241793" comments_count="0">
+    <tag k="ideditor:walkthrough_started" v="yes"/>
+    <tag k="ideditor:walkthrough_progress" v="welcome;navigation;point;area;line;building;startEditing"/>
+    <tag k="ideditor:walkthrough_completed" v="yes"/>
+    <tag k="changesets_count" v="21"/>
+    <tag k="imagery_used" v="Mapbox Satellite"/>
+    <tag k="locale" v="en-GB"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="Updated tags."/>
+  </changeset>
+  <changeset id="85605831" created_at="2020-05-22T10:48:08Z" closed_at="2020-05-22T10:48:10Z" open="false" num_changes="22" user="CathedralPines" uid="10461054" min_lat="25.2980864" max_lat="25.3084273" min_lon="-97.4155331" max_lon="-97.4089832" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Aligned existing ways in this area."/>
+  </changeset>
+  <changeset id="85605832" created_at="2020-05-22T10:48:10Z" closed_at="2020-05-22T10:48:12Z" open="false" num_changes="14" user="pillalp" uid="10145805" min_lat="39.048752" max_lat="39.054849" min_lon="-93.9642018" max_lon="-93.956995" comments_count="0">
+    <tag k="changesets_count" v="13355"/>
+    <tag k="locale" v="en-US"/>
+    <tag k="imagery_used" v="Maxar Premium Imagery (Beta)"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="Added a service road"/>
+  </changeset>
+  <changeset id="85605833" created_at="2020-05-22T10:48:10Z" closed_at="2020-05-22T10:48:12Z" open="false" num_changes="90" user="ZumaRock" uid="9535182" min_lat="-19.1363666" max_lat="-19.1074449" min_lon="-45.0367456" max_lon="-45.0161576" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Improved the alignment of unclassified ways"/>
+  </changeset>
+  <changeset id="85605834" created_at="2020-05-22T10:48:10Z" closed_at="2020-05-22T10:48:14Z" open="false" num_changes="65" user="dcapillae" uid="10080656" min_lat="36.6844148" max_lat="36.6896854" min_lon="-4.4470075" max_lon="-4.4434653" comments_count="0">
+    <tag k="source" v="OSM note #2201811"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 es)"/>
+    <tag k="comment" v="Added footways."/>
+  </changeset>
+  <changeset id="85605835" created_at="2020-05-22T10:48:11Z" closed_at="2020-05-22T10:48:12Z" open="false" num_changes="197" user="Eberth" uid="79528" min_lat="50.3986781" max_lat="50.436677" min_lon="7.8259637" max_lon="7.8619916" comments_count="0">
+    <tag k="source" v="ESRI, Bing, local knowledge"/>
+    <tag k="created_by" v="JOSM/1.5 (15628 de)"/>
+    <tag k="comment" v="Wege rund um und in Holler ergänzt oder korrigiert"/>
+  </changeset>
+  <changeset id="85605836" created_at="2020-05-22T10:48:11Z" closed_at="2020-05-22T10:48:13Z" open="false" num_changes="18" user="Alexander Misel" uid="11149752" min_lat="23.4560942" max_lat="23.464125" min_lon="111.2189343" max_lon="111.2289829" comments_count="0">
+    <tag k="changesets_count" v="65"/>
+    <tag k="imagery_used" v="Facebook's Map With AI - Maxar Imagery"/>
+    <tag k="locale" v="zh-CN"/>
+    <tag k="host" v="https://mapwith.ai/rapid"/>
+    <tag k="created_by" v="RapiD 1.0.8"/>
+    <tag k="comment" v="roads"/>
+  </changeset>
+  <changeset id="85605837" created_at="2020-05-22T10:48:12Z" closed_at="2020-05-22T10:48:13Z" open="false" num_changes="8" user="moszkva ter" uid="495146" min_lat="47.1946677" max_lat="47.1950299" min_lon="14.7177343" max_lon="14.7233741" comments_count="0">
+    <tag k="changesets_count" v="6520"/>
+    <tag k="imagery_used" v="basemap.at Orthofoto;Maxar Premium Imagery (Beta)"/>
+    <tag k="locale" v="de"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="fghj"/>
+  </changeset>
+  <changeset id="85605838" created_at="2020-05-22T10:48:12Z" closed_at="2020-05-22T10:48:14Z" open="false" num_changes="53" user="theplateau" uid="8710044" min_lat="-33.6091924" max_lat="-33.5918181" min_lon="22.2365615" max_lon="22.2591161" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Created and aligned residential ways."/>
+  </changeset>
+  <changeset id="85605839" created_at="2020-05-22T10:48:14Z" closed_at="2020-05-22T10:48:15Z" open="false" num_changes="168" user="Lipscani" uid="10210147" min_lat="17.5180826" max_lat="17.5764688" min_lon="-95.5379553" max_lon="-95.5047512" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Modified the alignment of unclassified way"/>
+  </changeset>
+  <changeset id="85605840" created_at="2020-05-22T10:48:14Z" closed_at="2020-05-22T10:48:16Z" open="false" num_changes="170" user="VLD208" uid="10882252" min_lat="13.2424787" max_lat="13.3461679" min_lon="75.6020732" max_lon="75.6668237" comments_count="0">
+    <tag k="warnings:close_nodes:vertices" v="1"/>
+    <tag k="changesets_count" v="281"/>
+    <tag k="hashtags" v="#mapwithai;#India"/>
+    <tag k="imagery_used" v="Bing aerial imagery;.gpx data file;Facebook's Map With AI - Maxar Imagery;Mapbox Satellite"/>
+    <tag k="locale" v="en-US"/>
+    <tag k="host" v="https://mapwith.ai/rapid-v3-test"/>
+    <tag k="created_by" v="RapiD 1.0.1"/>
+    <tag k="comment" v="#mapwithai #India Added All Roads"/>
+  </changeset>
+  <changeset id="85605841" created_at="2020-05-22T10:48:16Z" closed_at="2020-05-22T10:48:16Z" open="false" num_changes="42" user="BARO" uid="536563" min_lat="49.0334455" max_lat="49.0362015" min_lon="2.2032053" max_lon="2.2094253" comments_count="0">
+    <tag k="changesets_count" v="1047"/>
+    <tag k="imagery_used" v="BDOrtho IGN"/>
+    <tag k="locale" v="fr"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="Ajout / modification de voirie et équipements à Bessancourt"/>
+  </changeset>
+  <changeset id="85605842" created_at="2020-05-22T10:48:16Z" closed_at="2020-05-22T10:48:17Z" open="false" num_changes="36" user="MajaMaravic" uid="9357577" min_lat="43.5577349" max_lat="43.5626154" min_lon="19.6233813" max_lon="19.6298532" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery (Beta);local knowledge"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Added missing roads in Republic of Serbia. #MSFTOpenMaps"/>
+  </changeset>
+  <changeset id="85605843" created_at="2020-05-22T10:48:17Z" closed_at="2020-05-22T10:48:19Z" open="false" num_changes="3" user="B_KSL" uid="553541" min_lat="49.8046804" max_lat="49.8363423" min_lon="19.4713827" max_lon="19.4962736" comments_count="0">
+    <tag k="source" v="geoportal.gov.pl, ortofoto"/>
+    <tag k="created_by" v="JOSM/1.5 (16002 de)"/>
+    <tag k="comment" v="usunięte zdublowane szczyty"/>
+  </changeset>
+  <changeset id="85605844" created_at="2020-05-22T10:48:19Z" closed_at="2020-05-22T10:48:21Z" open="false" num_changes="5" user="cmikecho" uid="11222157" min_lat="-24.368742" max_lat="-24.3686048" min_lon="25.5299237" max_lon="25.5300743" comments_count="0">
+    <tag k="ideditor:walkthrough_started" v="yes"/>
+    <tag k="changesets_count" v="3"/>
+    <tag k="hashtags" v="#hotosm-project-8582;#covid19;#COVBots;#bloomberg;#apac"/>
+    <tag k="imagery_used" v="Bing aerial imagery;.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8582/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8582 #covid19 #COVBots #bloomberg #apac"/>
+  </changeset>
+  <changeset id="85605845" created_at="2020-05-22T10:48:20Z" closed_at="2020-05-22T10:48:22Z" open="false" num_changes="223" user="HikkaduwaBeach" uid="10529581" min_lat="-7.7687344" max_lat="-7.7211861" min_lon="110.9718208" max_lon="111.0735243" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Created residential and service ways near Jatisobo area"/>
+  </changeset>
+  <changeset id="85605846" created_at="2020-05-22T10:48:21Z" closed_at="2020-05-22T10:48:23Z" open="false" num_changes="19" user="kollipay" uid="10480282" min_lat="30.289991" max_lat="30.2968077" min_lon="-95.340613" max_lon="-95.320376" comments_count="0">
+    <tag k="changesets_count" v="4451"/>
+    <tag k="source" v=";streetlevel imagery;streetside;mapillary;mapillary-map-features;openstreetcam"/>
+    <tag k="locale" v="en-US"/>
+    <tag k="imagery_used" v="Mapbox Satellite;TIGER Roads 2019;TIGER Roads 2018;TIGER Roads 2017;Bing Streetside;Mapillary Images;Mapillary Map Features;OpenStreetCam Images"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="Added driveways"/>
+  </changeset>
+  <changeset id="85605847" created_at="2020-05-22T10:48:22Z" closed_at="2020-05-22T10:48:23Z" open="false" num_changes="11" user="Kadikoy" uid="10334710" min_lat="0.6966249" max_lat="0.698336" min_lon="103.4239586" max_lon="103.4251615" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Created and adjusted the alignment of residential way"/>
+  </changeset>
+  <changeset id="85605848" created_at="2020-05-22T10:48:25Z" closed_at="2020-05-22T10:48:26Z" open="false" num_changes="1" user="imani_mj" uid="10839386" min_lat="37.1353338" max_lat="37.1359136" min_lon="46.1090446" max_lon="46.1113929" comments_count="0">
+    <tag k="changesets_count" v="143"/>
+    <tag k="imagery_used" v="OpenStreetMap (Standard)"/>
+    <tag k="locale" v="fa-IR"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="ملکان"/>
+  </changeset>
+  <changeset id="85605849" created_at="2020-05-22T10:48:26Z" closed_at="2020-05-22T10:48:27Z" open="false" num_changes="45" user="aw319" uid="11222210" min_lat="-24.3467339" max_lat="-24.3381037" min_lon="25.591614" max_lon="25.5951733" comments_count="0">
+    <tag k="changesets_count" v="3"/>
+    <tag k="hashtags" v="#hotosm-project-8582;#covid19;#COVBots;#bloomberg;#APAC"/>
+    <tag k="imagery_used" v="Bing aerial imagery;.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8582/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8582 #covid19 #COVBots #bloomberg"/>
+  </changeset>
+  <changeset id="85605850" created_at="2020-05-22T10:48:28Z" closed_at="2020-05-22T10:48:30Z" open="false" num_changes="12" user="bmmh" uid="10192124" min_lat="39.2128589" max_lat="39.2147751" min_lon="-86.5255889" max_lon="-86.5222557" comments_count="0">
+    <tag k="warnings:crossing_ways:highway-waterway" v="2"/>
+    <tag k="changesets_count" v="12195"/>
+    <tag k="locale" v="en-US"/>
+    <tag k="imagery_used" v="Esri World Imagery (Clarity) Beta;TIGER Roads 2019;Bing Streetside"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="Added Service road from North Old State Road 37."/>
+  </changeset>
+  <changeset id="85605851" created_at="2020-05-22T10:48:31Z" closed_at="2020-05-22T10:48:34Z" open="false" num_changes="1643" user="Anaximandre" uid="4516620" min_lat="-6.1469551" max_lat="-6.1185743" min_lon="29.2674849" max_lon="29.2892582" comments_count="0">
+    <tag k="source" v="Bing; JOSM Validator"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 fr)"/>
+    <tag k="comment" v="#hotosm-project-5636"/>
+  </changeset>
+  <changeset id="85605852" created_at="2020-05-22T10:48:32Z" closed_at="2020-05-22T10:48:36Z" open="false" num_changes="11" user="VaikeEmajogi" uid="10210190" min_lat="4.6067298" max_lat="4.6343063" min_lon="101.4647642" max_lon="101.4748146" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Modified the alignment of highway Lebuhraya Timur-Barat Kedua"/>
+  </changeset>
+  <changeset id="85605853" created_at="2020-05-22T10:48:32Z" closed_at="2020-05-22T10:48:33Z" open="false" num_changes="45" user="CLS25" uid="11223391" min_lat="-14.0997751" max_lat="-14.0937814" min_lon="-71.220063" max_lon="-71.2145377" comments_count="0">
+    <tag k="warnings:disconnected_way:highway" v="1"/>
+    <tag k="changesets_count" v="4"/>
+    <tag k="hashtags" v="#hotosm-project-8411;#GALSchool;#hotmicrogrants2020;#mapimpacto;#covid19;#hoganlovells"/>
+    <tag k="imagery_used" v="Custom (https://services.digitalglobe.com/earthservice/tmsaccess/tms/1.0.0/DigitalGlobe:ImageryTileService@EPSG:3857@jpg/{z}/{x}/{-y}.jpg?connectId={apikey} );.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8411/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8411 #GALSchool #hotmicrogrants2020 #mapimpacto #covid19 #hoganlovells"/>
+  </changeset>
+  <changeset id="85605854" created_at="2020-05-22T10:48:32Z" closed_at="2020-05-22T10:48:36Z" open="false" num_changes="434" user="Abegail Dayag" uid="10975584" min_lat="15.2041983" max_lat="15.2068192" min_lon="120.6070711" max_lon="120.6096872" comments_count="0">
+    <tag k="review_requested" v="yes"/>
+    <tag k="changesets_count" v="69"/>
+    <tag k="hashtags" v="#hotosm-project-8035;#MAPampanga;#HOTPH;#PhilAware;#PDC;#awsmapathon;#accenture;#acnglobalmapathonfy20;#acnphl;#corpcitph;#corpcitph-May;#acnphlforphilaware;#gbsntreasury"/>
+    <tag k="imagery_used" v="Custom (https://services.digitalglobe.com/earthservice/tmsaccess/tms/1.0.0/DigitalGlobe:ImageryTileService@EPSG:3857@jpg/{z}/{x}/{-y}.jpg?connectId={apikey} );.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8035/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8035 #MAPampanga #HOTPH #PhilAware #PDC #awsmapathon#accenture&#10;#acnglobalmapathonfy20&#10;#acnphl&#10;#corpcitph&#10;#corpcitph-May&#10;#acnphlforphilaware&#10;#gbsntreasury"/>
+  </changeset>
+  <changeset id="85605855" created_at="2020-05-22T10:48:33Z" closed_at="2020-05-22T10:48:33Z" open="false" num_changes="1011" user="Легион196" uid="6250424" min_lat="57.0206528" max_lat="57.054253" min_lon="60.5224179" max_lon="60.5922044" comments_count="0">
+    <tag k="changesets_count" v="4229"/>
+    <tag k="imagery_used" v="Maxar Premium Imagery (Beta)"/>
+    <tag k="locale" v="ru"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="Продолжение отрисовки посёлка Санаторный, дома, нумерация... Работа над кп Лазурный Берег"/>
+  </changeset>
+  <changeset id="85605856" created_at="2020-05-22T10:48:33Z" closed_at="2020-05-22T10:48:34Z" open="false" num_changes="11" user="Ganimed 77" uid="3846117" min_lat="56.5506937" max_lat="56.5509947" min_lon="40.4013836" max_lon="40.4015396" comments_count="0">
+    <tag k="changesets_count" v="14345"/>
+    <tag k="imagery_used" v="Bing aerial imagery"/>
+    <tag k="locale" v="ru"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="Редактирование"/>
+  </changeset>
+  <changeset id="85605857" created_at="2020-05-22T10:48:33Z" closed_at="2020-05-22T10:48:35Z" open="false" num_changes="2" user="FairmountPark" uid="10653115" min_lat="-11.505935" max_lat="-11.4185239" min_lon="-38.9976169" max_lon="-38.9709755" comments_count="0">
+    <tag k="source" v="Bing Aerial Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Added restrictions to the trunk highway"/>
+  </changeset>
+  <changeset id="85605858" created_at="2020-05-22T10:48:35Z" closed_at="2020-05-22T10:48:37Z" open="false" num_changes="4" user="Kerguelen2" uid="10811041" min_lat="-33.2066579" max_lat="-33.2059664" min_lon="-70.6772576" max_lon="-70.6761586" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery."/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Modified the alignment of Parroquia Inmaculada Concepción polygon."/>
+  </changeset>
+  <changeset id="85605859" created_at="2020-05-22T10:48:37Z" closed_at="2020-05-22T10:48:39Z" open="false" num_changes="31" user="McMurd0Station" uid="10074528" min_lat="-22.2018985" max_lat="-22.1189303" min_lon="-52.189619" max_lon="-52.1458367" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Adjusted secondary way alignment"/>
+  </changeset>
+  <changeset id="85605860" created_at="2020-05-22T10:48:38Z" closed_at="2020-05-22T10:48:42Z" open="false" num_changes="10" user="dyellak" uid="10086276" min_lat="37.3670477" max_lat="37.3678279" min_lon="-119.631574" max_lon="-119.630182" comments_count="0">
+    <tag k="changesets_count" v="4380"/>
+    <tag k="source" v=";streetlevel imagery;streetside"/>
+    <tag k="locale" v="en-US"/>
+    <tag k="imagery_used" v="Esri World Imagery;Bing Streetside"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="Added Driveway."/>
+  </changeset>
+  <changeset id="85605861" created_at="2020-05-22T10:48:38Z" closed_at="2020-05-22T10:48:40Z" open="false" num_changes="14" user="qazmkp" uid="11183438" min_lat="-24.3865224" max_lat="-24.3827864" min_lon="25.5021263" max_lon="25.5046803" comments_count="0">
+    <tag k="changesets_count" v="7"/>
+    <tag k="hashtags" v="#hotosm-project-8582;#covid19;#COVBots;#bloomberg;#apac"/>
+    <tag k="imagery_used" v="Bing aerial imagery;.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8582/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8582 #covid19 #COVBots #bloomberg"/>
+  </changeset>
+  <changeset id="85605862" created_at="2020-05-22T10:48:39Z" closed_at="2020-05-22T10:48:39Z" open="false" num_changes="1" user="hiroshi fukuda" uid="11165517" min_lat="34.7109325" max_lat="34.7109325" min_lon="135.4932826" max_lon="135.4932826" comments_count="0">
+    <tag k="changesets_count" v="1"/>
+    <tag k="imagery_used" v="Bing aerial imagery"/>
+    <tag k="locale" v="ja"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="蘇州さん閉店ののち、SOKEN 2号店が開店"/>
+  </changeset>
+  <changeset id="85605863" created_at="2020-05-22T10:48:40Z" closed_at="2020-05-22T10:48:43Z" open="false" num_changes="959" user="NIKOYO EMOUGOU Yves Emmanuel" uid="10253243" min_lat="5.7425198" max_lat="6.0013981" min_lon="13.4020757" max_lon="13.6539459" comments_count="0">
+    <tag k="source" v="Images mondiales Esri"/>
+    <tag k="created_by" v="JOSM/1.5 (15322 fr)"/>
+    <tag k="comment" v="#OSM_237"/>
+  </changeset>
+  <changeset id="85605864" created_at="2020-05-22T10:48:40Z" closed_at="2020-05-22T10:48:45Z" open="false" num_changes="471" user="Aeriosk" uid="11223898" min_lat="-24.3771812" max_lat="-24.3671254" min_lon="25.5021646" max_lon="25.5075862" comments_count="0">
+    <tag k="warnings:crossing_ways:building-building" v="1"/>
+    <tag k="changesets_count" v="1"/>
+    <tag k="hashtags" v="#hotosm-project-8582;#covid19;#COVBots;#bloomberg;#APAC"/>
+    <tag k="imagery_used" v="Bing aerial imagery;.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8582/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8582 #covid19 #COVBots #bloomberg #APAC"/>
+  </changeset>
+  <changeset id="85605865" created_at="2020-05-22T10:48:42Z" closed_at="2020-05-22T10:48:45Z" open="false" num_changes="104" user="HobsonsBay" uid="10409554" min_lat="-33.7133203" max_lat="-33.6700251" min_lon="18.9130369" max_lon="18.9848299" comments_count="0">
+    <tag k="source" v="Maxar Standard Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Tertiary ways have been aligned"/>
+  </changeset>
+  <changeset id="85605866" created_at="2020-05-22T10:48:42Z" closed_at="2020-05-22T10:48:43Z" open="false" num_changes="1" user="leemarose" uid="10968568" min_lat="10.2880822" max_lat="10.2884517" min_lon="76.2587686" max_lon="76.2590181" comments_count="0">
+    <tag k="changesets_count" v="461"/>
+    <tag k="imagery_used" v="Bing aerial imagery;.geojson data file"/>
+    <tag k="locale" v="en-IN"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="added Kannan Kulam"/>
+  </changeset>
+  <changeset id="85605867" created_at="2020-05-22T10:48:43Z" closed_at="2020-05-22T10:48:45Z" open="false" num_changes="247" user="PineBarrens" uid="10409541" min_lat="-31.5518835" max_lat="-31.5196148" min_lon="28.9260887" max_lon="29.0052608" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Added missing residential ways"/>
+  </changeset>
+  <changeset id="85605868" created_at="2020-05-22T10:48:43Z" closed_at="2020-05-22T10:48:46Z" open="false" num_changes="1" user="fuk" uid="550066" min_lat="33.5692746" max_lat="33.5716599" min_lon="130.3891117" max_lon="130.3933248" comments_count="0">
+    <tag k="source" v="Esri World Imagery (Clarity) Beta; Japan GSI seamlessphoto Imagery; Japan GSI KIBAN 2500; JOSM Validator"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 ja)"/>
+    <tag k="comment" v="fit to sources"/>
+  </changeset>
+  <changeset id="85605869" created_at="2020-05-22T10:48:44Z" closed_at="2020-05-22T10:48:46Z" open="false" num_changes="21" user="Furaha L Mrema_ImportAccount" uid="9416579" min_lat="-7.0049999" max_lat="-7.0034805" min_lon="39.2342564" max_lon="39.2366168" comments_count="0">
+    <tag k="source" v="Bing"/>
+    <tag k="hashtags" v="#mapwithai;#Tanzania"/>
+    <tag k="created_by" v="JOSM/1.5 (15937 en)"/>
+    <tag k="comment" v="#mapwithai #Tanzania addition,modify and change of roads tags"/>
+  </changeset>
+  <changeset id="85605870" created_at="2020-05-22T10:48:46Z" closed_at="2020-05-22T10:48:47Z" open="false" num_changes="52" user="Tubbataha" uid="9447062" min_lat="-3.35798" max_lat="-3.2929297" min_lon="115.0417193" max_lon="115.1038798" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Aligned service and unclassified highways"/>
+  </changeset>
+  <changeset id="85605871" created_at="2020-05-22T10:48:47Z" closed_at="2020-05-22T10:48:49Z" open="false" num_changes="60" user="GilpinFalls" uid="10334783" min_lat="-8.3287766" max_lat="-8.2975374" min_lon="112.7771446" max_lon="112.812201" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Modified the alignment of residential ways near Srimulyo"/>
+  </changeset>
+  <changeset id="85605872" created_at="2020-05-22T10:48:47Z" closed_at="2020-05-22T10:48:49Z" open="false" num_changes="154" user="Belaya01" uid="10529312" min_lat="-18.175696" max_lat="-18.1460429" min_lon="23.9874794" max_lon="24.0207884" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Improved the alignment of riverbank"/>
+  </changeset>
+  <changeset id="85605873" created_at="2020-05-22T10:48:48Z" closed_at="2020-05-22T10:48:49Z" open="false" num_changes="319" user="Alek12" uid="11127509" min_lat="-15.3722254" max_lat="-15.3662306" min_lon="-75.1622914" max_lon="-75.1568923" comments_count="0">
+    <tag k="changesets_count" v="19"/>
+    <tag k="imagery_used" v="Bing aerial imagery"/>
+    <tag k="locale" v="es"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="vivienda"/>
+  </changeset>
+  <changeset id="85605874" created_at="2020-05-22T10:48:48Z" closed_at="2020-05-22T10:48:48Z" open="false" num_changes="12" user="Joshua Kilonda" uid="9501160" min_lat="-24.5646425" max_lat="-24.5642759" min_lon="26.0523867" max_lon="26.0528148" comments_count="0">
+    <tag k="review_requested" v="yes"/>
+    <tag k="changesets_count" v="23"/>
+    <tag k="hashtags" v="#hotosm-project-8583;#covid19;#COVBots;#accenture;#acnlondon;#aacnmaps"/>
+    <tag k="ideditor:walkthrough_started" v="yes"/>
+    <tag k="imagery_used" v="Bing aerial imagery;.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8583/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8583 #covid19 #COVBots #accenture #acnlondon #aacnmaps"/>
+  </changeset>
+  <changeset id="85605875" created_at="2020-05-22T10:48:48Z" closed_at="2020-05-22T10:48:51Z" open="false" num_changes="237" user="Tazewell" uid="9535249" min_lat="-29.1987128" max_lat="-29.1648133" min_lon="31.1105615" max_lon="31.1488138" comments_count="0">
+    <tag k="source" v="Maxar Premium Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Improved alignment of unclassified ways"/>
+  </changeset>
+  <changeset id="85605876" created_at="2020-05-22T10:48:50Z" closed_at="2020-05-22T10:48:52Z" open="false" num_changes="9" user="Suneel P" uid="11219599" min_lat="-14.3411202" max_lat="-14.3410635" min_lon="-71.2774324" max_lon="-71.2773234" comments_count="0">
+    <tag k="changesets_count" v="12"/>
+    <tag k="hashtags" v="#hotosm-project-8419;#GALSchool;#hotmicrogrants2020;#mapimpacto;#covid19;#jpmc;#jpmc-covid"/>
+    <tag k="imagery_used" v="Maxar Premium Imagery (Beta);.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8419/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8419 #GALSchool #hotmicrogrants2020 #mapimpacto #covid19 #jpmc #jpmc-covid"/>
+  </changeset>
+  <changeset id="85605877" created_at="2020-05-22T10:48:52Z" closed_at="2020-05-22T10:48:53Z" open="false" num_changes="39" user="Ben (London)" uid="11219615" min_lat="-14.1030881" max_lat="-14.0976252" min_lon="-71.3013156" max_lon="-71.2902864" comments_count="0">
+    <tag k="warnings:disconnected_way:highway" v="1"/>
+    <tag k="changesets_count" v="18"/>
+    <tag k="hashtags" v="#hotosm-project-8411;#GALSchool;#hotmicrogrants2020;#mapimpacto;#covid19;#hoganlovells"/>
+    <tag k="imagery_used" v="Custom (https://services.digitalglobe.com/earthservice/tmsaccess/tms/1.0.0/DigitalGlobe:ImageryTileService@EPSG:3857@jpg/{z}/{x}/{-y}.jpg?connectId={apikey} );.gpx data file"/>
+    <tag k="locale" v="en"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/8411/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="#hotosm-project-8411 #GALSchool #hotmicrogrants2020 #mapimpacto #covid19 #hoganlovells"/>
+  </changeset>
+  <changeset id="85605878" created_at="2020-05-22T10:48:52Z" closed_at="2020-05-22T10:48:53Z" open="false" num_changes="58" user="Anrijs Terauds" uid="2934664" min_lat="56.9541951" max_lat="57.0105919" min_lon="23.8147111" max_lon="23.9395837" comments_count="0">
+    <tag k="changesets_count" v="4368"/>
+    <tag k="imagery_used" v="Maxar Premium Imagery (Beta);Bing aerial imagery;Maxar Standard Imagery (Beta)"/>
+    <tag k="locale" v="lv-LV"/>
+    <tag k="host" v="https://www.openstreetmap.org/edit"/>
+    <tag k="created_by" v="iD 2.17.3"/>
+    <tag k="comment" v="Updates 2020"/>
+  </changeset>
+  <changeset id="85605879" created_at="2020-05-22T10:48:53Z" open="true" num_changes="18" user="RoadGeek_MD99" uid="475877" min_lat="38.8532053" max_lat="38.8546263" min_lon="-76.9091625" max_lon="-76.9077675" comments_count="0">
+    <tag k="source" v="MD Latest 6 Inch Aerial Imagery; Mapillary"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Added a few firms"/>
+  </changeset>
+  <changeset id="85605880" created_at="2020-05-22T10:48:56Z" closed_at="2020-05-22T10:48:56Z" open="false" num_changes="46" user="martinsohl" uid="11213917" min_lat="55.7087624" max_lat="55.7163413" min_lon="13.2142619" max_lon="13.2372465" comments_count="0">
+    <tag k="source" v="GPS tracking"/>
+    <tag k="locale" v="sv-SE"/>
+    <tag k="imagery_used" v="OpenStreetMap (Standard);OSM Inspector: Routing"/>
+    <tag k="created_by" v="Vespucci 14.1.4.0"/>
+    <tag k="comment" v="Corrected path tags"/>
+  </changeset>
+  <changeset id="85605881" created_at="2020-05-22T10:48:56Z" closed_at="2020-05-22T10:48:57Z" open="false" num_changes="73" user="martinairmaps" uid="3376734" min_lat="-16.4095725" max_lat="-16.4057717" min_lon="36.1169362" max_lon="36.1193837" comments_count="0">
+    <tag k="changesets_count" v="11011"/>
+    <tag k="imagery_used" v="Bing aerial imagery;.gpx data file"/>
+    <tag k="locale" v="nl"/>
+    <tag k="host" v="https://tasks.hotosm.org/projects/1988/map/"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="added buildings and roads"/>
+  </changeset>
+  <changeset id="85605882" created_at="2020-05-22T10:48:57Z" closed_at="2020-05-22T10:48:58Z" open="false" num_changes="2" user="tartiflex" uid="507417" min_lat="46.2085042" max_lat="46.36119" min_lon="6.404577" max_lon="6.4583124" comments_count="0">
+    <tag k="source" v="BDOrtho IGN"/>
+    <tag k="created_by" v="JOSM/1.5 (15492 fr)"/>
+    <tag k="comment" v="Corrections succursales Crédit Agricole dans le Chablais"/>
+  </changeset>
+  <changeset id="85605883" created_at="2020-05-22T10:48:57Z" closed_at="2020-05-22T10:49:00Z" open="false" num_changes="14" user="kshtdh" uid="10127767" min_lat="43.354397" max_lat="43.3578588" min_lon="-78.035896" max_lon="-77.9953503" comments_count="0">
+    <tag k="warnings:crossing_ways:highway-waterway" v="1"/>
+    <tag k="changesets_count" v="14593"/>
+    <tag k="source" v=";streetlevel imagery;streetside"/>
+    <tag k="locale" v="en-US"/>
+    <tag k="imagery_used" v="Esri World Imagery;Bing Streetside;TIGER Roads 2019"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="added service road and unmaintained track road"/>
+  </changeset>
+  <changeset id="85605884" created_at="2020-05-22T10:48:58Z" closed_at="2020-05-22T10:48:59Z" open="false" num_changes="46" user="CapeMayPeninsula" uid="10461077" min_lat="23.6588001" max_lat="23.6792916" min_lon="-99.8266933" max_lon="-99.7551687" comments_count="0">
+    <tag k="source" v="Esri World Imagery"/>
+    <tag k="created_by" v="JOSM/1.5 (16239 en)"/>
+    <tag k="comment" v="Aligned tertiary ways in this region."/>
+  </changeset>
+  <changeset id="85605885" created_at="2020-05-22T10:48:58Z" closed_at="2020-05-22T10:48:59Z" open="false" num_changes="8" user="iggujja" uid="10145708" min_lat="41.068524" max_lat="41.0771149" min_lon="-74.154142" max_lon="-74.1456651" comments_count="0">
+    <tag k="changesets_count" v="10046"/>
+    <tag k="source" v=";streetlevel imagery;streetside;mapillary;openstreetcam"/>
+    <tag k="locale" v="en-US"/>
+    <tag k="imagery_used" v="Mapbox Satellite;Bing Streetside;Mapillary Images;OpenStreetCam Images"/>
+    <tag k="created_by" v="iD 2.17.2"/>
+    <tag k="comment" v="Added service road"/>
+  </changeset>
+</osm>

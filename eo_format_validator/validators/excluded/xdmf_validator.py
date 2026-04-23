@@ -1,0 +1,33 @@
+"""https://xdmf.org/
+   Extensible data model and format, not to be confused with eXtensible Model Data Format (XMDF).
+   Maybe vector?"""
+from pathlib import Path
+from typing import List
+
+import xml.etree.ElementTree as ET
+
+from eo_format_validator.api.raster_file_validator import RasterFileValidator
+from eo_format_validator.api.vector_file_validator import VectorFileValidator
+from eo_format_validator.core.file_input import FileInput
+from eo_format_validator.core.format import Format
+from eo_format_validator.core.validator_registry import validators
+from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.utils.crs_operations import normalize_crs_to_epsg, compare_crs
+
+
+@validators.register("format_4123")
+class XDMFValidator(RasterFileValidator, VectorFileValidator):
+
+    def _get_extensions(self) -> List[str]:
+        return ['.xdmf', '.xmf']
+
+    def _validate_open(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
+        pass
+
+    def _validate_crs(self, file_format: Format, file_input: FileInput,
+                      validation_result: ValidationResult) -> ValidationResult:
+        pass
+
+    def _validate_shape_type(self, file_format: Format, file_input: FileInput,
+                             validation_result: ValidationResult) -> ValidationResult:
+        pass

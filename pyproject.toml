@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["eo_format_validator*"]
+
+[project]
+name = "eo-format-validator"
+version = "0.2.0"
+authors = [
+    { name = "Moritz Pataky", email = "moritz.pataky@stud-mail.uni-wuerzburg.de" },
+    { name = "Lorenz Gruber ", email = "lorenz.gruber@uni-wuerzburg.de" }
+]
+
+requires-python = ">=3.13"
+
+dependencies = [
+    "geopandas",
+    "pyarrow",
+    "pandas",
+    "shapely",
+    "netcdf4",
+    "xarray",
+    "pyproj",
+    "fiona",
+    "tifffile",
+    "rasterio",
+    "cfgrib",
+    "rio_cogeo"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov"
+]
