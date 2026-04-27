@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch
 
-from eo_format_validator.eo_format_validator import EOValidator
+from eo_format_validator.eo_format_validator import EOFormatValidator
 from eo_format_validator.model.validation_request import ValidationRequest
 from eo_format_validator.model.format import Format
 from eo_format_validator.model.file_input import FileInput
@@ -61,7 +61,7 @@ def test_successful_validation(mock_validators, mock_loader,
     mock_loader.return_value = None
     mock_validators.choose_and_instantiate.return_value = mock_successful_validator
 
-    result = EOValidator.validate(validation_request)
+    result = EOFormatValidator._validate(validation_request)
 
     assert result.is_valid
     assert result.get_validated()
@@ -81,7 +81,7 @@ def test_validation_fails_with_errors(mock_validators, mock_loader,
     mock_loader.return_value = None
     mock_validators.choose_and_instantiate.return_value = mock_failed_validator
 
-    result = EOValidator.validate(validation_request)
+    result = EOFormatValidator._validate(validation_request)
 
     assert not result.is_valid
     assert result.get_validated()
@@ -97,7 +97,7 @@ def test_unsupported_format_returns_warning(mock_validators, mock_loader,
     mock_loader.return_value = None
     mock_validators.choose_and_instantiate.return_value = None
 
-    result = EOValidator.validate(validation_request)
+    result = EOFormatValidator._validate(validation_request)
 
     assert result.is_valid
     assert len(result.get_warnings()) == 1   # Unsupported file formats are supposed to result in a warning instead of an error
@@ -116,7 +116,7 @@ def test_exception_during_validation(mock_validators, mock_loader,
     mock_validator.validate.side_effect = RuntimeError("Validation crashed")
     mock_validators.choose_and_instantiate.return_value = mock_validator
 
-    result = EOValidator.validate(validation_request)
+    result = EOFormatValidator._validate(validation_request)
 
     assert result.is_valid
     assert len(result.get_warnings()) == 1   # Exceptions during validation are supposed to result in a warning instead of an error
@@ -137,7 +137,7 @@ def test_correct_parameters_passed_to_validator(mock_validators, mock_loader,
     mock_loader.return_value = None
     mock_validators.choose_and_instantiate.return_value = mock_successful_validator
 
-    EOValidator.validate(validation_request)
+    EOFormatValidator._validate(validation_request)
 
     mock_successful_validator.validate.assert_called_once()
     call_args = mock_successful_validator.validate.call_args[0]
@@ -156,7 +156,7 @@ def test_format_identifier_used_for_validator_selection(mock_validators, mock_lo
     mock_loader.return_value = None
     mock_validators.choose_and_instantiate.return_value = mock_successful_validator
 
-    EOValidator.validate(validation_request)
+    EOFormatValidator._validate(validation_request)
 
     mock_validators.choose_and_instantiate.assert_called_once()
     call_args = mock_validators.choose_and_instantiate.call_args[0]
@@ -189,7 +189,7 @@ def test_different_validation_modes(mock_validators, mock_loader,
         _validation_mode=mode
     )
 
-    EOValidator.validate(request)
+    EOFormatValidator._validate(request)
 
     call_args = mock_successful_validator.validate.call_args[0]
     assert call_args[2] == mode
@@ -206,6 +206,6 @@ def test_validator_loading_is_called(mock_validators, mock_loader, validation_re
     mock_loader.return_value = None
     mock_validators.choose_and_instantiate.return_value = None
 
-    EOValidator.validate(validation_request)
+    EOFormatValidator._validate(validation_request)
 
     mock_loader.assert_called_once_with("eo_format_validator.validators", False, False)

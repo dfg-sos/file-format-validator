@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch
 
-from eo_format_validator.integration.builder.cwl_utils_request_builder import CWLUtilsRequestBuilder
+from eo_format_validator.integration.cwl import CWLUtilsRequestBuilder
 from eo_format_validator.model.validation_request import ValidationRequest
 from eo_format_validator.model.validation_mode import ValidationMode
 from eo_format_validator.model.file_input import FileInput,MultiFileInput
