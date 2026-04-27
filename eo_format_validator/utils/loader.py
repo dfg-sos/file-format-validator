@@ -5,8 +5,8 @@ import inspect
 from types import ModuleType
 from typing import Optional
 
-from eo_format_validator.api.file_format_validator import FileFormatValidator
-from eo_format_validator.core.validator_registry import validators
+from eo_format_validator.model.file_format_validator import FileFormatValidator
+from eo_format_validator.validator_registry import validators
 
 logger = logging.getLogger(__name__)
 

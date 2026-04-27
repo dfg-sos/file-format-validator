@@ -1,12 +1,12 @@
 import pytest
 from unittest.mock import Mock, patch
 
-from eo_format_validator.main.eo_validator_main import EOValidator
-from eo_format_validator.api.validation_request import ValidationRequest
-from eo_format_validator.core.format import Format
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.api.validation_mode import ValidationMode
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.eo_format_validator import EOValidator
+from eo_format_validator.model.validation_request import ValidationRequest
+from eo_format_validator.model.format import Format
+from eo_format_validator.model.file_input import FileInput
+from eo_format_validator.model.validation_mode import ValidationMode
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 # -------FIXTURES---------
@@ -52,8 +52,8 @@ def validation_request(tmp_path):
 
 # ------------CORE FUNCTIONALITY TESTS---------
 
-@patch('eo_format_validator.main.eo_validator_main.load_validators_from_package')
-@patch('eo_format_validator.main.eo_validator_main.validators')
+@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
+@patch('eo_format_validator.eo_format_validator.validators')
 def test_successful_validation(mock_validators, mock_loader,
                                validation_request, mock_successful_validator):
     """Test successful validation workflow."""
@@ -72,8 +72,8 @@ def test_successful_validation(mock_validators, mock_loader,
     mock_successful_validator.validate.assert_called_once()
 
 
-@patch('eo_format_validator.main.eo_validator_main.load_validators_from_package')
-@patch('eo_format_validator.main.eo_validator_main.validators')
+@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
+@patch('eo_format_validator.eo_format_validator.validators')
 def test_validation_fails_with_errors(mock_validators, mock_loader,
                                       validation_request, mock_failed_validator):
     """Test validation that returns errors."""
@@ -88,8 +88,8 @@ def test_validation_fails_with_errors(mock_validators, mock_loader,
     assert len(result.get_errors()) > 0
 
 
-@patch('eo_format_validator.main.eo_validator_main.load_validators_from_package')
-@patch('eo_format_validator.main.eo_validator_main.validators')
+@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
+@patch('eo_format_validator.eo_format_validator.validators')
 def test_unsupported_format_returns_warning(mock_validators, mock_loader,
                                             validation_request):
     """Test handling of unsupported file format."""
@@ -105,8 +105,8 @@ def test_unsupported_format_returns_warning(mock_validators, mock_loader,
     assert result.get_warnings()[0].get_code() == "NOT_SUPPORTED"
 
 
-@patch('eo_format_validator.main.eo_validator_main.load_validators_from_package')
-@patch('eo_format_validator.main.eo_validator_main.validators')
+@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
+@patch('eo_format_validator.eo_format_validator.validators')
 def test_exception_during_validation(mock_validators, mock_loader,
                                      validation_request):
     """Test handling of exception during validation."""
@@ -128,8 +128,8 @@ def test_exception_during_validation(mock_validators, mock_loader,
 # --------PARAMETER PASSING TESTS----------
 
 
-@patch('eo_format_validator.main.eo_validator_main.load_validators_from_package')
-@patch('eo_format_validator.main.eo_validator_main.validators')
+@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
+@patch('eo_format_validator.eo_format_validator.validators')
 def test_correct_parameters_passed_to_validator(mock_validators, mock_loader,
                                                 validation_request, mock_successful_validator):
     """Test that ValidationRequest parameters are passed correctly."""
@@ -147,8 +147,8 @@ def test_correct_parameters_passed_to_validator(mock_validators, mock_loader,
     assert call_args[2] == validation_request.get_validation_mode()
 
 
-@patch('eo_format_validator.main.eo_validator_main.load_validators_from_package')
-@patch('eo_format_validator.main.eo_validator_main.validators')
+@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
+@patch('eo_format_validator.eo_format_validator.validators')
 def test_format_identifier_used_for_validator_selection(mock_validators, mock_loader,
                                                         validation_request, mock_successful_validator):
     """Test that Format is used to choose validator."""
@@ -171,8 +171,8 @@ def test_format_identifier_used_for_validator_selection(mock_validators, mock_lo
     ValidationMode.CRS,
     ValidationMode.STRICT,
 ])
-@patch('eo_format_validator.main.eo_validator_main.load_validators_from_package')
-@patch('eo_format_validator.main.eo_validator_main.validators')
+@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
+@patch('eo_format_validator.eo_format_validator.validators')
 def test_different_validation_modes(mock_validators, mock_loader,
                                     mode, tmp_path, mock_successful_validator):
     """Test that different validation modes are passed to validator."""
@@ -198,8 +198,8 @@ def test_different_validation_modes(mock_validators, mock_loader,
 
 # -------------EDGE CASE TEST---------------
 
-@patch('eo_format_validator.main.eo_validator_main.load_validators_from_package')
-@patch('eo_format_validator.main.eo_validator_main.validators')
+@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
+@patch('eo_format_validator.eo_format_validator.validators')
 def test_validator_loading_is_called(mock_validators, mock_loader, validation_request):
     """Test that validator loading is triggered."""
 

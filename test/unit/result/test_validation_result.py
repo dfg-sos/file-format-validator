@@ -1,7 +1,6 @@
 import pytest
 
-from eo_format_validator.result.issue_severity import Severity
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.validation_result import ValidationResult,Severity
 
 
 

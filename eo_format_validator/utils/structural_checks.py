@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-from eo_format_validator.core.file_input import FileInput
+from eo_format_validator.model.file_input import FileInput
 
 
 def check_file_and_path_exist(input_file: FileInput) -> bool:

@@ -1,6 +1,6 @@
-from eo_format_validator.api.validation_request import ValidationRequest
-from eo_format_validator.core.validator_registry import validators
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.validation_request import ValidationRequest
+from eo_format_validator.validator_registry import validators
+from eo_format_validator.model.validation_result import ValidationResult
 from eo_format_validator.utils.loader import load_validators_from_package
 
 

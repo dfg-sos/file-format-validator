@@ -1,12 +1,13 @@
+import json
 from typing import Dict, List, Any
 
-from eo_format_validator.api.validation_request import ValidationRequest
+from eo_format_validator.model.validation_request import ValidationRequest
 from eo_format_validator.integration.builder.cwl_utils_request_builder import CWLUtilsRequestBuilder
 from eo_format_validator.integration.builder.cwltool_request_builder import CWLToolRequestBuilder
 from eo_format_validator.integration.handler.cwl_utils_response_handler import CWLUtilsResponseHandler
 from eo_format_validator.integration.handler.cwltool_response_handler import CWLToolResponseHandler
-from eo_format_validator.main.eo_validator_main import EOValidator
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.eo_format_validator import EOValidator
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 class Validator:
@@ -55,9 +56,6 @@ class Validator:
         Validator._execute_validation(builder, handler)
 
     @staticmethod
-    def execute_http_validation(source_data):
-        """HTTP example."""
-        #builder = HTTPRequestBuilder()
-        #handler = HTTPResponseHandler()
-        #Validator._execute_validation(builder, handler)
+    def execute_http_validation(request: json) -> json:
+        
         pass

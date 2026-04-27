@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List
 
-from eo_format_validator.api.validation_request import ValidationRequest
+from eo_format_validator.model.validation_request import ValidationRequest
 
 
 class ValidationRequestBuilder(ABC):

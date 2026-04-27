@@ -1,12 +1,10 @@
 from pathlib import Path
 from typing import Any, List, Dict, Optional
 
-from eo_format_validator.api.validation_mode import ValidationMode
-from eo_format_validator.api.validation_request import ValidationRequest
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.format import Format
-from eo_format_validator.core.multi_file_input import MultiFileInput
-from eo_format_validator.core.shape_type import ShapeType
+from eo_format_validator.model.validation_mode import ValidationMode
+from eo_format_validator.model.validation_request import ValidationRequest
+from eo_format_validator.model.file_input import FileInput,MultiFileInput
+from eo_format_validator.model.format import Format,ShapeType
 from eo_format_validator.integration.builder.validation_request_builder import ValidationRequestBuilder
 from eo_format_validator.utils.crs_operations import normalize_crs_to_epsg
 from eo_format_validator.utils.shape_operations import normalize_geometry_to_shape_type

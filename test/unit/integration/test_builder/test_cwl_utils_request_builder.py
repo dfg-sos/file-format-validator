@@ -2,11 +2,10 @@ import pytest
 from unittest.mock import patch
 
 from eo_format_validator.integration.builder.cwl_utils_request_builder import CWLUtilsRequestBuilder
-from eo_format_validator.api.validation_request import ValidationRequest
-from eo_format_validator.api.validation_mode import ValidationMode
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.multi_file_input import MultiFileInput
-from eo_format_validator.core.shape_type import ShapeType
+from eo_format_validator.model.validation_request import ValidationRequest
+from eo_format_validator.model.validation_mode import ValidationMode
+from eo_format_validator.model.file_input import FileInput,MultiFileInput
+from eo_format_validator.model.format import Format,ShapeType
 
 
 

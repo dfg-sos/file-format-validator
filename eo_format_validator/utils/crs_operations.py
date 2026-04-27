@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import Union, Any
 
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.format import Format
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.file_input import FileInput
+from eo_format_validator.model.format import Format
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 def normalize_crs_to_epsg(crs_input: Union[int, str, Any]) -> int | None:

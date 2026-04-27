@@ -5,9 +5,9 @@ from unittest.mock import patch
 
 import pytest
 
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.format import Format
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.file_input import FileInput
+from eo_format_validator.model.format import Format
+from eo_format_validator.model.validation_result import ValidationResult
 from eo_format_validator.utils import crs_operations
 
 

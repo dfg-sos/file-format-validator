@@ -2,8 +2,8 @@ import pytest
 from unittest.mock import Mock, patch
 
 from eo_format_validator.integration.validator import Validator
-from eo_format_validator.api.validation_request import ValidationRequest
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.validation_request import ValidationRequest
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 # -----------FIXTURES-----------

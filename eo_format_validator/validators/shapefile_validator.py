@@ -1,10 +1,10 @@
 from typing import List
 
-from eo_format_validator.api.vector_file_validator import VectorFileValidator
-from eo_format_validator.core.format import Format
+from eo_format_validator.validators.vector_file_validator import VectorFileValidator
+from eo_format_validator.model.format import Format
 from eo_format_validator.core.multi_file_input import MultiFileInput
-from eo_format_validator.core.validator_registry import validators
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.validator_registry import validators
+from eo_format_validator.model.validation_result import ValidationResult
 from eo_format_validator.utils.shape_operations import validate_shape_type_with_fiona
 
 # Define required, recommended, and optional Shapefile components

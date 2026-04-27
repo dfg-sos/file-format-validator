@@ -3,11 +3,11 @@
    https://gdal.org/drivers/raster/cog.html"""
 from typing import List
 
-from eo_format_validator.api.raster_file_validator import RasterFileValidator
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.format import Format
-from eo_format_validator.core.validator_registry import validators
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.validators.raster_file_validator import RasterFileValidator
+from eo_format_validator.model.file_input import FileInput
+from eo_format_validator.model.format import Format
+from eo_format_validator.validator_registry import validators
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 @validators.register("format_4100")

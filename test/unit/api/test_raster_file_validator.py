@@ -6,10 +6,10 @@ import pytest
 from unittest.mock import Mock, MagicMock, patch
 from typing import List
 
-from eo_format_validator.api.raster_file_validator import RasterFileValidator
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.format import Format
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.validators.raster_file_validator import RasterFileValidator
+from eo_format_validator.model.file_input import FileInput
+from eo_format_validator.model.format import Format
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 # ------TEST VALIDATOR---------
@@ -194,7 +194,7 @@ def test_validate_crs_succeeds_with_valid_crs(tmp_path,
     fake_rasterio_errors.RasterioIOError = FakeRasterioIOError
 
     # Inject fake modules
-    with patch.dict(sys.modules, {"rasterio": fake_rasterio, "rasterio.errors": fake_rasterio_errors}), patch("eo_format_validator.api.raster_file_validator.compare_crs") as mock_compare_crs:
+    with patch.dict(sys.modules, {"rasterio": fake_rasterio, "rasterio.errors": fake_rasterio_errors}), patch("eo_format_validator.validators.raster_file_validator.compare_crs") as mock_compare_crs:
         success_result = ValidationResult()
         success_result.set_success("CRS valid", "CRS_MATCH")
         mock_compare_crs.return_value = success_result
@@ -232,7 +232,7 @@ def test_validate_crs_warns_when_crs_missing(raster_validator,
 
     # Inject fake modules
     with patch.dict(sys.modules, {"rasterio": fake_rasterio, "rasterio.errors": fake_rasterio_errors}), patch(
-        "eo_format_validator.api.raster_file_validator.compare_crs"
+        "eo_format_validator.validators.raster_file_validator.compare_crs"
     ) as mock_compare_crs:
         success_result = ValidationResult()
         success_result.add_warning("CRS missing", "CRS_MISSING")

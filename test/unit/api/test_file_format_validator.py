@@ -1,11 +1,11 @@
 import pytest
 from typing import List
 
-from eo_format_validator.api.file_format_validator import FileFormatValidator
-from eo_format_validator.api.validation_mode import ValidationMode
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.format import Format
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.file_format_validator import FileFormatValidator
+from eo_format_validator.model.validation_mode import ValidationMode
+from eo_format_validator.model.file_input import FileInput
+from eo_format_validator.model.format import Format
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 # -------TEST VALIDATOR--------

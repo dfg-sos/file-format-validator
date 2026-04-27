@@ -1,7 +1,7 @@
 from typing import Dict, Type, Optional, List, Callable
 
-from eo_format_validator.api.file_format_validator import FileFormatValidator
-from eo_format_validator.core.format import Format
+from eo_format_validator.model.file_format_validator import FileFormatValidator
+from eo_format_validator.model.format import Format
 
 
 class Registry:

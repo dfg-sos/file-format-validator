@@ -1,7 +1,22 @@
 from dataclasses import dataclass, field
 from typing import Optional, Any, Dict
+from enum import Enum
 
-from eo_format_validator.core.shape_type import ShapeType
+
+class ShapeType(Enum):
+    """References shape types as WKT geometries."""
+
+    POINT = "point"
+    MULTIPOINT = "multipoint"
+    LINESTRING = "linestring"
+    MULTILINESTRING = "multilinestring"
+    POLYGON = "polygon"
+    MULTIPOLYGON = "multipolygon"
+    TRIANGLE = "triangle"
+    POLYHEDRALSURFACE = "polyhedralsurface"
+    TIN = "tin" # triangulated irregular network
+    GEOMETRYCOLLECTION = "geometrycollection"
+    OTHER = "other"
 
 
 @dataclass(frozen=True) #immutable objects

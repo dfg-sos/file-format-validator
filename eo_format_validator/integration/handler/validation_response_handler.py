@@ -2,7 +2,7 @@ import sys
 from abc import ABC, abstractmethod
 from typing import Any
 
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 class ValidationResponseHandler(ABC):

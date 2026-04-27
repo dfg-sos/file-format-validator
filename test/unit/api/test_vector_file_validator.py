@@ -2,11 +2,10 @@ import pytest
 from unittest.mock import patch
 from typing import List
 
-from eo_format_validator.api.vector_file_validator import VectorFileValidator
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.format import Format
-from eo_format_validator.core.shape_type import ShapeType
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.validators.vector_file_validator import VectorFileValidator
+from eo_format_validator.model.file_input import FileInput
+from eo_format_validator.model.format import Format,ShapeType
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 # -------TEST VALIDATOR-------
@@ -57,8 +56,8 @@ def validation_result(format_obj):
 
 # -----------_validate_strict() TESTS------------
 
-@patch('eo_format_validator.api.vector_file_validator.validate_crs_with_fiona')
-@patch('eo_format_validator.api.vector_file_validator.open_with_fiona')
+@patch('eo_format_validator.validators.vector_file_validator.validate_crs_with_fiona')
+@patch('eo_format_validator.validators.vector_file_validator.open_with_fiona')
 def test_validate_strict_calls_all_validations(mock_open, mock_crs, vector_validator,
                                                format_obj, file_input, validation_result):
     """Test that _validate_strict calls all validation methods."""
@@ -84,8 +83,8 @@ def test_validate_strict_calls_all_validations(mock_open, mock_crs, vector_valid
     assert len(validation_result.get_infos()) == 4  # extension + open + crs + shape_type
 
 
-@patch('eo_format_validator.api.vector_file_validator.validate_crs_with_fiona')
-@patch('eo_format_validator.api.vector_file_validator.open_with_fiona')
+@patch('eo_format_validator.validators.vector_file_validator.validate_crs_with_fiona')
+@patch('eo_format_validator.validators.vector_file_validator.open_with_fiona')
 def test_validate_strict_fails_if_any_validation_fails(mock_open, mock_crs, vector_validator,
                                                        format_obj, file_input, validation_result):
     """Test that _validate_strict fails if any sub-validation fails."""
@@ -108,8 +107,8 @@ def test_validate_strict_fails_if_any_validation_fails(mock_open, mock_crs, vect
     assert len(validation_result.get_errors()) >= 1
 
 
-@patch('eo_format_validator.api.vector_file_validator.validate_crs_with_fiona')
-@patch('eo_format_validator.api.vector_file_validator.open_with_fiona')
+@patch('eo_format_validator.validators.vector_file_validator.validate_crs_with_fiona')
+@patch('eo_format_validator.validators.vector_file_validator.open_with_fiona')
 def test_validate_strict_includes_shape_type_validation(mock_open, mock_crs, vector_validator,
                                                         format_obj, file_input, validation_result):
     """Test that _validate_strict overrides correctly and includes shape_type validation."""

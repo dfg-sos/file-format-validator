@@ -1,7 +1,7 @@
 from typing import Any
 
 from eo_format_validator.integration.handler.validation_response_handler import ValidationResponseHandler
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 class CLIResponseHandler(ValidationResponseHandler):

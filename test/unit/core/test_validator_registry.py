@@ -2,11 +2,11 @@ from typing import List, Optional
 
 import pytest
 
-from eo_format_validator.api.file_format_validator import FileFormatValidator
-from eo_format_validator.core.file_input import FileInput
-from eo_format_validator.core.format import Format
-from eo_format_validator.core.validator_registry import Registry
-from eo_format_validator.result.validation_result import ValidationResult
+from eo_format_validator.model.file_format_validator import FileFormatValidator
+from eo_format_validator.model.file_input import FileInput
+from eo_format_validator.model.format import Format
+from eo_format_validator.validator_registry import Registry
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 class MockFileFormatValidator(FileFormatValidator):
