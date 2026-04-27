@@ -1,7 +1,16 @@
-from typing import Any
+from typing import Any, List
 
-from eo_format_validator.integration.handler.validation_response_handler import ValidationResponseHandler
+from eo_format_validator.model.validation_response_handler import ValidationResponseHandler
 from eo_format_validator.model.validation_result import ValidationResult
+from eo_format_validator.model.validation_request import ValidationRequest
+from eo_format_validator.model.validation_request_builder import ValidationRequestBuilder
+
+
+class HTTPRequestBuilder(ValidationRequestBuilder):
+    """Build ValidationRequests from HTTP requests."""
+
+    def build(self) -> ValidationRequest:
+        pass
 
 
 class HTTPResponseHandler(ValidationResponseHandler):

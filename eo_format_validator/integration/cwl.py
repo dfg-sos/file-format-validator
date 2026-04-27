@@ -5,9 +5,11 @@ from eo_format_validator.model.validation_mode import ValidationMode
 from eo_format_validator.model.validation_request import ValidationRequest
 from eo_format_validator.model.file_input import FileInput,MultiFileInput
 from eo_format_validator.model.format import Format,ShapeType
-from eo_format_validator.integration.builder.validation_request_builder import ValidationRequestBuilder
+from eo_format_validator.model.validation_request_builder import ValidationRequestBuilder
 from eo_format_validator.utils.crs_operations import normalize_crs_to_epsg
 from eo_format_validator.utils.shape_operations import normalize_geometry_to_shape_type
+from eo_format_validator.model.validation_response_handler import ValidationResponseHandler
+from eo_format_validator.model.validation_result import ValidationResult
 
 
 class CWLUtilsRequestBuilder(ValidationRequestBuilder):
@@ -58,3 +60,48 @@ class CWLUtilsRequestBuilder(ValidationRequestBuilder):
         else:
             input_file = FileInput(Path.from_uri(location), {})
             return ValidationRequest(file_format, input_file, validation_mode)
+
+
+class CWLUtilsResponseHandler(ValidationResponseHandler):
+    """Create a validation response from a ValidationResult for cwl-utils calls.
+       As per design, the ValidationResult object gets transferred into an analogous dict in every case."""
+
+    def handle_success(self, validation_result: ValidationResult) -> Dict[str, Any]:
+        """In case of cwl-utils, success is handled within cwl-utils. Returns a dict of the ValidationResult."""
+        #print(validation_result.to_dict())
+        #if validation_result.get_warnings():
+        #    print("Could not validate inputs.")
+        #    for warning in validation_result.get_warnings():
+        #        self._print_warning(warning)
+        #else:
+            #logger.info(f"✅ Validation successful: {validation_result.summary}")
+
+
+        #infos = validation_result.get_infos()
+        #for info in infos:
+            #logger.info(info)
+        return validation_result.to_dict()
+
+
+    def handle_failure(self, validation_result: ValidationResult) -> Dict[str, Any]:
+        """In case of cwl-utils, failure is handled within cwl-utils. Returns a dict of the ValidationResult."""
+        #logger.error(f"❌ Validation failed: {validation_result.summary}")
+
+        #print(f"❌ Format validation failed: {validation_result.summary}", file=sys.stderr)
+
+        # Print all errors to stderr
+        #for error in validation_result.get_errors():
+        #    self._print_error(error)
+
+        # Print warnings too (if any)
+        #if validation_result.get_warnings():
+        #    for warning in validation_result.get_warnings():
+        #        self._print_warning(warning)
+
+        #for info in validation_result.get_infos():
+            #logger.info(info)
+
+        return validation_result.to_dict()
+    def handle_exception(self, exception: Exception, validation_result: ValidationResult) -> Dict[str, Any]:
+        """In case of cwl-utils, exceptions are handled by using validation result warnings.  Returns a dict of the ValidationResult."""
+        return validation_result.to_dict()
