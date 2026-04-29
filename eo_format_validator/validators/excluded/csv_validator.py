@@ -3,7 +3,7 @@ from typing import List
 from eo_format_validator.validators.vector_file_validator import VectorFileValidator
 from eo_format_validator.model.file_input import FileInput
 from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
+from eo_format_validator.registry import validators
 from eo_format_validator.model.validation_result import ValidationResult
 
 

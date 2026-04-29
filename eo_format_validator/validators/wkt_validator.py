@@ -1,19 +1,14 @@
 """Well-known textual representation of geometry"""
 from typing import List
-
 from pyproj import CRS
 from shapely import wkt
 
-from eo_format_validator.validators.vector_file_validator import VectorFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.crs_operations import compare_crs
-from eo_format_validator.utils.shape_operations import compare_shape_type, normalize_geometry_to_shape_type
+from eo_format_validator.model import ValidationResult,Format,FileInput
+from eo_format_validator.util import compare_crs,compare_shape_type, normalize_geometry_to_shape_type
+from ..registry import Registry
+from .vector_file_validator import VectorFileValidator
 
-
-@validators.register("format_4122")
+@Registry.register("format_4122")
 class WKTValidator(VectorFileValidator):
 
     def _get_extensions(self) -> List[str]:

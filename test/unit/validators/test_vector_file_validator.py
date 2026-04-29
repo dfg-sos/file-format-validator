@@ -1,11 +1,7 @@
 import pytest
 from unittest.mock import patch
 from typing import List
-
-from eo_format_validator.validators.vector_file_validator import VectorFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format,ShapeType
-from eo_format_validator.model.validation_result import ValidationResult
+from eo_format_validator import FileInput, Format, ValidationResult,ShapeType, VectorFileValidator
 
 
 # -------TEST VALIDATOR-------

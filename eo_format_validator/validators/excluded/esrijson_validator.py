@@ -5,7 +5,7 @@ from typing import List, Set
 from eo_format_validator.validators.vector_file_validator import VectorFileValidator
 from eo_format_validator.model.file_input import FileInput
 from eo_format_validator.model.format import Format, ShapeType
-from eo_format_validator.validator_registry import validators
+from eo_format_validator.registry import validators
 from eo_format_validator.model.validation_result import ValidationResult
 from eo_format_validator.utils.crs_operations import compare_crs
 from eo_format_validator.utils.shape_operations import normalize_geometry_to_shape_type

@@ -4,16 +4,12 @@
 from pathlib import Path
 from typing import List, Set
 
-from eo_format_validator.validators.vector_file_validator import VectorFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format,ShapeType
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.crs_operations import compare_crs
-from eo_format_validator.utils.shape_operations import normalize_geometry_to_shape_type
+from eo_format_validator.model import FileInput,Format,ShapeType,ValidationResult
+from eo_format_validator.util import normalize_geometry_to_shape_type,compare_crs
+from .vector_file_validator import VectorFileValidator
+from ..registry import Registry
 
-
-@validators.register("format_4108")
+@Registry.register("format_4108")
 class GeoParquetValidator(VectorFileValidator):
 
     def _get_extensions(self) -> List[str]:

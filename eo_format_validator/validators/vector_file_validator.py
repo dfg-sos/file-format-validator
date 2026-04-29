@@ -1,12 +1,7 @@
 from abc import abstractmethod, ABC
 
-from eo_format_validator.model.file_format_validator import FileFormatValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format, ShapeType
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.crs_operations import validate_crs_with_fiona
-from eo_format_validator.utils.open_operations import open_with_fiona
-from eo_format_validator.utils.shape_operations import validate_shape_type_with_fiona
+from eo_format_validator.model import ValidationResult, Format, FileInput,FileFormatValidator,ShapeType
+from eo_format_validator.util import validate_crs_with_fiona, open_with_fiona, validate_shape_type_with_fiona
 
 
 class VectorFileValidator(FileFormatValidator, ABC):

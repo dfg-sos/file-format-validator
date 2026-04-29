@@ -2,15 +2,11 @@
    https://www.cogeo.org/
    https://gdal.org/drivers/raster/cog.html"""
 from typing import List
+from eo_format_validator.model import Format,FileInput,ValidationResult
+from .raster_file_validator import RasterFileValidator
+from ..registry import Registry
 
-from eo_format_validator.validators.raster_file_validator import RasterFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
-
-
-@validators.register("format_4100")
+@Registry.register("format_4100")
 class COGValidator(RasterFileValidator):
 
     def _get_extensions(self) -> List[str]:

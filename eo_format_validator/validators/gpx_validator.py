@@ -4,12 +4,10 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 import xml.etree.ElementTree as ET
 
-from eo_format_validator.validators.vector_file_validator import VectorFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.shape_operations import validate_shape_type_with_fiona
+from eo_format_validator.model import FileInput, Format, ValidationResult
+from .vector_file_validator import VectorFileValidator
+from ..registry import Registry
+from eo_format_validator.util import validate_shape_type_with_fiona
 
 GPX_NAMESPACES = {
         'http://www.topografix.com/GPX/1/0',  # GPX 1.0
@@ -19,7 +17,7 @@ GPX_NAMESPACES = {
 # the required root element name that identifies a GPX document
 GPX_ROOT_ELEMENT = 'gpx'
 
-@validators.register("format_4112")
+@Registry.register("format_4112")
 class GPXValidator(VectorFileValidator):
 
     def _get_extensions(self) -> List[str]:

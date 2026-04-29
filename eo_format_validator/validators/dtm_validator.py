@@ -1,11 +1,10 @@
 """Digital Terrain Model"""
 from typing import List
 
-from eo_format_validator.validators.raster_file_validator import RasterFileValidator
-from eo_format_validator.validator_registry import validators
+from ..registry import Registry 
+from .raster_file_validator import RasterFileValidator
 
-
-@validators.register("format_4104")
+@Registry.register("format_4104")
 class DTMValidator(RasterFileValidator):
 
     def _get_extensions(self) -> List[str]:

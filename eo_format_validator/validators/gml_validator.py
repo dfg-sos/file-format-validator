@@ -4,12 +4,10 @@ from pathlib import Path
 from typing import List
 import xml.etree.ElementTree as ET
 
-from eo_format_validator.validators.vector_file_validator import VectorFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.shape_operations import validate_shape_type_with_fiona
+from eo_format_validator.util import validate_shape_type_with_fiona
+from eo_format_validator.model import FileInput, Format, ValidationResult
+from .vector_file_validator import VectorFileValidator
+from ..registry import Registry
 
 # extend namespaces to allow further gml files deviating from the specification, e.g. platform-specific definitions
 GML_NAMESPACES = {
@@ -19,7 +17,7 @@ GML_NAMESPACES = {
 }
 
 
-@validators.register("format_4111")
+@Registry.register("format_4111")
 class GMLValidator(VectorFileValidator):
 
     def _get_extensions(self) -> List[str]:

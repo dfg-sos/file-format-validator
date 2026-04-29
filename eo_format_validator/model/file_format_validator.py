@@ -1,15 +1,12 @@
-"""Validator interface for any file-based validation."""
-
 from abc import ABC, abstractmethod
 from typing import List
 
-from eo_format_validator.model.validation_mode import ValidationMode
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.structural_checks import check_file_extensions
+from .validation_mode import ValidationMode
+from .validation_result import ValidationResult
+from .format import Format
+from .file_input import FileInput
 
-
+"""Validator interface for any file-based validation."""
 class FileFormatValidator(ABC):
 
     crs_extracted: int
@@ -37,10 +34,11 @@ class FileFormatValidator(ABC):
                 return validation_result
 
     def _validate_extension(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
-        if not check_file_extensions(file_input, self._get_extensions()):
+        if not any(file_input.get_path().suffix.lower() == ext.lower() for ext in self._get_extensions()):
             validation_result.set_failure(message=f"File extension of input file with identifier {file_format.get_identifier()}' did not match expected ones.",
-                                           code="EXT_MISMATCH", path=file_input.get_path().suffix.lower(),) #details={f"File extensions expected": {self._get_extensions()}, "Actual": {file_input.get_path().suffix}})
+                                           code="EXT_MISMATCH", path=file_input.get_path().suffix.lower(),)
             return validation_result
+
         validation_result.set_success(message=f"File extension checked.", code="EXT_PASSED")
         return validation_result
 

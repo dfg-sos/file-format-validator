@@ -1,15 +1,10 @@
 import types
 import sys
 from contextlib import contextmanager
-
 import pytest
 from unittest.mock import Mock, MagicMock, patch
 from typing import List
-
-from eo_format_validator.validators.raster_file_validator import RasterFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.model.validation_result import ValidationResult
+from eo_format_validator import FileInput, Format, ValidationResult, RasterFileValidator
 
 
 # ------TEST VALIDATOR---------

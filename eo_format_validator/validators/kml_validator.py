@@ -7,16 +7,13 @@ from typing import List, Set
 
 import xml.etree.ElementTree as ET
 
-
-from eo_format_validator.validators.vector_file_validator import VectorFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.crs_operations import compare_crs
+from eo_format_validator.model import FileInput, Format, ValidationResult
+from eo_format_validator.util import compare_crs
+from .vector_file_validator import VectorFileValidator
+from ..registry import Registry
 
 
-@validators.register("format_4114")
+@Registry.register("format_4114")
 class KMLValidator(VectorFileValidator):
 
     def _get_extensions(self) -> List[str]:

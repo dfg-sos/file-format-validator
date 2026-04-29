@@ -1,10 +1,7 @@
 from abc import ABC
 
-from eo_format_validator.model.file_format_validator import FileFormatValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.crs_operations import compare_crs
+from eo_format_validator.model import FileFormatValidator,FileInput,Format,ValidationResult
+from eo_format_validator.util import compare_crs
 
 
 class RasterFileValidator(FileFormatValidator, ABC):

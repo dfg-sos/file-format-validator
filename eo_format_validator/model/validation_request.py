@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from eo_format_validator.model.validation_mode import ValidationMode
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
+from .validation_mode import ValidationMode
+from .file_input import FileInput
+from .format import Format
 
 
 @dataclass

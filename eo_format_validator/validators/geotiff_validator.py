@@ -1,14 +1,11 @@
 from pathlib import Path
 from typing import List
 
-from eo_format_validator.validators.raster_file_validator import RasterFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
+from eo_format_validator.model import FileInput,Format,ValidationResult
+from .raster_file_validator import RasterFileValidator
+from ..registry import Registry
 
-
-@validators.register("format_4109")
+@Registry.register("format_4109")
 class GeoTIFFValidator(RasterFileValidator):
 
     def _get_extensions(self) -> List[str]:

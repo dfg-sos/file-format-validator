@@ -5,10 +5,8 @@ import types
 from contextlib import contextmanager
 from unittest.mock import patch
 
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format,ShapeType
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils import shape_operations
+from eo_format_validator import FileInput, Format, ShapeType, ValidationResult
+from eo_format_validator.util import shape_operations
 
 # ----------FIXTURES----------
 @pytest.fixture

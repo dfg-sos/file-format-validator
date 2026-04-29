@@ -1,12 +1,6 @@
 from typing import List, Optional
-
 import pytest
-
-from eo_format_validator.model.file_format_validator import FileFormatValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import Registry
-from eo_format_validator.model.validation_result import ValidationResult
+from eo_format_validator import FileFormatValidator,FileInput,Format,Registry,ValidationResult
 
 
 class MockFileFormatValidator(FileFormatValidator):
@@ -93,7 +87,7 @@ def test_choose_and_instantiate_correct_return():
     assert registry.choose_and_instantiate(format_foo) is None
 
 
-def test_multiple_registries_are_independent():
+def test_registry_singleton():
     """Verify different Registry instances don't interfere."""
     registry1 = Registry()
     registry2 = Registry()
@@ -102,4 +96,4 @@ def test_multiple_registries_are_independent():
     class TestValidator(MockFileFormatValidator):
         pass
 
-    assert "test_id" not in registry2.get_registered_identifiers()
+    assert "test_id" in registry2.get_registered_identifiers()

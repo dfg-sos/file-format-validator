@@ -1,6 +1,6 @@
 """Well-known binary representation of geometry, binary version of WKT"""
 from eo_format_validator.validators.vector_file_validator import VectorFileValidator
-from eo_format_validator.validator_registry import validators
+from eo_format_validator.registry import validators
 
 
 @validators.register("format_4121")

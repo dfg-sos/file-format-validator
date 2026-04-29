@@ -1,6 +1,6 @@
 import pytest
 
-from eo_format_validator.model.validation_result import ValidationResult,Severity
+from eo_format_validator import ValidationResult,Severity
 
 
 

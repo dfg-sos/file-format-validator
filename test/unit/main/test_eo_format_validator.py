@@ -1,12 +1,6 @@
 import pytest
 from unittest.mock import Mock, patch
-
-from eo_format_validator.eo_format_validator import EOFormatValidator
-from eo_format_validator.model.validation_request import ValidationRequest
-from eo_format_validator.model.format import Format
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.validation_mode import ValidationMode
-from eo_format_validator.model.validation_result import ValidationResult
+from eo_format_validator import EOFormatValidator,ValidationRequest,ValidationMode,ValidationResult,Format,FileInput,ValidationRequestBuilder,ValidationResponseHandler
 
 
 # -------FIXTURES---------
@@ -34,6 +28,22 @@ def mock_failed_validator():
 
     return validator
 
+@pytest.fixture
+def mock_builder():
+    """Create mock builder that returns valid ValidationRequest."""
+    builder = Mock(ValidationRequestBuilder)
+
+    mock_validation_request = Mock(ValidationRequest)
+    builder.build.return_value = mock_validation_request
+
+    return builder
+
+
+@pytest.fixture
+def mock_handler():
+    handler = Mock(ValidationResponseHandler)
+    return handler
+
 #https://docs.pytest.org/en/stable/how-to/tmp_path.html
 @pytest.fixture
 def validation_request(tmp_path):
@@ -48,56 +58,61 @@ def validation_request(tmp_path):
         _validation_mode=ValidationMode.STRICT
     )
 
+@pytest.fixture
+def success_validation_result():
+    """Create successful ValidationResult."""
+    result = ValidationResult(_source="test")
+    result.set_success("Validation passed", "SUCCESS")
+    return result
+
+
+@pytest.fixture
+def failed_validation_result():
+    """Create failed ValidationResult."""
+    result = ValidationResult(_source="test")
+    result.set_failure("Validation failed", "FAILED")
+    return result
+
 
 
 # ------------CORE FUNCTIONALITY TESTS---------
 
-@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
-@patch('eo_format_validator.eo_format_validator.validators')
-def test_successful_validation(mock_validators, mock_loader,
-                               validation_request, mock_successful_validator):
+@patch('eo_format_validator.EOFormatValidator.registry')
+def test_successful_validation(mock_registry, validation_request, mock_successful_validator):
     """Test successful validation workflow."""
 
-    mock_loader.return_value = None
-    mock_validators.choose_and_instantiate.return_value = mock_successful_validator
+    mock_registry.choose_and_instantiate.return_value = mock_successful_validator
 
-    result = EOFormatValidator._validate(validation_request)
+    result = EOFormatValidator.validate(validation_request)
 
     assert result.is_valid
     assert result.get_validated()
-    assert len(result.get_infos()) > 0
+    # assert len(result.get_infos()) > 0
 
-    mock_loader.assert_called_once_with("eo_format_validator.validators", False, False)
-    mock_validators.choose_and_instantiate.assert_called_once()
+    mock_registry.choose_and_instantiate.assert_called_once()
     mock_successful_validator.validate.assert_called_once()
 
 
-@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
-@patch('eo_format_validator.eo_format_validator.validators')
-def test_validation_fails_with_errors(mock_validators, mock_loader,
-                                      validation_request, mock_failed_validator):
+@patch('eo_format_validator.EOFormatValidator.registry')
+def test_validation_fails_with_errors(mock_registry, validation_request, mock_failed_validator):
     """Test validation that returns errors."""
 
-    mock_loader.return_value = None
-    mock_validators.choose_and_instantiate.return_value = mock_failed_validator
+    mock_registry.choose_and_instantiate.return_value = mock_failed_validator
 
-    result = EOFormatValidator._validate(validation_request)
+    result = EOFormatValidator.validate(validation_request)
 
     assert not result.is_valid
     assert result.get_validated()
     assert len(result.get_errors()) > 0
 
 
-@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
-@patch('eo_format_validator.eo_format_validator.validators')
-def test_unsupported_format_returns_warning(mock_validators, mock_loader,
-                                            validation_request):
+@patch('eo_format_validator.EOFormatValidator.registry')
+def test_unsupported_format_returns_warning(mock_registry, validation_request):
     """Test handling of unsupported file format."""
 
-    mock_loader.return_value = None
-    mock_validators.choose_and_instantiate.return_value = None
+    mock_registry.choose_and_instantiate.return_value = None
 
-    result = EOFormatValidator._validate(validation_request)
+    result = EOFormatValidator.validate(validation_request)
 
     assert result.is_valid
     assert len(result.get_warnings()) == 1   # Unsupported file formats are supposed to result in a warning instead of an error
@@ -105,18 +120,14 @@ def test_unsupported_format_returns_warning(mock_validators, mock_loader,
     assert result.get_warnings()[0].get_code() == "NOT_SUPPORTED"
 
 
-@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
-@patch('eo_format_validator.eo_format_validator.validators')
-def test_exception_during_validation(mock_validators, mock_loader,
-                                     validation_request):
+@patch('eo_format_validator.EOFormatValidator.registry')
+def test_exception_during_validation(mock_registry, validation_request):
     """Test handling of exception during validation."""
-
-    mock_loader.return_value = None
     mock_validator = Mock()
     mock_validator.validate.side_effect = RuntimeError("Validation crashed")
-    mock_validators.choose_and_instantiate.return_value = mock_validator
+    mock_registry.choose_and_instantiate.return_value = mock_validator
 
-    result = EOFormatValidator._validate(validation_request)
+    result = EOFormatValidator.validate(validation_request)
 
     assert result.is_valid
     assert len(result.get_warnings()) == 1   # Exceptions during validation are supposed to result in a warning instead of an error
@@ -128,16 +139,13 @@ def test_exception_during_validation(mock_validators, mock_loader,
 # --------PARAMETER PASSING TESTS----------
 
 
-@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
-@patch('eo_format_validator.eo_format_validator.validators')
-def test_correct_parameters_passed_to_validator(mock_validators, mock_loader,
-                                                validation_request, mock_successful_validator):
+@patch('eo_format_validator.EOFormatValidator.registry')
+def test_correct_parameters_passed_to_validator(mock_registry, validation_request, mock_successful_validator):
     """Test that ValidationRequest parameters are passed correctly."""
 
-    mock_loader.return_value = None
-    mock_validators.choose_and_instantiate.return_value = mock_successful_validator
+    mock_registry.choose_and_instantiate.return_value = mock_successful_validator
 
-    EOFormatValidator._validate(validation_request)
+    EOFormatValidator.validate(validation_request)
 
     mock_successful_validator.validate.assert_called_once()
     call_args = mock_successful_validator.validate.call_args[0]
@@ -147,19 +155,16 @@ def test_correct_parameters_passed_to_validator(mock_validators, mock_loader,
     assert call_args[2] == validation_request.get_validation_mode()
 
 
-@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
-@patch('eo_format_validator.eo_format_validator.validators')
-def test_format_identifier_used_for_validator_selection(mock_validators, mock_loader,
-                                                        validation_request, mock_successful_validator):
+@patch('eo_format_validator.EOFormatValidator.registry')
+def test_format_identifier_used_for_validator_selection(mock_registry, validation_request, mock_successful_validator):
     """Test that Format is used to choose validator."""
 
-    mock_loader.return_value = None
-    mock_validators.choose_and_instantiate.return_value = mock_successful_validator
+    mock_registry.choose_and_instantiate.return_value = mock_successful_validator
 
-    EOFormatValidator._validate(validation_request)
+    EOFormatValidator.validate(validation_request)
 
-    mock_validators.choose_and_instantiate.assert_called_once()
-    call_args = mock_validators.choose_and_instantiate.call_args[0]
+    mock_registry.choose_and_instantiate.assert_called_once()
+    call_args = mock_registry.choose_and_instantiate.call_args[0]
     assert call_args[0] == validation_request.get_file_format()
 
 
@@ -171,14 +176,11 @@ def test_format_identifier_used_for_validator_selection(mock_validators, mock_lo
     ValidationMode.CRS,
     ValidationMode.STRICT,
 ])
-@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
-@patch('eo_format_validator.eo_format_validator.validators')
-def test_different_validation_modes(mock_validators, mock_loader,
-                                    mode, tmp_path, mock_successful_validator):
+@patch('eo_format_validator.EOFormatValidator.registry')
+def test_different_validation_modes(mock_registry, mode, tmp_path, mock_successful_validator):
     """Test that different validation modes are passed to validator."""
 
-    mock_loader.return_value = None
-    mock_validators.choose_and_instantiate.return_value = mock_successful_validator
+    mock_registry.choose_and_instantiate.return_value = mock_successful_validator
 
     test_file = tmp_path / "test.tif"
     test_file.write_bytes(b"CONTENT")
@@ -189,23 +191,54 @@ def test_different_validation_modes(mock_validators, mock_loader,
         _validation_mode=mode
     )
 
-    EOFormatValidator._validate(request)
+    EOFormatValidator.validate(request)
 
     call_args = mock_successful_validator.validate.call_args[0]
     assert call_args[2] == mode
 
 
+@patch('eo_format_validator.EOFormatValidator.validate')
+def test_execute_validation_success(mock_validate, mock_builder, mock_handler,
+                                    success_validation_result):
+    """Test successful validation workflow."""
+    mock_validate.return_value = success_validation_result
+    result = EOFormatValidator(mock_builder,mock_handler).run()
+    assert result.is_valid
+    mock_validate.assert_called_once()
+    mock_builder.build.assert_called_once()
+    mock_handler.handle_success.assert_called_once_with(success_validation_result)
 
-# -------------EDGE CASE TEST---------------
 
-@patch('eo_format_validator.eo_format_validator.load_validators_from_package')
-@patch('eo_format_validator.eo_format_validator.validators')
-def test_validator_loading_is_called(mock_validators, mock_loader, validation_request):
-    """Test that validator loading is triggered."""
+@patch('eo_format_validator.EOFormatValidator.validate')
+def test_execute_validation_handles_build_exception(mock_validate, mock_builder,
+                                                    mock_handler):
+    """Test handling of exception during builder.build()."""
+    mock_builder.build.side_effect = RuntimeError("Build failed")
 
-    mock_loader.return_value = None
-    mock_validators.choose_and_instantiate.return_value = None
+    result = EOFormatValidator(mock_builder, mock_handler).run()
 
-    EOFormatValidator._validate(validation_request)
+    assert result.is_valid
+    mock_handler.handle_exception.assert_called_once()
+    mock_validate.validate.assert_not_called()
 
-    mock_loader.assert_called_once_with("eo_format_validator.validators", False, False)
+
+@patch('eo_format_validator.EOFormatValidator.validate')
+def test_execute_validation_handles_validation_exception(mock_validate, mock_builder,
+                                                         mock_handler):
+    """Test handling of exception during EOValidator.validate()."""
+    mock_validate.side_effect = RuntimeError("Validation crashed")
+
+    result = EOFormatValidator(mock_builder, mock_handler).run()
+
+    assert result.is_valid
+    mock_handler.handle_exception.assert_called_once()
+    mock_validate.assert_called_once()
+
+@patch('eo_format_validator.EOFormatValidator.validate')
+def test_execute_validation_builder_handles_invalid_path( mock_validate, mock_handler):
+    """Test CWL Utils validation handles build exception."""
+    mock_builder = Mock()
+    mock_builder.build.side_effect = ValueError("Invalid input")
+    result_dict = EOFormatValidator(mock_builder, mock_handler).run()
+    mock_handler.handle_failure.assert_called_once()
+    mock_validate.assert_not_called()

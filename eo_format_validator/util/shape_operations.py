@@ -1,9 +1,6 @@
 from unittest import expectedFailure
 
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format,ShapeType
-from eo_format_validator.model.validation_result import ValidationResult
-
+from eo_format_validator.model import FileInput, Format, ValidationResult,ShapeType
 
 def normalize_geometry_to_shape_type(name: str) -> ShapeType:
     # helper: normalize type strings to ShapeTypes used across validators

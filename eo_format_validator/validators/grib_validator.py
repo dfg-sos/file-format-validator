@@ -1,15 +1,13 @@
 from pathlib import Path
 from typing import List
 
-from eo_format_validator.validators.raster_file_validator import RasterFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.crs_operations import compare_crs
+from eo_format_validator.model import FileInput,Format,ValidationResult
+from .raster_file_validator import RasterFileValidator
+from ..registry import Registry
+from eo_format_validator.util import compare_crs
 
 
-@validators.register("format_4113")
+@Registry.register("format_4113")
 class GRIBValidator(RasterFileValidator):
 
     def _get_extensions(self) -> List[str]:

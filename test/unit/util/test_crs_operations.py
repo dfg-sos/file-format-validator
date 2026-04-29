@@ -2,13 +2,10 @@ import sys
 import types
 from contextlib import contextmanager
 from unittest.mock import patch
-
 import pytest
 
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils import crs_operations
+from eo_format_validator import FileInput, Format, ValidationResult
+from eo_format_validator.util import crs_operations
 
 
 # helper for ValidationResult contents

@@ -1,16 +1,15 @@
 from pathlib import Path
 from typing import List
 
-from eo_format_validator.validators.raster_file_validator import RasterFileValidator
-from eo_format_validator.validators.vector_file_validator import VectorFileValidator
-from eo_format_validator.model.file_input import FileInput
-from eo_format_validator.model.format import Format
-from eo_format_validator.validator_registry import validators
-from eo_format_validator.model.validation_result import ValidationResult
-from eo_format_validator.utils.shape_operations import normalize_geometry_to_shape_type, compare_shape_type
+from eo_format_validator.model import FileInput,Format,ValidationResult
+from eo_format_validator.util import normalize_geometry_to_shape_type, compare_shape_type
+
+from .raster_file_validator import RasterFileValidator
+from .vector_file_validator import VectorFileValidator
+from ..registry import Registry
 
 
-@validators.register("format_4107")
+@Registry.register("format_4107")
 class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure correct use of _validate_open method, implementation of left parent is used due to MRO (https://docs.python.org/3/howto/mro.html)
 
     def _get_extensions(self) -> List[str]:
