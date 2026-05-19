@@ -1,11 +1,11 @@
+from abc import ABC
 from dataclasses import dataclass, field
-from typing import Optional, Any, Dict
 from enum import Enum
+from typing import Optional, Any, Dict
 
 
-class ShapeType(Enum):
+class GeometryType(Enum):
     """References shape types as WKT geometries."""
-
     POINT = "point"
     MULTIPOINT = "multipoint"
     LINESTRING = "linestring"
@@ -16,36 +16,39 @@ class ShapeType(Enum):
     POLYHEDRALSURFACE = "polyhedralsurface"
     TIN = "tin" # triangulated irregular network
     GEOMETRYCOLLECTION = "geometrycollection"
-    OTHER = "other"
 
 
-@dataclass(frozen=True) #immutable objects
+class SpatialReferenceSystem(ABC):
+    def code(self) -> int:
+        ...
+
+class EPSGSpatialReferenceSystem(SpatialReferenceSystem):
+    def __init__(self, epsg_code: int):
+        self.epsg_code = epsg_code
+
+    def code(self) -> int:
+        return self.epsg_code
+    
+class SpatialReferenceSystemEnumMeta(type(Enum),type(SpatialReferenceSystem)):
+    pass    
+
+class CustomSpatialReferenceSystem(SpatialReferenceSystem,Enum,metaclass=SpatialReferenceSystemEnumMeta):
+    WGS84 = 4326
+    MERCATOR = 3857
+
+    def code(self) -> int:
+        return int(self.value)
+
+@dataclass(frozen=True)
 class Format:
     """
        Defines a file format using the following information:
        - identifier: canonical identifier
-       - expected_crs_epsg: expected CRS as EPSG code (int)
-       - shape_type: expected shape defined in vector files
+       - srs: spatial reference system
+       - geometry_type: expected geometry type defined in vector files
        - extras: placeholder dict for any additional information
-
-       Don't name variable 'format' as it would shadow built - in name 'format'
        """
-
-
-    _identifier: str
-    _expected_crs_epsg: Optional[int] = None
-    _shape_type: Optional[ShapeType] = None
-    _extras: Dict[str, Any] = field(default_factory=dict)
-
-
-    def get_identifier(self) -> str:
-        return self._identifier
-
-    def get_expected_crs_epsg(self) -> Optional[int]:
-        return self._expected_crs_epsg
-
-    def get_shape_type(self) -> Optional[ShapeType]:
-        return self._shape_type
-
-    def get_extras(self) -> dict[str, Any]:
-        return self._extras
+    identifier: str
+    srs: Optional[SpatialReferenceSystem] = None
+    geometry_type: Optional[GeometryType] = None
+    extras: Dict[str, Any] = field(default_factory=dict)
