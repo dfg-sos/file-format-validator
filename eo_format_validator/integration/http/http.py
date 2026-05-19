@@ -30,25 +30,3 @@ class HTTPValidator(EOFormatValidator):
     """EOFormatValidator implementation for HTTP requests."""
     def __init__(self, request: requests.Request):
         super().__init__(HTTPRequestBuilder(request), HTTPResponseHandler())
-
-
-# def create_app():
-#     """Lazy FastAPI app factory.
-#     Importing FastAPI is done inside the function so the module can be imported without optional deps.
-#     """
-#     try:
-#         from fastapi import FastAPI
-#     except Exception as e:
-#         raise RuntimeError("FastAPI is not installed. Install optional dependency 'http' to enable the HTTP adapter.") from e
-
-#     app = FastAPI(title="EO Format Validator")
-
-#     @app.get("/health")
-#     def health():
-#         return {"status": "ok"}
-
-#     @app.post("/validate")
-#     def validate(payload: dict):
-#         return {"detail": "HTTP adapter not implemented yet", "received": payload}
-
-#     return app
