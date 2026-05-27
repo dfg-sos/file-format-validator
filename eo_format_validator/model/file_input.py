@@ -1,7 +1,7 @@
 #@dataclass(frozen=True) #immutable objects
 from dataclasses import field, dataclass
 from pathlib import Path
-from typing import Dict, Any,List
+from typing import List,Set
 
 @dataclass(frozen=True)
 class FileInput:
@@ -22,8 +22,13 @@ class FileInput:
     #         # Requires a file instead of a directory.
     #         raise ValueError(f"Input '{self.path}' is not a file.") 
 
-    def files(self) -> List[Path]:
-        return [self.path]
+    def files(self) -> Set[Path]:
+        return {self.path}
+    
+    def __eq__(self,other):
+        if not isinstance(other, FileInput):
+            return False
+        return self.files() == other.files()
     
 @dataclass(frozen=True)
 class MultiFileInput(FileInput):
@@ -33,7 +38,7 @@ class MultiFileInput(FileInput):
        - secondary files: field for secondary files (for multi-file formats like Shapefile)
     """
 
-    secondary_files: List[Path]
+    secondary_files: Set[Path]
 
     # def __post_init__(self):
 
@@ -47,5 +52,5 @@ class MultiFileInput(FileInput):
 
 
     def files(self):
-        return super().files() + self.secondary_files
+        return super().files().union(self.secondary_files)
 

@@ -3,54 +3,46 @@ import datetime
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List
 from enum import Enum
+from .validation_request import ValidationRequest
 
 class Severity(Enum):
     ERROR = "error"
     WARNING = "warning"
     INFO = "info"
 
+class Cause(Enum):
+    PATH_ERROR = "path_error"
+    EXTENSION_MISMATCH = "extension_mismatch"
+
+@dataclass(frozen=True)
+class Event:
+    message: str 
+    severity: Severity
+    timestamp: datetime.datetime = field(default_factory=lambda: datetime.datetime.now())
+
+@dataclass(frozen=True)
+class Info(Event):
+    severity: Severity = field(default=Severity.INFO, init=False)
+
+@dataclass(frozen=True)
+class Warning(Event):
+    severity: Severity = field(default=Severity.WARNING, init=False)
+    cause: Optional[Cause] = None
+
+@dataclass(frozen=True)
+class Error(Event):
+    severity: Severity = field(default=Severity.ERROR, init=False)
+    cause: Optional[Cause] = None
+
+
+class ValidationStatus(Enum):
+    SUCCESS = "success"
+    FAILURE = "failure"
+    UNCERTAIN = "uncertain"
+    INIT = "init"
+
 
 @dataclass
-class Issue:
-    """Represents a single issue (error/warning/info)."""
-    _message: str
-    _severity: Severity = Severity.ERROR
-    _code: Optional[str] = None            # machine interpretable error code
-    _path: Optional[str] = None            # JSON path / Feature ID / field name
-    _details: Dict[str, Any] = field(default_factory=dict)
-    _timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat() + "Z")
-
-    def to_dict(self) -> Dict[str, Any]:
-
-        return {
-            "message": self._message,
-            "severity": self._severity.value,
-            "code": self._code,
-            "path": self._path,
-            "details": self._details,
-            "timestamp": self._timestamp,
-        }
-
-    def get_message(self) -> str:
-        return self._message
-
-    def get_severity(self) -> Severity:
-        return self._severity
-
-    def get_code(self) -> Optional[str]:
-        return self._code
-
-    def get_path(self) -> Optional[str]:
-        return self._path
-
-    def get_details(self) -> Dict[str, Any]:
-        return self._details
-
-    def get_timestamp(self) -> str:
-        return self._timestamp
-
-
-@dataclass #-> automatic __init__
 class ValidationResult:
     """
     General object for the result of validators.
@@ -58,107 +50,113 @@ class ValidationResult:
     Additional information can be provided as details.
     """
 
-    _source: Optional[str] = ""                    # path or identifier of the tested resource
-    _validated: bool = False                       # flag == true if validation took place, regardless of the outcome
-    _uncertain: bool = False                       # flag == true if validation could not be performed
-    _errors: List[Issue] = field(default_factory=list)
-    _warnings: List[Issue] = field(default_factory=list)
-    _infos: List[Issue] = field(default_factory=list)
-    _details: Dict[str, Any] = field(default_factory=dict)
+    _request: ValidationRequest
+    _status: ValidationStatus = ValidationStatus.INIT
+    _events: List[Event] = field(default_factory=list)  # list of events (errors/warnings/infos) that occurred during validation
 
-    # --- convenience / mutators ------------------------------------------------
-    def add_issue(self, issue: Issue) -> None:
-        if issue.get_severity() == Severity.ERROR:
-            self._errors.append(issue)
-        elif issue.get_severity() == Severity.WARNING:
-            self._warnings.append(issue)
-        else:
-            self._infos.append(issue)
+    # Getters and setters
 
-    def add_warning(self, message: str, code: Optional[str] = None, path: Optional[str] = None, details: Optional[Dict[str,Any]] = None):
-        self.add_issue(Issue(_message=message, _severity=Severity.WARNING, _code=code, _path=path, _details=(details or {})))
+    @property
+    def status(self) -> ValidationStatus:
+        return self._status
+    
+    @status.setter
+    def status(self, value: ValidationStatus):
+        if self.status == ValidationStatus.FAILURE or len(self.errors()) > 0:
+            self.status = ValidationStatus.FAILURE # Failure overrides success or uncertainty
+            return
+        self._status = value
 
-    def add_info(self, message: str, code: Optional[str] = None, path: Optional[str] = None, details: Optional[Dict[str,Any]] = None):
-        self.add_issue(Issue(_message=message, _severity=Severity.INFO, _code=code, _path=path, _details=(details or {})))
+    @property
+    def request(self) -> ValidationRequest:
+        return self._request
+    
+    @property
+    def events(self) -> List[Event]:
+        return self._events
 
-    def set_success(self, message: str, code: Optional[str] = None, path: Optional[str] = None, details: Optional[Dict[str,Any]] = None) -> None:
-        self.set_validated()
-        self.add_info(message, code, path, details)
+    def get(self, severity: Severity) -> List[Event]:
+        return [e for e in self._events if e.severity == severity]
 
-    def set_failure(self, message: str, code: Optional[str] = None, path: Optional[str] = None, details: Optional[Dict[str,Any]] = None):
-        self.set_validated()
-        self.add_issue(Issue(_message=message, _severity=Severity.ERROR, _code=code, _path=path, _details=(details or {})))
+    def errors(self):
+        return self.get(Severity.ERROR)
 
-    def set_uncertainty(self, message: str, code: Optional[str] = None, path: Optional[str] = None, details: Optional[Dict[str,Any]] = None):
-        self.set_uncertain()
-        self.add_warning(message, code, path, details)
+    def warnings(self):
+        return self.get(Severity.WARNING)
 
-    def get_source(self):
-        return self._source
+    def infos(self):
+        return self.get(Severity.INFO)
+    
+    # Modifiers
+    
+    def add(self, event: Event) -> None:
+        self._events.append(event)
 
-    def get_errors(self):
-        return self._errors
+    def set_success(self, info: Info | None = None) -> 'ValidationResult':
+        self.status = ValidationStatus.SUCCESS
+        if info:
+            self.add(info)
+        return self
 
-    def get_warnings(self):
-        return self._warnings
+    def set_failure(self, error: Error) -> 'ValidationResult':
+        self.status = ValidationStatus.FAILURE
+        self.add(error)
+        return self
 
-    def get_infos(self):
-        return self._infos
+    def set_uncertainty(self, warning: Warning) -> 'ValidationResult':
+        self.status = ValidationStatus.UNCERTAIN
+        self.add(warning)
+        return self
 
-    def get_details(self):
-        return self._details
 
-    #def set_fallback(self):
-    #    self.fallback = True
 
-    def set_validated(self):
-        self._validated = True
+    # @classmethod
+    # def from_error(cls, source: Optional[str], message: str, code: Optional[str] = None, details: Optional[Dict[str,Any]] = None):
+    #     vr = cls(_source=source)
+    #     vr.set_failure(message, code=code, details=details)
+    #     return vr
 
-    def get_validated(self) -> bool:
-        return self._validated
+    # @classmethod
+    # def from_exception(cls, source: Optional[str], exc: Exception, code: str = "EXCEPTION", details: Optional[Dict[str,Any]] = None):
+    #     return cls.from_error(source, str(exc), code=code, details=details)
+    
+    # Factories
 
-    def invalidate(self):
-        self._validated = False
-
-    def set_uncertain(self):
-        self._uncertain = True
-
-    def get_uncertain(self) -> bool:
-        return self._uncertain
-
-    @classmethod
-    def from_error(cls, source: Optional[str], message: str, code: Optional[str] = None, details: Optional[Dict[str,Any]] = None):
-        vr = cls(_source=source)
-        vr.set_failure(message, code=code, details=details)
+    @staticmethod
+    def success(request: ValidationRequest, event: Info | None) -> 'ValidationResult':
+        vr = ValidationResult(_request=request)
+        vr.set_success(event)
+        return vr
+    
+    @staticmethod
+    def failure(request: ValidationRequest, event: Error) -> 'ValidationResult':
+        vr = ValidationResult(_request=request)
+        vr.set_failure(event)
         return vr
 
-    @classmethod
-    def from_exception(cls, source: Optional[str], exc: Exception, code: str = "EXCEPTION", details: Optional[Dict[str,Any]] = None):
-        return cls.from_error(source, str(exc), code=code, details=details)
 
-    # --- derived properties ---------------------------------------------------
-    @property
-    def is_valid(self) -> bool:
-        return len(self._errors) == 0
+    # Derived properties
 
-    @property
-    def is_empty(self) -> bool:
-        return not self._validated and len(self._errors) == 0 and len(self._warnings) == 0 and len(self._infos) == 0
+
+
+    # @property
+    # def is_empty(self) -> bool:
+    #     return len(self._events) == 0
 
     @property
     def summary(self) -> Dict[str,int]:
-        return {"errors": len(self._errors), "warnings": len(self._warnings), "infos": len(self._infos)}
+        return {"errors": len(self.errors()), "warnings": len(self.warnings()), "infos": len(self.infos())}
 
-    @property
-    def get_report(self):
-        return {
-            self._source,
-            {self._validated},
-            self.summary,
-            self._errors,
-            self._warnings,
-            self._infos
-        }
+    # @property
+    # def get_report(self):
+    #     return {
+    #         self._source,
+    #         {self._validated},
+    #         self.summary,
+    #         self._errors,
+    #         self._warnings,
+    #         self._infos
+    #     }
 
     # --- utility --------------------------------------------------------------
     def to_dict(self, include_details: bool = True) -> Dict[str, Any]:
@@ -177,57 +175,23 @@ class ValidationResult:
     def to_json(self) -> str:
         return json.dumps(self.to_dict(), indent=4)
 
-    # merging results
     def merge(self, other: 'ValidationResult') -> "ValidationResult":
-        """Merge: errors/warnings/infos + details.
-           Two ValidationResults are validated if both are validated separately. Ignore empty ValidationResults.
-        """
         if other is None:
             return self
-        if not self.is_empty and not other.is_empty:
-            self._validated = self._validated and other.get_validated()
-        elif not other.is_empty:
-            self._validated = other.get_validated()
-        # if other is empty remains self.validated, if both are empty, remains False
-        if other._source and not self._source:
-            self._source = other.get_source()
-        #if other.top_type and not self.top_type:
-        #    self.top_type = other.top_type
-        def extend_unique(first: Optional[List[Issue]], second: Optional[List[Issue]]) -> List[Issue]:
-            """
-               Extends list of Issues 'first' by all elements in list of Issues 'second' that are not yet included in first.
-               - accounts for None and empty lists
-               - extends 'first' and returns 'first'
-            """
-            if not first:
-                return second
-            if not second:
-                return first
-
-            for issue in second:
-                if issue not in first:
-                    first.append(issue)
-            return first
-
-        self._errors = extend_unique(self._errors, other.get_errors())
-        self._warnings = extend_unique(self._warnings, other.get_warnings())
-        self._infos = extend_unique(self._infos, other.get_infos())
-        #self.get_warnings().extend(other.get_warnings())
-        #self.get_infos().extend(other.get_infos())
-        # shallow merge of details, existing keys preserved
-        for k, v in other.get_details().items():
-            self._details.setdefault(k, v)
+        if not self.request == other.request:
+            raise ValueError(f"Cannot merge ValidationResults from different requests: '{self.request}' vs '{other.request}'")
+        match other.status:
+            case ValidationStatus.FAILURE:
+                self.status = ValidationStatus.FAILURE
+            case ValidationStatus.UNCERTAIN:
+                self.status = ValidationStatus.UNCERTAIN
+            case _: pass
+        for new_event in [e for e in other.events if e not in self._events]:
+            self.add(new_event)
         return self
 
-    #def raise_for_errors(self) -> None:
-    #    """Raise Exception if validation failed."""
-    #    if not self.is_valid:
-    #        msgs = "; ".join([e.get_message() for e in self.get_errors()])
-    #        raise ValidationError(f"Validation failed: {msgs}")
-
-    def __str__(self) -> str:
-        sb = [f"ValidationResult(source={self._source!r}, valid={self.is_valid}, validated={self._validated})",
-              f"  errors={len(self._errors)}, warnings={len(self._warnings)}, infos={len(self._infos)}"]
-        if self._details:
-            sb.append(f"  details keys={list(self._details.keys())}")
-        return "\n".join(sb)
+    def __add__(self, other: 'ValidationResult') -> 'ValidationResult':
+        return self.merge(other)
+    
+    def __bool__(self) -> bool:
+        return self.status == ValidationStatus.SUCCESS
