@@ -1,7 +1,7 @@
 #@dataclass(frozen=True) #immutable objects
 from dataclasses import field, dataclass
 from pathlib import Path
-from typing import List,Set
+from typing import Set
 
 @dataclass(frozen=True)
 class FileInput:
@@ -12,15 +12,6 @@ class FileInput:
     """
 
     path: Path
-
-    # def __post_init__(self):
-
-    #     if not self.path.exists():
-    #         raise ValueError(f"Input '{self.path}' does not exist.")
-
-    #     if not self.path.is_file():
-    #         # Requires a file instead of a directory.
-    #         raise ValueError(f"Input '{self.path}' is not a file.") 
 
     def files(self) -> Set[Path]:
         return {self.path}
@@ -39,17 +30,6 @@ class MultiFileInput(FileInput):
     """
 
     secondary_files: Set[Path]
-
-    # def __post_init__(self):
-
-    #     for path in self.secondary_files: # loop files and check existence
-    #         if not path.exists():
-    #             raise ValueError(f"Input '{path}' does not exist.")  # catch at initialization before validate()
-
-    #         if not path.is_file():
-    #             # requires a file instead of a directory.
-    #             raise ValueError(f"Input '{path}' is not a file.")  # catch at initialization before validate()
-
 
     def files(self):
         return super().files().union(self.secondary_files)

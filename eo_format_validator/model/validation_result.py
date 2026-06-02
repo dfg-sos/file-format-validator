@@ -13,6 +13,10 @@ class Severity(Enum):
 class Cause(Enum):
     PATH_ERROR = "path_error"
     EXTENSION_MISMATCH = "extension_mismatch"
+    INVALID_METADATA = "invalid_metadata"
+    MISSING_METADATA = "srs_missing"
+    FILE_OPEN_ERROR = "file_open_error"
+    UNKNOWN = "unknown"
 
 @dataclass(frozen=True)
 class Event:
@@ -108,6 +112,15 @@ class ValidationResult:
         self.add(warning)
         return self
 
+    def evaluate(self) -> 'ValidationResult':
+        if self.status == ValidationStatus.INIT:
+            if len(self.errors()) > 0:
+                self.status = ValidationStatus.FAILURE
+            elif len(self.warnings()) > 0:
+                self.status = ValidationStatus.UNCERTAIN
+            else:
+                self.status = ValidationStatus.SUCCESS
+        return self
 
 
     # @classmethod
@@ -123,7 +136,7 @@ class ValidationResult:
     # Factories
 
     @staticmethod
-    def success(request: ValidationRequest, event: Info | None) -> 'ValidationResult':
+    def success(request: ValidationRequest, event: Info | None = None) -> 'ValidationResult':
         vr = ValidationResult(_request=request)
         vr.set_success(event)
         return vr
@@ -133,47 +146,30 @@ class ValidationResult:
         vr = ValidationResult(_request=request)
         vr.set_failure(event)
         return vr
-
-
-    # Derived properties
-
-
-
-    # @property
-    # def is_empty(self) -> bool:
-    #     return len(self._events) == 0
-
-    @property
-    def summary(self) -> Dict[str,int]:
-        return {"errors": len(self.errors()), "warnings": len(self.warnings()), "infos": len(self.infos())}
-
-    # @property
-    # def get_report(self):
-    #     return {
-    #         self._source,
-    #         {self._validated},
-    #         self.summary,
-    #         self._errors,
-    #         self._warnings,
-    #         self._infos
-    #     }
+    
+    @staticmethod
+    def uncertain(request: ValidationRequest, event: Warning) -> 'ValidationResult':
+        vr = ValidationResult(_request=request)
+        vr.set_uncertainty(event)
+        return vr
+    
 
     # --- utility --------------------------------------------------------------
-    def to_dict(self, include_details: bool = True) -> Dict[str, Any]:
-        d = {
-            "source": self._source,
-            "validated": self._validated,
-            "summary": self.summary,
-            "errors": [i.to_dict() for i in self._errors],
-            "warnings": [i.to_dict() for i in self._warnings],
-            "infos": [i.to_dict() for i in self._infos],
-        }
-        if include_details:
-            d["details"] = self._details
-        return d
+    # def to_dict(self, include_details: bool = True) -> Dict[str, Any]:
+    #     d = {
+    #         "source": self._source,
+    #         "validated": self._validated,
+    #         "summary": self.summary,
+    #         "errors": [i.to_dict() for i in self._errors],
+    #         "warnings": [i.to_dict() for i in self._warnings],
+    #         "infos": [i.to_dict() for i in self._infos],
+    #     }
+    #     if include_details:
+    #         d["details"] = self._details
+    #     return d
 
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict(), indent=4)
+    # def to_json(self) -> str:
+    #     return json.dumps(self.to_dict(), indent=4)
 
     def merge(self, other: 'ValidationResult') -> "ValidationResult":
         if other is None:
