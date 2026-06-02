@@ -7,7 +7,7 @@ from .raster_file_validator import RasterFileValidator
 @Registry.register("format_4104")
 class DTMValidator(RasterFileValidator):
 
-    def _get_extensions(self) -> List[str]:
+    def get_extensions(self) -> List[str]:
         # DTMs are usually GeoTIFFs -> allow common raster extensions
         return [".tif", ".tiff"]
 

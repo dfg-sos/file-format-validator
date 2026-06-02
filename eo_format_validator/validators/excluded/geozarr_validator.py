@@ -19,6 +19,6 @@ class GeoZarrValidator(RasterFileValidator):
                        validation_result: ValidationResult) -> ValidationResult:
         pass
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput,
+    def assert_srs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         pass

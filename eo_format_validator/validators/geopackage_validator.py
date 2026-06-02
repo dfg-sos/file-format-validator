@@ -125,15 +125,15 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             )
             return validation_result
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
+    def assert_srs(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
         """If file does not use a crs, only add info and return."""
         try:
             gpkg_type = self._detect_gpkg_type(file_input.get_path())
 
             if gpkg_type == 'raster':
-                return RasterFileValidator._validate_crs(self, file_format, file_input, validation_result)
+                return RasterFileValidator.assert_srs(self, file_format, file_input, validation_result)
             elif gpkg_type == 'vector':
-                return VectorFileValidator._validate_crs(self, file_format, file_input, validation_result)
+                return VectorFileValidator.assert_srs(self, file_format, file_input, validation_result)
             else:
                 validation_result.set_uncertainty(
                     message="Could not determine whether the GeoPackage contains raster or vector data.",
@@ -162,12 +162,12 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             if gpkg_type == 'raster':
                 self._validate_extension(file_format, file_input, validation_result)
                 RasterFileValidator._validate_open(self, file_format, file_input, validation_result)
-                RasterFileValidator._validate_crs(self, file_format, file_input, validation_result)
+                RasterFileValidator.assert_srs(self, file_format, file_input, validation_result)
 
             elif gpkg_type == 'vector':
                 self._validate_extension(file_format, file_input, validation_result)
                 VectorFileValidator._validate_open(self, file_format, file_input, validation_result)
-                VectorFileValidator._validate_crs(self, file_format, file_input, validation_result)
+                VectorFileValidator.assert_srs(self, file_format, file_input, validation_result)
                 self._validate_shape_type(file_format, file_input, validation_result)
 
             else:

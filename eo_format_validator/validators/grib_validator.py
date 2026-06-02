@@ -42,7 +42,7 @@ class GRIBValidator(RasterFileValidator):
             )
             return validation_result
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput,
+    def assert_srs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         """Quick CRS detection for GRIB files.
            Strategy:

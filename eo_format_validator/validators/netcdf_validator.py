@@ -89,7 +89,7 @@ class NetCDFValidator(RasterFileValidator):
             return validation_result
 
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput,
+    def assert_srs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         """
            Validate that the NetCDF file has a valid Coordinate Reference System.

@@ -10,7 +10,7 @@ from .vector_file_validator import VectorFileValidator
 @Registry.register("format_4106")
 class GeoJSONValidator(VectorFileValidator):
 
-    def _get_extensions(self) -> List[str]:
+    def get_extensions(self) -> List[str]:
         return ['.geojson', '.json']
 
     def _validate_open(self, file_format: Format, file_input: FileInput,
@@ -58,7 +58,7 @@ class GeoJSONValidator(VectorFileValidator):
         )
         return validation_result
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput,
+    def assert_srs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         """Quick CRS check for GeoJSON.
            - If the file contains a 'crs' member, use it.

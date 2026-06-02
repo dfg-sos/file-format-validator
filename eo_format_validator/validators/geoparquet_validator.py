@@ -74,7 +74,7 @@ class GeoParquetValidator(VectorFileValidator):
                 )
                 return validation_result
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput,
+    def assert_srs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         """Find CRS candidate(s) in the GeoParquet file and compare them to the expected one."""
         path: Path = file_input.get_path()

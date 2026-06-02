@@ -64,7 +64,7 @@ class EsriJSONValidator(VectorFileValidator):
         )
         return validation_result
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput,
+    def assert_srs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         """Quick CRS check for GeoJSON.
            - If the file contains a 'crs' member, use it.

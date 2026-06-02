@@ -63,7 +63,7 @@ class KMLValidator(VectorFileValidator):
         )
         return validation_result
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput,
+    def assert_srs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         """KML is by specification WGS84/EPSG:4326. This method attempts to check whether this is true.
            Find first plausible CRS in KML.

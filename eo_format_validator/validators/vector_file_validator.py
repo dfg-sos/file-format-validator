@@ -1,39 +1,104 @@
 from abc import abstractmethod, ABC
+from typing import Optional
 
-from eo_format_validator.model import ValidationResult, Format, FileInput,FileFormatValidator,ShapeType
+from .eo_file_format_validator import EOFileFormatValidator
+from eo_format_validator.model import ValidationResult,GeometryType,EOValidationRequest,ValidationRequest,Error,Warning,Info,Cause,CoordinateReferenceSystem,EPSGCoordinateReferenceSystem,ValidationMode
 from eo_format_validator.util import validate_crs_with_fiona, open_with_fiona, validate_shape_type_with_fiona
 
+import fiona
+from fiona.errors import DriverError
 
-class VectorFileValidator(FileFormatValidator, ABC):
-    """Implements _validate_open and _validate_crs using fiona as it is the required implementation for both GeoPackage and Shapefile."""
+class VectorFileValidator(EOFileFormatValidator, ABC):
+    def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
+        try:
+            with fiona.open(str(request.actual_file.path)) as fiona_collection:
+                return ValidationResult.success(request)
+        except DriverError as e:
+            return ValidationResult.failure(
+                request,
+                Error(message=f"Failed to open file '{request.actual_file.path}' with Fiona:\n{str(e)}", cause=Cause.FILE_OPEN_ERROR)
+            )
+        except Exception as exc:
+            return ValidationResult.uncertain(
+                request,
+                Warning(message=f"Unknown exception occurred while opening '{request.actual_file.path}' with Fiona:\n{exc.__class__}:{str(exc)}", cause=Cause.FILE_OPEN_ERROR)
+            )
 
-    shape_type_extracted: ShapeType
+    def get_crs(self, request: EOValidationRequest) -> Optional[CoordinateReferenceSystem]:
+        try:
+            with fiona.open(request.actual_file.path) as fiona_collection:
+                crs = fiona_collection.crs
+                return EPSGCoordinateReferenceSystem(crs.to_epsg()) if crs else None
+        except Exception as e:
+            return None
+        
+    @staticmethod
+    def to_geometry_type(name: str) -> Optional[GeometryType]:
+        if name:
+            name = str(name).strip().lower()
+            match name:
 
-    def _validate_open(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
-        return open_with_fiona(file_format, file_input, validation_result)
+                case "point":
+                    return GeometryType.POINT
+                case "multipoint" | "multi point":
+                    return GeometryType.MULTIPOINT
+                case "linestring" | "line string" | "line":
+                    return GeometryType.LINESTRING
+                case "multilinestring" | "multi linestring" | "multi line string" | "multiline" | "multi line":
+                    return GeometryType.MULTILINESTRING
+                case "polygon":
+                    return GeometryType.POLYGON
+                case "multipolygon" | "multi polygon":
+                    return GeometryType.MULTIPOLYGON
+                case "triangle":
+                    return GeometryType.TRIANGLE
+                case "polyhedralsurface" | "polyhedral surface":
+                    return GeometryType.POLYHEDRALSURFACE
+                case "tin" | "triangulated irregular network":
+                    return GeometryType.TIN
+                case "geometrycollection" | "geometry collection":
+                    return GeometryType.GEOMETRYCOLLECTION
+                case _:
+                    pass
+        return None
 
-    def _validate_crs(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
-        return validate_crs_with_fiona(file_format, file_input, validation_result)
 
-    @abstractmethod
-    def _validate_shape_type(self, file_format: Format, file_input: FileInput,
-                             validation_result: ValidationResult) -> ValidationResult:
-        return validate_shape_type_with_fiona(file_format, file_input, validation_result)
+    def assert_geometry_type(self,request: EOValidationRequest) -> ValidationResult:
+        try:
+            with fiona.open(str(request.actual_file.path)) as src:
+                schema = src.schema
+                actual_geometry_type = VectorFileValidator.to_geometry_type(schema.get('geometry', None)) # type: ignore
+                if not actual_geometry_type:
+                    return ValidationResult.uncertain(
+                        request,
+                        Warning(message=f"File has no geometry type defined, cannot validate against expected shape type.", cause=Cause.MISSING_METADATA)
+                    )
+            expected_geometry_type = request.geometry_type
 
-    def get_shape_type(self):
-        return self.shape_type_extracted
+            if not expected_geometry_type:
+                return ValidationResult.success(
+                    request,
+                    Info(message=f"Geometry type '{actual_geometry_type}' detected. No expected geometry type given, skipping geometry type validation.")
+                )
+            if expected_geometry_type != actual_geometry_type:
+                return ValidationResult.failure(
+                    request,
+                    Error(message=f"File geometry type '{actual_geometry_type}' does not match expected geometry type '{expected_geometry_type}'.", cause=Cause.INVALID_METADATA)
+                )
+            return ValidationResult.success(request)
+        except Exception as e:
+            return ValidationResult.uncertain(
+                request,
+                Warning(message=f"Unexpected error while validating geometry type:\n{str(e)}",cause = Cause.FILE_OPEN_ERROR
+            ))
 
-    def _validate_strict(self, file_format: Format, file_input: FileInput,
-                         validation_result: ValidationResult) -> ValidationResult:
-        """Combination of all other validation methods, stacking ValidationResults. Includes shape type for vector files."""
-
-        self._validate_extension(file_format, file_input, validation_result)
-        self._validate_open(file_format, file_input, validation_result)
-        self._validate_crs(file_format, file_input, validation_result)
-        self._validate_shape_type(file_format, file_input, validation_result)
-
-        # decide validated status according to unfinished validation steps: one uncertainty invalidates other validated partial results
-        if validation_result.get_validated() and validation_result.get_uncertain() and validation_result.is_valid:
-            validation_result.invalidate()
-
-        return validation_result
+    def validate(self, request: ValidationRequest) -> ValidationResult:
+        result = super().validate(request)
+        if not isinstance(request, EOValidationRequest):
+            return result
+        match request.mode:
+            case ValidationMode.FULL:
+                result += self.assert_geometry_type(request)
+            case _:
+                pass
+        return result.evaluate()
