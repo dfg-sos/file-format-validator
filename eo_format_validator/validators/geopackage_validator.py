@@ -1,357 +1,176 @@
-from pathlib import Path
-from typing import List
+from typing import List, Optional,Dict
+from attr import dataclass
+import geopandas as gpd
+import fiona
 
-from eo_format_validator.model import FileInput,Format,ValidationResult
-from eo_format_validator.util import normalize_geometry_to_shape_type, compare_shape_type
-
+from eo_format_validator.model import ValidationResult,ValidationRequest, Warning, Cause, Error,CoordinateReferenceSystem,EPSGCoordinateReferenceSystem
+from eo_format_validator.model.validation_request import EOValidationRequest
 from .raster_file_validator import RasterFileValidator
 from .vector_file_validator import VectorFileValidator
 from ..registry import Registry
 
 
 @Registry.register("format_4107")
+@dataclass
 class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure correct use of _validate_open method, implementation of left parent is used due to MRO (https://docs.python.org/3/howto/mro.html)
+    geopandas_dfs: Dict[str,List[gpd.GeoDataFrame]] = {}
 
-    def _get_extensions(self) -> List[str]:
+    def _read(self, request: ValidationRequest) -> List[gpd.GeoDataFrame]:
+        if self.geopandas_dfs.get(str(request.actual_file.path)) is not None:
+            return self.geopandas_dfs[str(request.actual_file.path)]
+        layers = fiona.listlayers(str(request.actual_file.path))
+        dfs = []
+        for layer in layers:
+            df = gpd.read_file(str(request.actual_file.path), layer=layer)
+            df.attrs["layer"] = layer
+            dfs.append(df)
+        self.geopandas_dfs[str(request.actual_file.path)] = dfs
+        return dfs
+
+    def get_extensions(self) -> List[str]:
         return ['.gpkg']
 
-    def _validate_extension(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
-
-        super()._validate_extension(file_format, file_input, validation_result)
-        self._validate_gpkg_tables(file_input, validation_result)
-
-        # decide validated status according to unfinished validation steps: one uncertainty invalidates other valid partial results
-        if validation_result.get_validated() and validation_result.get_uncertain() and validation_result.is_valid:
-            validation_result.invalidate()
-
-        return validation_result
-
     @staticmethod
-    def _validate_gpkg_tables(file_input: FileInput,
-                              validation_result: ValidationResult) -> ValidationResult:
+    def assert_gpkg_tables(request: ValidationRequest) -> ValidationResult:
         """
            Check required and recommended GeoPackage system tables.
             - Required tables: gpkg_contents, gpkg_spatial_ref_sys
             - Recommended tables: gpkg_extensions, gpkg_metadata, gpkg_metadata_reference
         """
-        path = file_input.get_path()
-
-        # open sqlite and list tables
         try:
             import sqlite3
-            conn = sqlite3.connect(str(path))
+            conn = sqlite3.connect(str(request.actual_file.path))
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
-
             cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = {row["name"] for row in cur.fetchall()}
         except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"Failed to inspect GeoPackage SQLite file: {exc}",
-                code="SQLITE_OPEN_FAILED",
-                details={"exception": str(exc)}
+            return ValidationResult.uncertain(
+                request,
+                Warning(message=f"Failed to inspect GeoPackage SQLite file: \n{exc}", cause=Cause.UNKNOWN)
             )
-            return validation_result
-
-        # Required & recommended
-        required_tables = {"gpkg_contents", "gpkg_spatial_ref_sys"}
-        recommended_tables = {"gpkg_extensions", "gpkg_metadata", "gpkg_metadata_reference"}
-
-        missing_required = required_tables - tables
+        REQUIRED_TABLES = {"gpkg_contents", "gpkg_spatial_ref_sys"}
+        RECOMMENDED_TABLES = {"gpkg_extensions", "gpkg_metadata", "gpkg_metadata_reference"}
+        missing_required = REQUIRED_TABLES - tables
         if missing_required:
-            # hard error if core gpkg tables missing
-            validation_result.set_failure(
-                message=f"GeoPackage missing required tables: {sorted(list(missing_required))}",
-                code="GPKG_REQUIRED_MISSING",
-                details={"missing": sorted(list(missing_required))}
+            return ValidationResult.failure(
+                request,
+                Error(message=f"GeoPackage missing required tables: {sorted(list(missing_required))}",cause=Cause.STRUCTURAL_MALFORMED)
             )
-            # still continue to collect more info
-        # warn for recommended missing
-        missing_recommended = recommended_tables - tables
+        missing_recommended = RECOMMENDED_TABLES - tables
         if missing_recommended:
-            validation_result.set_uncertainty(
-                message=f"GeoPackage missing recommended tables: {sorted(list(missing_recommended))}",
-                code="GPKG_RECOMMENDED_MISSING",
-                details={"missing": sorted(list(missing_recommended))}
+            return ValidationResult.uncertain(
+                request,
+                Warning(message=f"GeoPackage missing recommended tables: {sorted(list(missing_recommended))}", cause=Cause.STRUCTURAL_MALFORMED)
             )
-        # further checks possible but not necessary for our use case
-        validation_result.set_success(
-            message=f"GeoPackage contains all required and recommended tables.",
-            code="TABLES_PASSED"
-        )
-        return validation_result
-
-    def _detect_gpkg_type(self, path: Path) -> str:
-        """Inspect gpkg_contents.data_type"""
-        # open sqlite and examine data_type
-
-        import sqlite3
-        conn = sqlite3.connect(str(path))
-        cur = conn.cursor()
-        cur.execute("SELECT data_type FROM gpkg_contents")
-        data_types = {row[0] for row in cur.fetchall()}
-
-        is_raster = 'tiles' in data_types or '2d-gridded-coverage' in data_types
-        is_vector = 'features' in data_types
-
-        if is_raster and not is_vector:
-            return 'raster'
-        elif is_vector and not is_raster:
-            return 'vector'
-        else:
-            return 'unknown'
-
-    def _validate_open(self, file_format, file_input, validation_result):
+        return ValidationResult.success(request)
+    
+    def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
         try:
-            gpkg_type = self._detect_gpkg_type(file_input.get_path())
-
-            if gpkg_type == 'raster':
-                return RasterFileValidator._validate_open(self, file_format, file_input, validation_result)
-            elif gpkg_type == 'vector':
-                return VectorFileValidator._validate_open(self, file_format, file_input, validation_result)
-            else:
-                validation_result.set_uncertainty(
-                    message="Could not determine whether the GeoPackage contains raster or vector data.",
-                    code="GPKG_KIND_UNKNOWN",
-                    path=str(file_input.get_path())
-                )
-                return validation_result
-
+            self.geopandas_df = self._read(request)
+            return self.assert_gpkg_tables(request)
         except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"Failed to inspect GeoPackage SQLite file: {exc}",
-                code="SQLITE_OPEN_FAILED",
-                details={"exception": str(exc)}
+            return ValidationResult.failure(request,
+                Error(message=f"Could not read GeoPackage file with Geopandas: \n{exc}", cause=Cause.FILE_OPEN_ERROR)
             )
-            return validation_result
-
-    def assert_srs(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
-        """If file does not use a crs, only add info and return."""
+        
+    def has_vector_layers(self, request: ValidationRequest) -> bool:
         try:
-            gpkg_type = self._detect_gpkg_type(file_input.get_path())
-
-            if gpkg_type == 'raster':
-                return RasterFileValidator.assert_srs(self, file_format, file_input, validation_result)
-            elif gpkg_type == 'vector':
-                return VectorFileValidator.assert_srs(self, file_format, file_input, validation_result)
-            else:
-                validation_result.set_uncertainty(
-                    message="Could not determine whether the GeoPackage contains raster or vector data.",
-                    code="GPKG_KIND_UNKNOWN",
-                    path=str(file_input.get_path())
-                )
-                return validation_result
-
-        except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"Failed to inspect GeoPackage SQLite file: {exc}",
-                code="SQLITE_OPEN_FAILED",
-                details={"exception": str(exc)}
-            )
-            return validation_result
-
-    def _validate_strict(self, file_format: Format, file_input: FileInput,
-                         validation_result: ValidationResult) -> ValidationResult:
-        """Combination of all other validation methods, merging ValidationResults."""
-
-        # validated hier nur true wenn alle validated wurden oder fehler gefunden und sonstiges (warnung)
-
-        try:
-            gpkg_type = self._detect_gpkg_type(file_input.get_path())
-
-            if gpkg_type == 'raster':
-                self._validate_extension(file_format, file_input, validation_result)
-                RasterFileValidator._validate_open(self, file_format, file_input, validation_result)
-                RasterFileValidator.assert_srs(self, file_format, file_input, validation_result)
-
-            elif gpkg_type == 'vector':
-                self._validate_extension(file_format, file_input, validation_result)
-                VectorFileValidator._validate_open(self, file_format, file_input, validation_result)
-                VectorFileValidator.assert_srs(self, file_format, file_input, validation_result)
-                self._validate_shape_type(file_format, file_input, validation_result)
-
-            else:
-                validation_result.set_uncertainty(
-                    message="Could not determine whether the GeoPackage contains raster or vector data.",
-                    code="GPKG_KIND_UNKNOWN",
-                    path=str(file_input.get_path())
-                )
-                return validation_result
-
-        except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"Failed to inspect GeoPackage SQLite file: {exc}",
-                code="SQLITE_OPEN_FAILED",
-                details={"exception": str(exc)}
-            )
-            return validation_result
-
-        # decide validated status according to unfinished validation steps: one uncertainty invalidates other validated partial results
-        if validation_result.get_validated() and validation_result.get_uncertain() and validation_result.is_valid:
-            validation_result.invalidate()
-
-        return validation_result
-
-    def _validate_shape_type(self, file_format: Format, file_input: FileInput,
-                             validation_result: ValidationResult) -> ValidationResult:
-        """
-        Efficient shape-type check:
-        - open gpkg, iterate layers (fiona.listlayers)
-        - for each layer: first check schema['geometry']
-          - success, if schema indicates the expected type
-          - otherwise, sample up to N features and inspect feature['geometry']['type']
-        - success, if expected type is found at least once in any layer
-        - if no expected provided, collect detected categories and return info
-        """
-
-        try:
-            import fiona
-            from fiona.errors import DriverError
-        except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"The GeoPackage validator requires the 'fiona' library to be installed.",
-                code="FIONA_MISSING",
-                details={"exception": str(exc)}
-            )
-            return validation_result
-
-        # get expected shape type if present
-        try:
-            expected_shape = file_format.get_shape_type()
+            dfs = self._read(request)
+            for df in dfs:
+                if df.empty or getattr(df, "geometry", None) is None:
+                    continue
+                if df.geometry.notna().any():
+                    return True
+            return False
         except Exception:
-            expected_shape = None
+            return False
 
-        path = file_input.get_path()
+    def get_crs(self, request: EOValidationRequest) -> Optional[CoordinateReferenceSystem]:
+        pass
+
+    def assert_crs(self, request: EOValidationRequest) -> ValidationResult:
+        if request.crs is None:
+            return ValidationResult.uncertain(request, Warning(message="No expected CRS provided, skipping CRS validation.", cause=Cause.MISSING_METADATA))
         try:
-            # get a list of layer names for gpkg
-            try:
-                layers = fiona.listlayers(str(path))
-            except Exception:
-                # if listlayers fails (for older fiona version), try opening single layer
-                layers = []
+            dfs = self._read(request)
+            def extract_epsg_from_gdf(gdf: gpd.GeoDataFrame) -> Optional[CoordinateReferenceSystem]:
+                if hasattr(gdf, "crs") and gdf.crs:
+                    epsg_code = gdf.crs.to_epsg()
+                    return EPSGCoordinateReferenceSystem(epsg_code) if epsg_code is not None else None
+                return None
+            for df in dfs:
+                crs = extract_epsg_from_gdf(df)
+                layer_name = df.attrs.get("layer", "unknown_layer")
+                if crs is None:
+                    return ValidationResult.uncertain(request, Warning(message=f"Layer '{layer_name}' has no CRS defined, cannot validate against expected CRS.", cause=Cause.MISSING_METADATA))
+                if crs != request.crs:
+                    return ValidationResult.failure(request, Error(message=f"Layer '{layer_name}' CRS '{crs}' does not match expected CRS '{request.crs}'.", cause=Cause.METADATA_MISMATCH))
+            return ValidationResult.success(request)
+        except Exception as exc:
+            return ValidationResult.uncertain(request, Warning(message=f"Failed to read CRS from GeoPackage with Geopandas: \n{exc}", cause=Cause.UNKNOWN))
 
-            geometries_found = set()
-            found_expected = False
-            shape_found = None
-            max_samples_per_layer = 50
+    def validate(self, request: ValidationRequest) -> ValidationResult:
+        if self.has_vector_layers(request):
+            return VectorFileValidator.validate(self, request)
+        else:
+            return RasterFileValidator.validate(self, request)
 
-            for layer in layers:
-                try:
-                    with fiona.open(str(path)) as src:
-                        geometry_found = src.schema.get("geometry") if getattr(src, "schema", None) else None
-                        shape_found = normalize_geometry_to_shape_type(geometry_found)
-                        if shape_found:
-                            geometries_found.add(shape_found)
-                            if expected_shape and expected_shape.__eq__(shape_found):
-                                found_expected = True
-                        if not found_expected:
-                            # sample features up to N
-                            count = 0
-                            for feat in src:
-                                count += 1
-                                geometry_obj = feat.get("geometry")
-                                if geometry_obj and isinstance(geometry_obj, dict):
-                                    geometry_type = geometry_obj.get("type")
-                                    shape_found = normalize_geometry_to_shape_type(geometry_type)
-                                    if shape_found:
-                                        geometries_found.add(shape_found)
-                                        if expected_shape and expected_shape.__eq__(shape_found):
-                                            found_expected = True
-                                            break
-                                if count >= max_samples_per_layer:
-                                    break
-                            if found_expected:
-                                break
-                except DriverError as e:
-                    # skip problematic layer
-                    validation_result.set_uncertainty(
-                        message=f"Failed to open layer {layer}: {str(e)}",
-                        code="LAYER_ERROR",
-                        path=str(path)
-                    )
-                    return validation_result
-                except Exception as e:
-                    # skip problematic layer
-                    validation_result.set_uncertainty(
-                        message=f"Failed to open layer {layer}: {str(e)}",
-                        code="LAYER_ERROR",
-                        path=str(path)
-                    )
-                    return validation_result
-
-            validation_result.add_info(message=f"Geometries found: {geometries_found.__str__()}")
-            return compare_shape_type(expected_shape, shape_found, validation_result)
-
-        except Exception as e:
-            validation_result.set_uncertainty(
-                message=f"Unexpected error during GeoPackage shape type validation: {str(e)}",
-                code="SHAPE_ERROR",
-                path=str(path),
-                details={'error': str(e), 'error_type': type(e).__name__}
+    def assert_geometry_type(self, request: EOValidationRequest) -> ValidationResult:
+        """
+        Assert geometry types for each vector layer in the geopackage.
+        - Iterate through all layers in the geopackage
+        - For each layer, check if it has vector geometry
+        - Validate against expected geometry type from the request
+        - Return success if all vector layers match expected geometry type
+        """
+        try:
+            if not hasattr(request, 'geometry_type') or request.geometry_type is None:
+                return ValidationResult.uncertain(
+                    request,
+                    Warning(message="No expected geometry type provided, skipping geometry type validation.", cause=Cause.MISSING_METADATA)
+                )
+            
+            dfs = self._read(request)
+            layer_geometries = {}
+            
+            for df in dfs:
+                layer_name = df.attrs.get("layer", "unknown_layer")
+                
+                # Skip non-geometry layers
+                if df.empty or getattr(df, "geometry", None) is None:
+                    continue
+                
+                # Check if layer has any valid geometries
+                if not df.geometry.notna().any():
+                    continue
+                
+                # Get geometry types in this layer
+                geom_types = set()
+                for geom in df.geometry:
+                    if geom is not None and hasattr(geom, "geom_type"):
+                        geom_types.add(geom.geom_type)
+                
+                if geom_types:
+                    layer_geometries[layer_name] = geom_types
+                    
+                    # Validate against expected geometry type
+                    if request.geometry_type not in geom_types:
+                        return ValidationResult.failure(
+                            request,
+                            Error(message=f"Layer '{layer_name}' geometry type(s) {sorted(geom_types)} do not match expected geometry type '{request.geometry_type}'.", cause=Cause.METADATA_MISMATCH)
+                        )
+            
+            if not layer_geometries:
+                return ValidationResult.uncertain(
+                    request,
+                    Warning(message="No vector layers with valid geometries found in GeoPackage.", cause=Cause.STRUCTURAL_MALFORMED)
+                )
+            
+            return ValidationResult.success(request)
+            
+        except Exception as exc:
+            return ValidationResult.uncertain(
+                request,
+                Warning(message=f"Failed to assert geometry types: \n{exc}", cause=Cause.UNKNOWN)
             )
-            return validation_result
-
-        #path = input_file.get_path()
-
-        #try:
-        #    import fiona
-        #    from fiona.get_errors() import DriverError
-        #except Exception as exc:
-        #    validation_result.add_error(
-        #        message=f"The GeoPackage validator requires the 'fiona' library to be installed.",
-        #        code="FIONA_MISSING",
-        #        details={"exception": str(exc)}
-        #    )
-        #    return validation_result
-
-        #identifier = file_format.get_identifier()
-        #try:
-        #    with fiona.open(path) as src:
-        #        schema = src.schema
-        #        geometry_type = schema.get('geometry', None)
-
-        #        if not geometry_type:
-        #            validation_result.add_error(
-        #                message=f"GeoPackage {identifier} has no geometry type defined",
-        #                code="GEOMETRY_TYPE_MISSING",
-        #                path=str(path)
-        #            )
-        #            return validation_result
-        #        expected_shape = file_format.get_shape_type()
-        #        # Check if geometry type corresponds to shape type
-        #        if geometry_type == expected_shape:
-        #            validation_result.add_info(
-        #                message=f"File {identifier} has a valid shape type: {geometry_type}",
-        #                code="SHAPE_VALID",
-        #                path=str(path)
-        #            )
-        #            return validation_result
-        #        else:
-        #            # Mismatch otherwise
-        #            validation_result.add_error(
-        #                message=f"Geometry type of {identifier} does not match shape type.",
-        #                code="SHAPE_MISMATCH",
-         #               details={'shape_type': expected_shape, 'geometry_type': str(geometry_type)}
-        #            )
-        #            return validation_result
-
-        #except DriverError as e:
-        #    validation_result.add_error(
-        #        message=f"Failed to read geometry type from GeoPackage: {str(e)}",
-        #        code="GEOMETRY_TYPE_READ_FAILED",
-        #        path=str(path),
-         #       details={'error': str(e)}
-        #    )
-        #    return validation_result
-        #except Exception as e:
-        #    validation_result.add_error(
-        #        message=f"Unexpected error while validating geometry type: {str(e)}",
-        #        code="GEOMETRY_TYPE_ERROR",
-        #        path=str(path),
-        #        details={'error': str(e), 'error_type': type(e).__name__}
-        #    )
-        #    return validation_result
-
-
-
-#----------------------optional further advanced checks-----------------------

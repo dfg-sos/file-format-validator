@@ -17,7 +17,7 @@ class FileFormatValidator(ABC):
 
     def assert_extension(self, request: ValidationRequest) -> ValidationResult:
         if not any(request.actual_file.path.suffix.lower() == ext.lower() for ext in self.get_extensions()):
-            return ValidationResult.failure(request, Error(message=f"File extension of input file with suffix {request.actual_file.path.suffix.lower()} does not match expected ones for format {request.expected_format.identifier}.",cause=Cause.EXTENSION_MISMATCH))
+            return ValidationResult.failure(request, Error(message=f"File extension of input file with suffix {request.actual_file.path.suffix.lower()} does not match expected ones for format {request.format_identifier}.",cause=Cause.EXTENSION_MISMATCH))
         return ValidationResult.success(request)
     
     def assert_exists(self, request: ValidationRequest) -> ValidationResult:

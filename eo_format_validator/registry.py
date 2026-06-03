@@ -5,7 +5,7 @@ from types import ModuleType
 from typing import Dict, Type, Optional, List, Callable
 import logging
 import inspect
-from eo_format_validator.model import FileFormatValidator, Format
+from eo_format_validator.model import FileFormatValidator,ValidationRequest
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +92,8 @@ class Registry:
     def get_identifier_for_validator(self, cls: Type[FileFormatValidator])-> Optional[str]:
         return self._validators_to_id.get(cls)
 
-    def choose_and_instantiate(self, file_format: Format) -> Optional[FileFormatValidator]:
-        cls = self._id_to_validators.get(file_format.get_identifier().strip())
+    def choose_and_instantiate(self, request: ValidationRequest) -> Optional[FileFormatValidator]:
+        cls = self._id_to_validators.get(request.format_identifier.strip())
         if cls:
             return cls()
         else:

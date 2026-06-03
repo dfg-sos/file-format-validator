@@ -17,7 +17,7 @@ class RasterFileValidator(EOFileFormatValidator, ABC):
                 if width <= 0 or height <= 0:
                     return ValidationResult.failure(
                         request, 
-                        Error(message=f"Invalid raster dimensions: {width}x{height}",cause= Cause.INVALID_METADATA)
+                        Error(message=f"Invalid raster dimensions: {width}x{height}",cause= Cause.METADATA_MISMATCH)
                     )
                 return ValidationResult.success(request)
         except RasterioIOError as e:

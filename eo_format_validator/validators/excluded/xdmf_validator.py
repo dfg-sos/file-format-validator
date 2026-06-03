@@ -24,7 +24,7 @@ class XDMFValidator(RasterFileValidator, VectorFileValidator):
     def _validate_open(self, file_format: Format, file_input: FileInput, validation_result: ValidationResult) -> ValidationResult:
         pass
 
-    def assert_srs(self, file_format: Format, file_input: FileInput,
+    def assert_crs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         pass
 

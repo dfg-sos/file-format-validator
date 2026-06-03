@@ -83,7 +83,7 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
             if expected_geometry_type != actual_geometry_type:
                 return ValidationResult.failure(
                     request,
-                    Error(message=f"File geometry type '{actual_geometry_type}' does not match expected geometry type '{expected_geometry_type}'.", cause=Cause.INVALID_METADATA)
+                    Error(message=f"File geometry type '{actual_geometry_type}' does not match expected geometry type '{expected_geometry_type}'.", cause=Cause.METADATA_MISMATCH)
                 )
             return ValidationResult.success(request)
         except Exception as e:

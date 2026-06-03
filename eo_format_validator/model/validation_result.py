@@ -13,9 +13,10 @@ class Severity(Enum):
 class Cause(Enum):
     PATH_ERROR = "path_error"
     EXTENSION_MISMATCH = "extension_mismatch"
-    INVALID_METADATA = "invalid_metadata"
+    METADATA_MISMATCH = "invalid_metadata"
     MISSING_METADATA = "srs_missing"
     FILE_OPEN_ERROR = "file_open_error"
+    STRUCTURAL_MALFORMED = "structural_malformed"
     UNKNOWN = "unknown"
 
 @dataclass(frozen=True)

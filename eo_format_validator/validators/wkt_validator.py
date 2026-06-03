@@ -47,7 +47,7 @@ class WKTValidator(VectorFileValidator):
             )
             return validation_result
 
-    def assert_srs(self, file_format: Format, file_input: FileInput,
+    def assert_crs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         path = file_input.get_path()
         try:

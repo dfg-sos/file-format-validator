@@ -25,12 +25,12 @@ class COGValidator(RasterFileValidator):
             result = ValidationResult(request)
             for error in errors:
                 result.set_failure(
-                    Error(message=f"Rio-cogeo error: {error}", cause=Cause.UNKNOWN)
+                    Error(message=f"Rio-cogeo error: {error}", cause=Cause.STRUCTURAL_MALFORMED)
                 )
 
             for warning in warnings:
                 result.set_uncertainty(
-                    Warning(message=f"Rio-cogeo warning: {warning}", cause=Cause.UNKNOWN)
+                    Warning(message=f"Rio-cogeo warning: {warning}", cause=Cause.STRUCTURAL_MALFORMED)
                 )
             if is_valid:
                 result.set_success()

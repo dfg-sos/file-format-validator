@@ -10,7 +10,7 @@ from eo_format_validator.util import compare_crs
 @Registry.register("format_4113")
 class GRIBValidator(RasterFileValidator):
 
-    def _get_extensions(self) -> List[str]:
+    def get_extensions(self) -> List[str]:
         return ['.grib', '.grib1', '.grb', '.gb', '.grib2', '.grb2'] # commonly used file extensions, no officially specified one
 
     def _validate_open(self, file_format: Format, file_input: FileInput,
@@ -42,7 +42,7 @@ class GRIBValidator(RasterFileValidator):
             )
             return validation_result
 
-    def assert_srs(self, file_format: Format, file_input: FileInput,
+    def assert_crs(self, file_format: Format, file_input: FileInput,
                       validation_result: ValidationResult) -> ValidationResult:
         """Quick CRS detection for GRIB files.
            Strategy:

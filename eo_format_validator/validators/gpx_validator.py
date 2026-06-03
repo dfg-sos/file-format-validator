@@ -1,13 +1,12 @@
 """GPX (GPS Exchange Format), Sepcification: V1.1 https://www.topografix.com/GPX/1/1/gpx-strict.xsd,
                                              V1.0 https://www.topografix.com/GPX/1/0/gpx-strict.xsd"""
-from pathlib import Path
 from typing import List, Tuple, Optional
 import xml.etree.ElementTree as ET
+import fiona
 
-from eo_format_validator.model import FileInput, Format, ValidationResult
+from eo_format_validator.model import ValidationRequest, ValidationResult,Error,Cause,Warning
 from .vector_file_validator import VectorFileValidator
 from ..registry import Registry
-from eo_format_validator.util import validate_shape_type_with_fiona
 
 GPX_NAMESPACES = {
         'http://www.topografix.com/GPX/1/0',  # GPX 1.0
@@ -20,72 +19,47 @@ GPX_ROOT_ELEMENT = 'gpx'
 @Registry.register("format_4112")
 class GPXValidator(VectorFileValidator):
 
-    def _get_extensions(self) -> List[str]:
+    def get_extensions(self) -> List[str]:
         return ['.gpx']
 
-    def _validate_open(self, file_format: Format, file_input: FileInput,
-                       validation_result: ValidationResult) -> ValidationResult:
+    def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
         """Validate that the file is valid GPX per specification."""
-        path: Path = file_input.get_path()
 
         # parse XML
         try:
-            tree = ET.parse(str(path))
+            tree = ET.parse(str(request.actual_file.path))
             root = tree.getroot()
         except ET.ParseError as exc:
-            validation_result.set_failure(
-                message=f"GPX parse error: {exc}",
-                code="OPEN_FAILED",
-                details={"exception": str(exc)}
+            return ValidationResult.failure(
+                request,
+                Error(message=f"GPX parse error: {exc}", cause=Cause.STRUCTURAL_MALFORMED)
             )
             return validation_result
         except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"Could not open/parse file: {exc}",
-                code="OPEN_ERROR",
-                details={"exception": str(exc)}
+            return ValidationResult.uncertain(
+                request,
+                Warning(message=f"Could not open/parse gpx file: {exc}", cause=Cause.UNKNOWN)
             )
-            return validation_result
 
         # check if GPX according to specification
         is_gpx, error_details = self._is_gpx_document(root)
 
         if not is_gpx:
-            validation_result.set_failure(
-                message="XML file does not conform to GPX specification.",
-                code="NOT_GPX",
-                details=error_details
+            return ValidationResult.failure(
+                request,
+                Error(message="XML file does not conform to GPX specification.", cause=Cause.STRUCTURAL_MALFORMED)
             )
-            return validation_result
-
-        # validate with Fiona
         try:
-            import fiona
-        except ImportError as exc:
-            validation_result.set_uncertainty(
-                message="The validator requires 'fiona' to be installed.",
-                code="FIONA_MISSING",
-                details={"exception": str(exc)}
-            )
-            return validation_result
-
-        try:
-            with fiona.open(str(path), driver='GPX') as src:
+            with fiona.open(str(request.actual_file.path), driver='GPX') as src:
                 _ = src.schema
                 _ = src.crs
-            validation_result.set_success(
-                message="File validated as GPX.",
-                code="OPEN_OK",
-                details=error_details
-            )
         except Exception as e:
-            validation_result.set_failure(
-                message=f"File has GPX structure but Fiona cannot read it: {e}",
-                code="OPEN_FAILED",
-                details=error_details
+            return ValidationResult.failure(
+                request,
+                Error(message=f"File has GPX structure but Fiona cannot read it: {e}", cause=Cause.FILE_OPEN_ERROR)
             )
 
-        return validation_result
+        return ValidationResult.success(request)
 
     def _is_gpx_document(self, root: ET.Element) -> Tuple[bool, dict]:
         """Check if XML has root element in GPX namespace as defined in specification to differentiate from other XML files. GPX is identified by its namespace and root.
@@ -138,9 +112,4 @@ class GPXValidator(VectorFileValidator):
             namespace = namespace[1:]  # Remove leading '{'
             return namespace, local_name
         return None, tag
-
-    def _validate_shape_type(self, file_format: Format, file_input: FileInput,
-                             validation_result: ValidationResult) -> ValidationResult:
-        """Validate geometry types in GPX file."""
-        return validate_shape_type_with_fiona(file_format, file_input, validation_result)
 
