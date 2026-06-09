@@ -33,7 +33,7 @@ class EOFileFormatValidator(FileFormatValidator):
                 validation_result += self.assert_crs(request)
             case _: 
                 pass
-        return validation_result.evaluate()
+        return validation_result
 
     def assert_crs(self, request:EOValidationRequest) -> ValidationResult:
         actual_srs = self.get_crs(request)

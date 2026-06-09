@@ -71,4 +71,4 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
                 result += self.assert_geometry_type(request)
             case _:
                 pass
-        return result.evaluate()
+        return result

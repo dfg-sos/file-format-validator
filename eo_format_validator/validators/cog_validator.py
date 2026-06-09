@@ -35,7 +35,7 @@ class COGValidator(RasterFileValidator):
                 )
             if is_valid:
                 result.set_success()
-            return result.evaluate()
+            return result
         except Exception as e:
             return ValidationResult.uncertain(
                 request,
