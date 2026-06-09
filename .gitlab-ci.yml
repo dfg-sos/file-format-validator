@@ -1,0 +1,17 @@
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+    - when: never
+stages:
+  - test
+test:
+  stage: test
+  image: python:3.14
+  tags: [secloud]
+  script:
+    - python -m venv venv
+    - source venv/bin/activate
+    - python -m pip install --upgrade pip
+    - python -m pip install .[test]
+    - pytest
