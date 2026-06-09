@@ -1,11 +1,12 @@
 from abc import ABC
 from typing import Optional
-
-from .eo_file_format_validator import EOFileFormatValidator
-from eo_format_validator.model import EOValidationRequest,ValidationResult,ValidationRequest,Error,Warning,Cause,CoordinateReferenceSystem,EPSGCoordinateReferenceSystem
-
+from pyproj import CRS
 import rasterio
 from rasterio.errors import RasterioIOError
+
+from .eo_file_format_validator import EOFileFormatValidator,EOValidationRequest
+from eo_format_validator.model import ValidationResult,ValidationRequest,Error,Warning,Cause
+
 
 class RasterFileValidator(EOFileFormatValidator, ABC):
 
@@ -31,10 +32,10 @@ class RasterFileValidator(EOFileFormatValidator, ABC):
                 Warning(message=f"Unknown exception occurred while opening '{request.actual_file.path}' with RasterIO:\n{exc.__class__}:{str(exc)}", cause=Cause.FILE_OPEN_ERROR)
             )
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CoordinateReferenceSystem]:
+    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
         try:
             with rasterio.open(request.actual_file.path) as rasterGISFile:
                 srs = rasterGISFile.crs
-                return EPSGCoordinateReferenceSystem(srs.to_epsg()) if srs else None
+                return srs if srs else None
         except Exception as e:
                 return None

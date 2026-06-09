@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Optional
 from enum import Enum
 from .file_input import FileInput
-from .format import CoordinateReferenceSystem, GeometryType
 
 class ValidationMode(Enum):
     BASIC = "basic"             # file extension only
@@ -21,11 +20,3 @@ class ValidationRequest:
 
     def enabled_modes(self) -> list[ValidationMode]:
         return [ValidationMode.BASIC, ValidationMode.STRUCTURAL, ValidationMode.FULL]
-
-@dataclass(frozen=True)
-class EOValidationRequest(ValidationRequest):
-    crs: Optional[CoordinateReferenceSystem] = None
-    geometry_type: Optional[GeometryType] = None
-
-    def enabled_modes(self) -> list[ValidationMode]:
-        return super().enabled_modes() + [ValidationMode.CRS]

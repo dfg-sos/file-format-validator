@@ -1,10 +1,11 @@
-from pathlib import Path
-from typing import List
+from typing import List,Optional
+import xarray as xr
+from pyproj import CRS
 
-from eo_format_validator.model import FileInput,Format,ValidationResult
+from .eo_file_format_validator import EOValidationRequest
+from ..model import ValidationRequest,ValidationResult,Error,Cause
 from .raster_file_validator import RasterFileValidator
 from ..registry import Registry
-from eo_format_validator.util import compare_crs
 
 
 @Registry.register("format_4113")
@@ -13,55 +14,23 @@ class GRIBValidator(RasterFileValidator):
     def get_extensions(self) -> List[str]:
         return ['.grib', '.grib1', '.grb', '.gb', '.grib2', '.grb2'] # commonly used file extensions, no officially specified one
 
-    def _validate_open(self, file_format: Format, file_input: FileInput,
-                       validation_result: ValidationResult) -> ValidationResult:
-        """Quick open check: try cfgrib (xarray)."""
-        path: Path = file_input.get_path()
-
-        # try cfgrib via xarray
+    def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
         try:
-            import xarray as xr
-            # xr.open_dataset with engine='cfgrib' reads GRIB metadata (requires cfgrib/ecCodes)
-            ds = xr.open_dataset(str(path), engine="cfgrib")
-            # gather some light metadata
-            vars_count = len(ds.data_vars) if hasattr(ds, 'data_vars') else None
-            coords = list(ds.coords.keys()) if hasattr(ds, 'coords') else []
+            ds = xr.open_dataset(str(request.actual_file.path), engine="cfgrib")
             ds.close()
-
-            validation_result.set_success(
-                message="GRIB successfully opened via xarray/cfgrib.",
-                code="OPEN_OK_CFGRIB",
-                details={"variables": vars_count, "coords": coords}
-            )
-            return validation_result
+            return ValidationResult.success(request)
         except Exception as exc:
-            validation_result.set_failure(
-                message="Could not open GRIB file with cfgrib (xarray).",
-                code="OPEN_FAILED",
-                details={"cfgrib_error": str(exc)}
+            return ValidationResult.failure(
+                request,
+                Error(message=f"Could not open GRIB file with cfgrib (xarray):\n{exc}", cause=Cause.FILE_OPEN_ERROR)
             )
-            return validation_result
 
-    def assert_crs(self, file_format: Format, file_input: FileInput,
-                      validation_result: ValidationResult) -> ValidationResult:
-        """Quick CRS detection for GRIB files.
-           Strategy:
-              - If xarray/cfgrib can open the file, infer CRS as EPSG from shapeOfTheEarth parameter. Extend mapping for further codes.
+    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
         """
-        path: Path = file_input.get_path()
-
-        # prefer cfgrib/xarray
-        candidate = None
+        If xarray/cfgrib can open the file, infer CRS as EPSG from shapeOfTheEarth parameter. Extend mapping for further codes.
+        """
         try:
-            import xarray as xr
-            #ds = xr.open_dataset(str(path), engine="cfgrib")
-            #coords = set(ds.coords.keys()) if hasattr(ds, 'coords') else set()
-            #attrs = getattr(ds, 'attrs', {}) or {}
-            #ds.close()
-
-
-
-            ds = xr.open_dataset(str(path), engine="cfgrib",
+            ds = xr.open_dataset(str(request.actual_file.path), engine="cfgrib",
                                  backend_kwargs={'read_keys': ['shapeOfTheEarth']})
 
             epsg = None
@@ -72,17 +41,6 @@ class GRIBValidator(RasterFileValidator):
                     epsg = 4326
                 case 9:
                     epsg = 4277
-            return compare_crs(epsg, file_format, path, validation_result)
-            # typical cfgrib coords: latitude/longitude for regular grids
-            #if any(c.lower() in ('latitude', 'lat') for c in coords) and any(c.lower() in ('longitude', 'lon', 'long') for c in coords):
-            #    candidate = 'EPSG:4326'
-            # rotated pole detection (cfgrib may expose a coord or attribute)
-            #if not candidate and any('rotated' in c.lower() for c in coords) or any('rotated' in str(v).lower() for v in attrs.values()):
-            #    candidate = 'rotated_latitude_longitude'
+            return CRS.from_epsg(epsg) if epsg else None
         except Exception as exc:
-            validation_result.set_uncertainty(
-                message="Could not open GRIB file with cfgrib (xarray).",
-                code="OPEN_FAILED",
-                details={"cfgrib_error": str(exc)}
-            )
-            return validation_result
+            return None

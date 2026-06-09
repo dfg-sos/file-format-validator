@@ -1,8 +1,6 @@
 from typing import List
 
-
-from eo_format_validator.model import Format,ValidationResult,MultiFileInput
-from eo_format_validator.util import validate_shape_type_with_fiona
+from eo_format_validator.model import ValidationRequest,ValidationResult,Error,Cause,Info
 from .vector_file_validator import VectorFileValidator
 from ..registry import Registry
 
@@ -36,10 +34,10 @@ class ShapefileValidator(VectorFileValidator):
         No deep inspection of attributes or features is performed.
     """
 
-    def _get_extensions(self) -> List[str]:
+    def get_extensions(self) -> List[str]:
         return ['.shp']
 
-    def _validate_extension(self, file_format: Format, multi_file_input: MultiFileInput, validation_result: ValidationResult) -> ValidationResult:
+    def assert_extension(self, request: ValidationRequest) -> ValidationResult:
         """Override for multi-file formats.
            For EO file formats, we require .shp, .dbf, .shx, and .prj to be present.
 
@@ -55,78 +53,42 @@ class ShapefileValidator(VectorFileValidator):
             - identifies additional auxiliary files provided and reports them in an info
         """
 
-
         # 1) First, validate the main .shp extension
-        validation_result = super()._validate_extension(file_format, multi_file_input, validation_result)
+        validation_result = super().assert_extension(request=request)
 
         # 2) If basic extension check failed, further checks not useful, return early
-        if not validation_result.is_valid:
+        if not validation_result.status:
             return validation_result
 
-        path = multi_file_input.get_path()
-        secondary_files = multi_file_input.get_secondary_files()
+        path = request.actual_file.path
+        secondary_files = request.actual_file.files() - {path}  # Get all secondary files by excluding the main .shp file
 
         # 3) Get all available secondary file extensions, keys are not sufficient as CWL only stores type File
-        available_extensions = set() #secondary_files.keys()
-
-        for path in secondary_files:
-
-            if path.name.lower().endswith('.shp.xml'):
+        available_extensions = set()
+        for p in secondary_files:
+            if p.name.lower().endswith('.shp.xml'):
                 ext = '.shp.xml'
             else:
-                ext = path.suffix.lower()
+                ext = p.suffix.lower()
             available_extensions.add(ext)
 
         # 4) Check location of secondary files: all secondary files must be in the same directory as the .shp file
-        wrong_dir = [f for f in secondary_files if f.parent != path.parent]
-        if wrong_dir:
-            validation_result.set_failure(
-                message="Secondary files must be in the same directory as the .shp file",
-                code="STRUCTURE_INVALID",
-                details={'wrong_directory': [str(f) for f in wrong_dir]}
+        if any([f for f in secondary_files if f.parent != path.parent]):
+            return ValidationResult.failure(
+                request,
+                Error(message="Secondary files must be in the same directory as the .shp file", cause=Cause.STRUCTURAL_MALFORMED)
             )
-            return validation_result
-
         # 5) Check REQUIRED files
         missing_required = REQUIRED_EXTENSIONS - available_extensions
 
         if missing_required:
-            validation_result.set_failure(
-                message=f"Missing required secondary files for EO Shapefile: {missing_required}",
-                code="SEC_MISSING",
-                details={"missing": missing_required, "actual_required": available_extensions}
+            return ValidationResult.failure(
+                request,
+                Error(message=f"Missing required secondary files for EO Shapefile: {missing_required}", cause=Cause.STRUCTURAL_MALFORMED)
             )
-            return validation_result
-        else:
-            validation_result.set_success(
-                message="All required Shapefile secondary files present.",
-                code="SEC_OK",
-                details={"Found:": available_extensions}
-            )
-
+        validation_result.set_success()
         # 6) Identify OPTIONAL files present
         found_optional = available_extensions & OPTIONAL_EXTENSIONS
-
         if found_optional:
-            validation_result.add_info(
-                message=f"Shapefile has optional component file(s): {', '.join(sorted(found_optional))}",
-                code="OPT_FOUND",
-                details={'optional_files': sorted(list(found_optional))}
-            )
-
+            validation_result.add(Info(f"Shapefile has optional file(s): {', '.join(sorted(found_optional))}"))
         return validation_result
-
-    def _validate_shape_type(self, file_format: Format, multi_file_input: MultiFileInput,
-                             validation_result: ValidationResult) -> ValidationResult:
-        """Validate the geometry type of the Shapefile.
-           Checks:
-           - Geometry type is present
-           - Geometry type equals expected shape type
-        """
-        return validate_shape_type_with_fiona(file_format, multi_file_input, validation_result)
-
-
-#----------------------optional further advanced checks-----------------------
-
-
-

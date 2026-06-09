@@ -2,9 +2,10 @@ from typing import List, Optional,Dict
 from attr import dataclass
 import geopandas as gpd
 import fiona
+from pyproj import CRS
 
-from eo_format_validator.model import ValidationResult,ValidationRequest, Warning, Cause, Error,CoordinateReferenceSystem,EPSGCoordinateReferenceSystem
-from eo_format_validator.model.validation_request import EOValidationRequest
+from eo_format_validator.model import ValidationResult,ValidationRequest, Warning, Cause, Error
+from .eo_file_format_validator import EOValidationRequest
 from .raster_file_validator import RasterFileValidator
 from .vector_file_validator import VectorFileValidator
 from ..registry import Registry
@@ -86,7 +87,7 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
         except Exception:
             return False
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CoordinateReferenceSystem]:
+    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
         pass
 
     def assert_crs(self, request: EOValidationRequest) -> ValidationResult:
@@ -94,10 +95,9 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             return ValidationResult.uncertain(request, Warning(message="No expected CRS provided, skipping CRS validation.", cause=Cause.MISSING_METADATA))
         try:
             dfs = self._read(request)
-            def extract_epsg_from_gdf(gdf: gpd.GeoDataFrame) -> Optional[CoordinateReferenceSystem]:
+            def extract_epsg_from_gdf(gdf: gpd.GeoDataFrame) -> Optional[CRS]:
                 if hasattr(gdf, "crs") and gdf.crs:
-                    epsg_code = gdf.crs.to_epsg()
-                    return EPSGCoordinateReferenceSystem(epsg_code) if epsg_code is not None else None
+                    return gdf.crs
                 return None
             for df in dfs:
                 crs = extract_epsg_from_gdf(df)

@@ -2,12 +2,13 @@
    https://www.cogeo.org/
    https://gdal.org/drivers/raster/cog.html"""
 from typing import List
+from rio_cogeo.cogeo import cog_validate
+
 from eo_format_validator.model import ValidationRequest,ValidationResult,Error,Warning,Cause
 from .raster_file_validator import RasterFileValidator
 from ..registry import Registry
 
-from rio_cogeo.cogeo import cog_validate
-from rio_cogeo.profiles import cog_profiles
+
 
 @Registry.register("format_4100")
 class COGValidator(RasterFileValidator):

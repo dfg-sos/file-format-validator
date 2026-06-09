@@ -1,8 +1,19 @@
 from typing import Optional
 from abc import abstractmethod
+from attr import dataclass
+from pyproj import CRS
+from shapely import GeometryType
 
-from ..model import FileFormatValidator, ValidationRequest, EOValidationRequest, ValidationMode, ValidationResult, CoordinateReferenceSystem,Info,Warning,Cause,Error
+from ..model import FileFormatValidator, ValidationRequest, ValidationMode, ValidationResult,Info,Warning,Cause,Error
 
+
+@dataclass(frozen=True)
+class EOValidationRequest(ValidationRequest):
+    crs: Optional[CRS] = None
+    geometry_type: Optional[GeometryType] = None
+
+    def enabled_modes(self) -> list[ValidationMode]:
+        return super().enabled_modes() + [ValidationMode.CRS]
 
 class EOFileFormatValidator(FileFormatValidator):
     """EO-specific validator that enables SRS validation mode and expects
@@ -10,7 +21,7 @@ class EOFileFormatValidator(FileFormatValidator):
     """
 
     @abstractmethod
-    def get_crs(self,request: EOValidationRequest) -> Optional[CoordinateReferenceSystem]:
+    def get_crs(self,request: EOValidationRequest) -> Optional[CRS]:
         pass
 
     def validate(self, request: ValidationRequest) -> ValidationResult:

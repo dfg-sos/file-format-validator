@@ -1,12 +1,13 @@
-from abc import abstractmethod, ABC
+from abc import ABC
 from typing import Optional
-
-from .eo_file_format_validator import EOFileFormatValidator
-from eo_format_validator.model import ValidationResult,GeometryType,EOValidationRequest,ValidationRequest,Error,Warning,Info,Cause,CoordinateReferenceSystem,EPSGCoordinateReferenceSystem,ValidationMode
-from eo_format_validator.util import validate_crs_with_fiona, open_with_fiona, validate_shape_type_with_fiona
-
+from pyproj import CRS
+from shapely import GeometryType
 import fiona
 from fiona.errors import DriverError
+
+from .eo_file_format_validator import EOFileFormatValidator,EOValidationRequest
+from eo_format_validator.model import ValidationResult,ValidationRequest,Error,Warning,Info,Cause,ValidationMode
+
 
 class VectorFileValidator(EOFileFormatValidator, ABC):
     def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
@@ -24,50 +25,19 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
                 Warning(message=f"Unknown exception occurred while opening '{request.actual_file.path}' with Fiona:\n{exc.__class__}:{str(exc)}", cause=Cause.FILE_OPEN_ERROR)
             )
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CoordinateReferenceSystem]:
+    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
         try:
             with fiona.open(request.actual_file.path) as fiona_collection:
                 crs = fiona_collection.crs
-                return EPSGCoordinateReferenceSystem(crs.to_epsg()) if crs else None
+                return CRS.from_epsg(crs.to_epsg()) if crs and crs.to_epsg() else None
         except Exception as e:
             return None
-        
-    @staticmethod
-    def to_geometry_type(name: str) -> Optional[GeometryType]:
-        if name:
-            name = str(name).strip().lower()
-            match name:
-
-                case "point":
-                    return GeometryType.POINT
-                case "multipoint" | "multi point":
-                    return GeometryType.MULTIPOINT
-                case "linestring" | "line string" | "line":
-                    return GeometryType.LINESTRING
-                case "multilinestring" | "multi linestring" | "multi line string" | "multiline" | "multi line":
-                    return GeometryType.MULTILINESTRING
-                case "polygon":
-                    return GeometryType.POLYGON
-                case "multipolygon" | "multi polygon":
-                    return GeometryType.MULTIPOLYGON
-                case "triangle":
-                    return GeometryType.TRIANGLE
-                case "polyhedralsurface" | "polyhedral surface":
-                    return GeometryType.POLYHEDRALSURFACE
-                case "tin" | "triangulated irregular network":
-                    return GeometryType.TIN
-                case "geometrycollection" | "geometry collection":
-                    return GeometryType.GEOMETRYCOLLECTION
-                case _:
-                    pass
-        return None
-
 
     def assert_geometry_type(self,request: EOValidationRequest) -> ValidationResult:
         try:
             with fiona.open(str(request.actual_file.path)) as src:
                 schema = src.schema
-                actual_geometry_type = VectorFileValidator.to_geometry_type(schema.get('geometry', None)) # type: ignore
+                actual_geometry_type = GeometryType(schema.get('geometry', None)) if schema and schema.get('geometry') else None
                 if not actual_geometry_type:
                     return ValidationResult.uncertain(
                         request,

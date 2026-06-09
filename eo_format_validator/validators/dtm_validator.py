@@ -1,4 +1,3 @@
-"""Digital Terrain Model"""
 from typing import List
 
 from ..registry import Registry 

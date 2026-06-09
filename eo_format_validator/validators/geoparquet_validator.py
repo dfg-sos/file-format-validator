@@ -5,9 +5,11 @@ from typing import List, Set,Optional
 import pyarrow.parquet as pq
 import geopandas as gpd
 import json
+from pyproj import CRS
+from shapely import GeometryType
 
-from eo_format_validator.model import FileInput,ValidationResult,EOValidationRequest,ValidationRequest, Error,Warning,Cause,CoordinateReferenceSystem,EPSGCoordinateReferenceSystem
-from eo_format_validator.util import normalize_geometry_to_shape_type,compare_crs
+from eo_file_format_validator import EOValidationRequest
+from ..model import ValidationResult,ValidationRequest, Error,Warning,Cause
 from .vector_file_validator import VectorFileValidator
 from ..registry import Registry
 
@@ -32,7 +34,7 @@ class GeoParquetValidator(VectorFileValidator):
         except Exception as exc_parquet:
             return ValidationResult.failure(request, Error(message=f"Could not open Parquet file with pyarrow:\n{exc_parquet}", cause=Cause.FILE_OPEN_ERROR))
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CoordinateReferenceSystem]:
+    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
         """Find CRS candidate(s) in the GeoParquet file and compare them to the expected one."""
         # Try to read GeoParquet metadata via pyarrow.parquet to avoid loading data with geopandas
         try:
@@ -72,11 +74,12 @@ class GeoParquetValidator(VectorFileValidator):
             # Interpret crs_val: look for formats like 'EPSG:4326' or integer
             if crs_val:
                 try:
-                    if isinstance(crs_val, int):
-                        return EPSGCoordinateReferenceSystem(crs_val)
-                    if isinstance(crs_val, str) and crs_val.upper().startswith('EPSG:'):
-                        epsg = int(crs_val.split(':', 1)[1])
-                        return EPSGCoordinateReferenceSystem(epsg)
+                    return CRS.from_user_input(crs_val)
+                    # if isinstance(crs_val, int):
+                    #     return EPSGCoordinateReferenceSystem(crs_val)
+                    # if isinstance(crs_val, str) and crs_val.upper().startswith('EPSG:'):
+                    #     epsg = int(crs_val.split(':', 1)[1])
+                    #     return EPSGCoordinateReferenceSystem(epsg)
                 except Exception:
                     pass
             return None
@@ -96,6 +99,7 @@ class GeoParquetValidator(VectorFileValidator):
         geo_meta = json.loads(metadata[b"geo"].decode("utf-8"))
         primary_col = geo_meta["primary_column"]
         geom_types = geo_meta["columns"][primary_col].get("geometry_types", [])
-        if request.geometry_type not in [VectorFileValidator.to_geometry_type(gt) for gt in geom_types]:
+        file_geom_types = [GeometryType[gt.upper()] for gt in geom_types]
+        if request.geometry_type not in file_geom_types:
             return ValidationResult.failure(request, Error(message=f"File geometry type(s) '{geom_types}' do not match expected geometry type '{request.geometry_type}'.", cause=Cause.METADATA_MISMATCH))
         return ValidationResult.success(request)

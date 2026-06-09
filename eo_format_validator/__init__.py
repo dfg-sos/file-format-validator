@@ -7,16 +7,17 @@ from .model import (
     ValidationMode,
     FileInput,
     MultiFileInput,
-    Format,
-    ShapeType,
 	ValidationResult,
     Severity,
+    Cause,
 	ValidationRequestBuilder,
 	ValidationResponseHandler,
     FileFormatValidator
 )
 
 from .validators import (
+    EOFileFormatValidator,
+    EOValidationRequest,
     VectorFileValidator,
     RasterFileValidator,
 )
@@ -30,11 +31,12 @@ __all__ = [
 	"ValidationResponseHandler",
     "FileInput",
     "MultiFileInput", 
-    "Format",
-    "ShapeType",
     "ValidationMode",
     "Severity",
+    "Cause",
     "FileFormatValidator",
     "VectorFileValidator",
     "RasterFileValidator",
+    "EOFileFormatValidator",
+    "EOValidationRequest"
 ]

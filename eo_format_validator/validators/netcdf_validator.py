@@ -1,20 +1,21 @@
-"""Also NetCDF-CF"""
-from typing import List
+from sys import path
+from typing import List, Optional
+import xarray as xr
+from pyproj import CRS
 
-from eo_format_validator.model import FileInput,Format,ValidationResult
+from ..model import ValidationRequest,ValidationResult,Error,Warning,Cause
 from .raster_file_validator import RasterFileValidator
+from .eo_file_format_validator import EOValidationRequest
 from ..registry import Registry
-from eo_format_validator.util import compare_crs
 
 
 @Registry.register("format_4115")
 class NetCDFValidator(RasterFileValidator):
 
-    def _get_extensions(self) -> List[str]:
+    def get_extensions(self) -> List[str]:
         return ['.cdf', '.nc4', '.nc']
 
-    def _validate_open(self, file_format: Format, file_input: FileInput,
-                       validation_result: ValidationResult) -> ValidationResult:
+    def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
         """
            Validate that the NetCDF file can be opened and has valid basic structure.
 
@@ -26,71 +27,36 @@ class NetCDFValidator(RasterFileValidator):
               - File has at least one data variable
               - Dimensions are valid (> 0)
         """
-
         try:
-            import xarray as xr
-        except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"The NetCDFValidator requires the 'xarray' library to be installed.",
-                code="XARRAY_MISSING",
-                details={"exception": str(exc)}
-            )
-            return validation_result
-
-        path = file_input.get_path()
-
-        try:
-            with xr.open_dataset(path) as ds:
-
+            with xr.open_dataset(request.actual_file.path) as ds:
                 # check if dataset has data variables
                 if len(ds.data_vars) == 0:
-                    validation_result.set_failure(
-                        message=f"NetCDF file has no data variables.",
-                        code="NO_DATA_VARS",
-                        path=str(path)
+                    return ValidationResult.failure(
+                        request,
+                        Error(message=f"NetCDF file has no data variables.", cause=Cause.MISSING_METADATA)
                     )
-                    validation_result.set_validated()
-                    return validation_result
-
                 # check dimensions
                 for dim_name, dim_size in ds.dims.items():
                     if dim_size <= 0:
-                        validation_result.set_failure(
-                            message=f"Invalid dimension '{dim_name}': size {dim_size}",
-                            code="INVALID_DIMENSION",
-                            path=str(path),
-                            details={'dimension': dim_name, 'size': dim_size}
+                        return ValidationResult.failure(
+                            request,
+                            Error(message=f"NetCDF file has invalid dimension '{dim_name}' with size {dim_size}.", cause=Cause.STRUCTURAL_MALFORMED)
                         )
-                        validation_result.set_validated()
-                        return validation_result
-
-                # file successfully opened
-                validation_result.set_success(
-                    message=f"NetCDF file successfully opened with xarray.",
-                    code="OPEN_PASSED"
-                )
-                return validation_result
+                return ValidationResult.success(request)
 
         except (OSError, IOError) as e:
-            validation_result.set_failure(
-                message=f"Failed to open NetCDF file: {str(e)}",
-                code="OPEN_FAILED",
-                path=str(path),
-                details={'error': str(e)}
+            return ValidationResult.failure(
+                request,
+                Error(message=f"Failed to open NetCDF file: {str(e)}", cause=Cause.FILE_OPEN_ERROR)
             )
-            return validation_result
         except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"Could not open NetCDF file '{path}'.",
-                code="OPEN_ERROR",
-                path=str(path),
-                details={"exception": str(exc), "exception_type": type(exc).__name__}
+            return ValidationResult.uncertain(
+                request,
+                Warning(f"Could not open NetCDF file with xarray:\n{exc}", cause=Cause.UNKNOWN)
             )
-            return validation_result
 
 
-    def assert_crs(self, file_format: Format, file_input: FileInput,
-                      validation_result: ValidationResult) -> ValidationResult:
+    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
         """
            Validate that the NetCDF file has a valid Coordinate Reference System.
 
@@ -102,40 +68,8 @@ class NetCDFValidator(RasterFileValidator):
               - CRS can be parsed to EPSG code
               - EPSG code matches expected (if specified)
         """
-
         try:
-            import xarray as xr
-        except Exception as exc:
-            validation_result.set_uncertainty(
-                message=f"The NetCDFValidator requires the 'xarray' library to be installed.",
-                code="XARRAY_MISSING",
-                details={"exception": str(exc)}
-            )
-            return validation_result
-
-        path = file_input.get_path()
-
-        try:
-            with xr.open_dataset(path) as ds:
-
-                # compare CRS with expected
-                return compare_crs(ds.rio.crs, file_format, path, validation_result)
-
-        except (OSError, IOError) as e:
-            validation_result.set_uncertainty(
-                message=f"Failed to read CRS from NetCDF file: {str(e)}",
-                code="CRS_FAILED",
-                path=str(path),
-                details={'error': str(e)}
-            )
-            return validation_result
-        except Exception as e:
-            validation_result.set_uncertainty(
-                message=f"Unexpected error while validating CRS for NetCDF file: {str(e)}",
-                code="CRS_ERROR",
-                path=str(path),
-                details={'error': str(e), 'error_type': type(e).__name__}
-            )
-            return validation_result
-
-#----------------------optional further advanced checks-----------------------
+            with xr.open_dataset(request.actual_file.path) as ds:
+                return CRS.from_cf(ds.crs.attrs) if hasattr(ds, 'crs') and ds.crs is not None else None
+        except Exception:
+            return None

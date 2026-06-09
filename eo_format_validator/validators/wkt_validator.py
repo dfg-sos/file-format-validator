@@ -1,25 +1,24 @@
 """Well-known textual representation of geometry"""
-from typing import List
+from typing import List,Optional
 from pyproj import CRS
 from shapely import wkt
 
-from eo_format_validator.model import ValidationResult,Format,FileInput
-from eo_format_validator.util import compare_crs,compare_shape_type, normalize_geometry_to_shape_type
+from ..model import ValidationResult,ValidationRequest,Error,Cause,Warning
 from ..registry import Registry
 from .vector_file_validator import VectorFileValidator
+from .eo_file_format_validator import EOValidationRequest
 
 @Registry.register("format_4122")
 class WKTValidator(VectorFileValidator):
 
-    def _get_extensions(self) -> List[str]:
+    def get_extensions(self) -> List[str]:
         return ['.wkt', '.txt']
 
 
 
 
-    def _validate_open(self, file_format: Format, file_input: FileInput,
-                       validation_result: ValidationResult) -> ValidationResult:
-        path = file_input.get_path()
+    def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
+        path = request.actual_file.path
         try:
             text = path.read_text(encoding="utf-8").strip()
 
@@ -32,26 +31,16 @@ class WKTValidator(VectorFileValidator):
                 text = text.split(";", 1)[1]
 
             geom = wkt.loads(text)
-            validation_result.set_success(
-                message="WKT parsed successfully.",
-                code="OPEN_OK",
-                details={"geom_type": geom.geom_type}
-            )
-            return validation_result
+            return ValidationResult.success(request)
         except Exception as exc:
-            validation_result.set_failure(
-                message="Invalid WKT geometry.",
-                code="OPEN_FAILED",
-                path=str(path),
-                details={"exception": str(exc)}
+            return ValidationResult.failure(
+                request,
+                Error(message="Invalid WKT geometry.", cause=Cause.STRUCTURAL_MALFORMED)
             )
-            return validation_result
 
-    def assert_crs(self, file_format: Format, file_input: FileInput,
-                      validation_result: ValidationResult) -> ValidationResult:
-        path = file_input.get_path()
+    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
         try:
-            text = path.read_text(encoding="utf-8").strip()
+            text = request.actual_file.path.read_text(encoding="utf-8").strip()
 
             if text.startswith("<"):
                 text = text.split(">", 1)[1].strip()
@@ -59,29 +48,17 @@ class WKTValidator(VectorFileValidator):
             if text.upper().startswith("SRID="):
                 epsg = int(text.split(";", 1)[0].split("=")[1])
             else:
-                crs = CRS.from_wkt(text)
-                epsg = crs.to_epsg()
-            if not epsg:
-                validation_result.set_uncertainty(
-                    message="CRS found but no EPSG code available.",
-                    code="CRS_NO_EPSG",
-                    path=str(path)
-                )
-                return validation_result
+                return CRS.from_wkt(text)
+        except Exception:
+            return None
 
-            return compare_crs(epsg, file_format, path, validation_result)
-        except Exception as exc:
-            validation_result.set_uncertainty(
-                message="Could not determine CRS from WKT.",
-                code="CRS_PARSE_FAILED",
-                path=str(path),
-                details={"exception": str(exc)}
+    def assert_geometry_type(self, request: EOValidationRequest) -> ValidationResult:
+        path = request.actual_file.path
+        if not request.geometry_type:
+            return ValidationResult.uncertain(
+                request,
+                Warning("No expected geometry type provided for WKT file, skipping geometry type check.", cause=Cause.MISSING_METADATA)
             )
-            return validation_result
-
-    def _validate_shape_type(self, file_format: Format, file_input: FileInput,
-                             validation_result: ValidationResult) -> ValidationResult:
-        path = file_input.get_path()
         try:
             text = path.read_text(encoding="utf-8").strip()
 
@@ -94,12 +71,17 @@ class WKTValidator(VectorFileValidator):
                 text = text.split(";", 1)[1]
 
             geom = wkt.loads(text)
-            detected = geom.geom_type.lower()
-            return compare_shape_type(file_format.get_shape_type(), normalize_geometry_to_shape_type(detected), validation_result)
+            detected = geom.geom_type
+            expected = request.geometry_type 
+            if detected != expected:
+                return ValidationResult.failure(
+                    request,
+                    Error(message=f"Geometry type mismatch: detected '{detected}' vs expected '{expected}'.", cause=Cause.METADATA_MISMATCH)
+                )
+            return ValidationResult.success(request)
+           
         except Exception as exc:
-            validation_result.set_uncertainty(
-                message="Could not parse WKT geometry.",
-                code="GEOM_PARSE_FAILED",
-                details={"exception": str(exc)}
+            return ValidationResult.uncertain(
+                request,
+                Warning(f"Could not detect geometry type from WKT file:\n{str(exc)}",cause=Cause.MISSING_METADATA)
             )
-            return validation_result
