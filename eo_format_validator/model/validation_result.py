@@ -1,7 +1,8 @@
+from abc import ABC, abstractmethod
 import json
 import datetime
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List
+from typing import Optional, List
 from enum import Enum
 from .validation_request import ValidationRequest
 
@@ -20,24 +21,32 @@ class Cause(Enum):
     UNKNOWN = "unknown"
 
 @dataclass(frozen=True)
-class Event:
+class Event(ABC):
     message: str 
-    severity: Severity
     timestamp: datetime.datetime = field(default_factory=lambda: datetime.datetime.now())
+
+    @abstractmethod
+    def severity(self) -> Severity:
+        pass
 
 @dataclass(frozen=True)
 class Info(Event):
-    severity: Severity = field(default=Severity.INFO, init=False)
+    def severity(self) -> Severity:
+        return Severity.INFO
 
 @dataclass(frozen=True)
 class Warning(Event):
-    severity: Severity = field(default=Severity.WARNING, init=False)
     cause: Optional[Cause] = None
+
+    def severity(self) -> Severity:
+        return Severity.WARNING
 
 @dataclass(frozen=True)
 class Error(Event):
-    severity: Severity = field(default=Severity.ERROR, init=False)
     cause: Optional[Cause] = None
+
+    def severity(self) -> Severity:
+        return Severity.ERROR
 
 
 class ValidationStatus(Enum):
@@ -63,12 +72,12 @@ class ValidationResult:
 
     @property
     def status(self) -> ValidationStatus:
-        return self._status
+        return self._status if self._status != ValidationStatus.INIT else ValidationStatus.SUCCESS
     
     @status.setter
     def status(self, value: ValidationStatus):
-        if self.status == ValidationStatus.FAILURE or len(self.errors()) > 0:
-            self.status = ValidationStatus.FAILURE # Failure overrides success or uncertainty
+        if self._status == ValidationStatus.FAILURE or len(self.errors()) > 0:
+            self._status = ValidationStatus.FAILURE # Failure overrides success or uncertainty
             return
         self._status = value
 
@@ -81,7 +90,7 @@ class ValidationResult:
         return self._events
 
     def get(self, severity: Severity) -> List[Event]:
-        return [e for e in self._events if e.severity == severity]
+        return [e for e in self._events if e.severity() == severity]
 
     def errors(self):
         return self.get(Severity.ERROR)
@@ -92,35 +101,28 @@ class ValidationResult:
     def infos(self):
         return self.get(Severity.INFO)
     
-    # Modifiers
-    
     def add(self, event: Event) -> None:
         self._events.append(event)
+        match event.severity():
+            case Severity.ERROR:
+                self.status = ValidationStatus.FAILURE
+            case Severity.WARNING:
+                if self._status == ValidationStatus.INIT:
+                    self.status = ValidationStatus.UNCERTAIN
+            case _: pass
 
     def set_success(self, info: Info | None = None) -> 'ValidationResult':
-        self.status = ValidationStatus.SUCCESS
         if info:
             self.add(info)
+        self.status = ValidationStatus.SUCCESS
         return self
 
     def set_failure(self, error: Error) -> 'ValidationResult':
-        self.status = ValidationStatus.FAILURE
         self.add(error)
         return self
 
     def set_uncertainty(self, warning: Warning) -> 'ValidationResult':
-        self.status = ValidationStatus.UNCERTAIN
         self.add(warning)
-        return self
-
-    def evaluate(self) -> 'ValidationResult':
-        if self.status == ValidationStatus.INIT:
-            if len(self.errors()) > 0:
-                self.status = ValidationStatus.FAILURE
-            elif len(self.warnings()) > 0:
-                self.status = ValidationStatus.UNCERTAIN
-            else:
-                self.status = ValidationStatus.SUCCESS
         return self
 
 

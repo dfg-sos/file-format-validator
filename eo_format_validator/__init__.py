@@ -3,16 +3,19 @@ from .registry import Registry
 
 # # Re-export core model types for convenience
 from .model import (
-	ValidationRequest,
-    ValidationMode,
     FileInput,
     MultiFileInput,
-	ValidationResult,
+    ValidationMode,
+	ValidationRequest,
     Severity,
     Cause,
+    Info,
+    Warning,
+    Error,
+	ValidationResult,
+    FileFormatValidator,
 	ValidationRequestBuilder,
 	ValidationResponseHandler,
-    FileFormatValidator
 )
 
 from .validators import (
@@ -23,20 +26,21 @@ from .validators import (
 )
 
 __all__ = [
-	"EOFormatValidator",
-	"Registry",
-	"ValidationRequest",
-	"ValidationResult",
-	"ValidationRequestBuilder",
-	"ValidationResponseHandler",
     "FileInput",
-    "MultiFileInput", 
+    "MultiFileInput",
     "ValidationMode",
+    "ValidationRequest",
     "Severity",
     "Cause",
+    "Info",
+    "Warning",
+    "Error",
+    "ValidationResult",
     "FileFormatValidator",
+    "ValidationRequestBuilder",
+    "ValidationResponseHandler",
+    "EOFileFormatValidator",
+    "EOValidationRequest",
     "VectorFileValidator",
     "RasterFileValidator",
-    "EOFileFormatValidator",
-    "EOValidationRequest"
 ]

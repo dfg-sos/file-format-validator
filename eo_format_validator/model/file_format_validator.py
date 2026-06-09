@@ -28,7 +28,7 @@ class FileFormatValidator(ABC):
                 continue
             if not path.is_file():
                 result.set_failure(Error(message=f"Input '{path}' is not a file.", cause=Cause.PATH_ERROR))
-        return result.evaluate() 
+        return result
 
     def validate(self, request: ValidationRequest) -> ValidationResult:
         validation_result = ValidationResult(request)
@@ -43,4 +43,4 @@ class FileFormatValidator(ABC):
                 validation_result += self.assert_exists(request)
                 validation_result += self.assert_can_open(request)
                 # Base validator is domain-agnostic and does not perform SRS checks.
-        return validation_result.evaluate()
+        return validation_result
