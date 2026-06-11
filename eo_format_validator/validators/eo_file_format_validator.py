@@ -1,6 +1,6 @@
 from typing import Optional
 from abc import abstractmethod
-from attr import dataclass
+from dataclasses import dataclass
 from pyproj import CRS
 from shapely import GeometryType
 
