@@ -50,4 +50,6 @@ def test_equality(validation_request):
     assert validation_request != different_input
     assert validation_request != different_format
     assert validation_request != different_mode
+    assert validation_request == validation_request
+
     

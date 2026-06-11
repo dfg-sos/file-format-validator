@@ -45,6 +45,7 @@ def test_event():
     assert error_event.message == "Error event"
     assert error_event.timestamp - datetime.datetime.now() < datetime.timedelta(seconds=1)
 
+
 def test_init(validation_request):
     result = ValidationResult(validation_request)
     assert result.events == []
