@@ -37,9 +37,9 @@ class COGValidator(RasterFileValidator):
                 result.set_success()
             return result
         except Exception as e:
-            return ValidationResult.uncertain(
+            return ValidationResult.failure(
                 request,
-                Warning(message=f"Rio-cogeo validation failed for file {request.actual_file.path}: \n{str(e)}", cause=Cause.UNKNOWN)
+                Error(message=f"Rio-cogeo validation failed for file {request.actual_file.path}: \n{str(e)}", cause=Cause.UNKNOWN)
             )
 
 
