@@ -8,7 +8,7 @@ import json
 from pyproj import CRS
 from shapely import GeometryType
 
-from eo_file_format_validator import EOValidationRequest
+from .eo_file_format_validator import EOValidationRequest
 from ..model import ValidationResult,ValidationRequest, Error,Warning,Cause
 from .vector_file_validator import VectorFileValidator
 from ..registry import Registry
@@ -18,7 +18,7 @@ from ..registry import Registry
 @Registry.register("format_4108")
 class GeoParquetValidator(VectorFileValidator):
 
-    def _get_extensions(self) -> List[str]:
+    def get_extensions(self) -> List[str]:
         return ['.parquet', '.geoparquet'] # .parquet recommended file ext., .geoparquet should not be used, but is used in practice
 
     def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
