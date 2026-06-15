@@ -11,6 +11,11 @@ DATA_DIR = Path("data/geo")
 # ========== Raster File Input Fixtures ==========
 
 @pytest.fixture
+def geotiff_no_cog_input():
+    """FileInput for a regular GeoTIFF file that is not COG compliant."""
+    return FileInput(path=DATA_DIR / "o41078a2.tif")
+
+@pytest.fixture
 def geotiff_input():
     """FileInput for GeoTIFF file."""
     return FileInput(path=DATA_DIR / "WSF2019_v1_8_48.tif")

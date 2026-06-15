@@ -8,7 +8,7 @@ from eo_format_validator import ValidationMode, FileInput
 from eo_format_validator.validators import EOValidationRequest
 from eo_format_validator.model.validation_result import ValidationStatus
 from eo_format_validator.model import ValidationResult, Error, Cause
-from fixtures import cog_input, geojson_input, geopackage_input, wgs84_crs,mercator_crs,nonexistent_input
+from fixtures import cog_input, geojson_input, geopackage_input, wgs84_crs,mercator_crs,nonexistent_input,geotiff_no_cog_input
 
 
 # ========== Local Fixtures ==========
@@ -104,7 +104,6 @@ class TestCOGValidatorAssertCanOpen:
             mode=ValidationMode.FULL
         )
         result = cog_validator.assert_can_open(request)
-        assert result is not None
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_can_open_failure(self, cog_validator, geojson_input):
@@ -117,6 +116,16 @@ class TestCOGValidatorAssertCanOpen:
         result = cog_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
 
+    def test_assert_can_open_failure_no_cog(self, cog_validator, geotiff_no_cog_input):
+        """Test that assert_can_open fails for non-COG TIFF file."""
+        request = EOValidationRequest(
+            format_identifier="format_4100",
+            actual_file=geotiff_no_cog_input,
+            mode=ValidationMode.FULL
+        )
+        result = cog_validator.assert_can_open(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(error.cause == Cause.STRUCTURAL_MALFORMED for error in result.errors())
 
 # ========== Test get_crs() Method ==========
 
@@ -194,7 +203,6 @@ class TestCOGValidatorAssertCRS:
         assert result.status == ValidationStatus.UNCERTAIN
         assert any(warn.cause == Cause.MISSING_METADATA for warn in result.warnings())
 
-
 # ========== Test validate() with BASIC Mode ==========
 
 class TestCOGValidatorBasicMode:
@@ -258,6 +266,7 @@ class TestCOGValidatorStructuralMode:
         )
         result = cog_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
         validExtensionNonExistentFile = FileInput(path=nonexistent_input.path.with_suffix('.tif'))
         request = EOValidationRequest(
@@ -275,33 +284,36 @@ class TestCOGValidatorStructuralMode:
 class TestCOGValidatorFullMode:
     """Test validate() method with FULL mode (extension + existence + open)."""
 
-    def test_validate_full_positive(self, cog_validator, cog_input):
+    def test_validate_full_positive(self, cog_validator, cog_input,wgs84_crs):
         """Test FULL mode passes for valid COG file."""
         request = EOValidationRequest(
             format_identifier="format_4100",
             actual_file=cog_input,
-            mode=ValidationMode.FULL
+            mode=ValidationMode.FULL,
+            crs=wgs84_crs
         )
         result = cog_validator.validate(request)
-        assert result.status in (ValidationStatus.SUCCESS, ValidationStatus.UNCERTAIN)
+        assert result.status == ValidationStatus.SUCCESS
 
-    def test_validate_full_negative_wrong_format(self, cog_validator, geojson_input):
+    def test_validate_full_negative_wrong_format(self, cog_validator, geojson_input,wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = EOValidationRequest(
             format_identifier="format_4100",
             actual_file=geojson_input,
-            mode=ValidationMode.FULL
+            mode=ValidationMode.FULL,
+            crs=wgs84_crs
         )
         result = cog_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
 
-    def test_validate_full_negative_nonexistent(self, cog_validator, nonexistent_input):
+    def test_validate_full_negative_nonexistent(self, cog_validator, nonexistent_input,wgs84_crs):
         """Test FULL mode fails for non-existent file."""
         request = EOValidationRequest(
             format_identifier="format_4100",
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL
+            mode=ValidationMode.FULL,
+            crs=wgs84_crs
         )
         result = cog_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -312,33 +324,26 @@ class TestCOGValidatorFullMode:
 
 class TestCOGValidatorCRSMode:
     """Test validate() method with CRS mode."""
-
-    def test_validate_crs_positive(self, cog_validator, cog_input):
-        """Test CRS mode passes for valid file with CRS."""
+    
+    def test_validate_crs_no_expected(self, cog_validator, cog_input):
+        """Test CRS mode passes when no expected CRS is provided."""
         request = EOValidationRequest(
             format_identifier="format_4100",
             actual_file=cog_input,
             mode=ValidationMode.CRS
         )
         result = cog_validator.validate(request)
-        # No expected CRS provided, should succeed with info message
         assert result.status == ValidationStatus.SUCCESS
 
-    def test_validate_crs_positive_with_matching_crs(self, cog_validator, cog_input):
+    def test_validate_crs_positive(self, cog_validator, cog_input,wgs84_crs):
         """Test CRS mode passes with matching expected CRS."""
         request = EOValidationRequest(
             format_identifier="format_4100",
             actual_file=cog_input,
-            mode=ValidationMode.CRS
-        )
-        actual_crs = cog_validator.get_crs(request)
-        matching_request = EOValidationRequest(
-            format_identifier="format_4100",
-            actual_file=cog_input,
             mode=ValidationMode.CRS,
-            crs=actual_crs
+            crs=wgs84_crs
         )
-        result = cog_validator.validate(matching_request)
+        result = cog_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_crs_negative_wrong_crs(self, cog_validator, cog_input, mercator_crs):
@@ -363,4 +368,3 @@ class TestCOGValidatorCRSMode:
         )
         result = cog_validator.validate(request)
         assert result.status == ValidationStatus.UNCERTAIN
-        # assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
