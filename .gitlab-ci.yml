@@ -2,8 +2,6 @@ workflow:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: always
-    - if: '$CI_COMMIT_BRANCH == "dev"'
-      when: always
     - when: never
 stages:
   - test
