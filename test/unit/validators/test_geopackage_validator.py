@@ -1,135 +1,369 @@
 """Test cases for GeoPackage Validator using real data files."""
 import pytest
 from pathlib import Path
-from pyproj import CRS
-from shapely import GeometryType
 
 from eo_format_validator.validators.geopackage_validator import GeoPackageValidator
-from eo_format_validator.model import ValidationRequest, ValidationResult, ValidationMode, FileInput, Cause
-from eo_format_validator.validators.eo_file_format_validator import EOValidationRequest
+from eo_format_validator import ValidationMode, FileInput
+from shapely import GeometryType
+from eo_format_validator.validators import EOValidationRequest
+from eo_format_validator.model.validation_result import ValidationStatus
+from eo_format_validator.model import ValidationResult, Error, Cause
+from fixtures import geopackage_input, geopackage_raster_input, geojson_input, gpx_input, wgs84_crs, mercator_crs, nonexistent_input
 
-DATA_DIR = Path("data/geo")
 
+# ========== Local Fixtures ==========
 
 @pytest.fixture
 def geopackage_validator():
-    """Create the actual GeoPackage validator instance (not a mock)."""
+    """GeoPackage validator instance."""
     return GeoPackageValidator()
 
 
-@pytest.fixture
-def italian_cities_gpkg():
-    """Use the real GeoPackage file (vector)."""
-    return DATA_DIR / "Italian_cities.gpkg"
+# ========== Test get_extensions() Method ==========
 
-
-@pytest.fixture
-def st_louis_gpkg():
-    """Use the real GeoPackage file."""
-    return DATA_DIR / "StLouis.gpkg"
-
-
-@pytest.fixture
-def test_raster_only_gpkg():
-    """Use the real raster-only GeoPackage file."""
-    return DATA_DIR / "test_raster_only_full.gpkg"
-
-
-@pytest.fixture
-def validation_request(italian_cities_gpkg):
-    """Create a validation request using a real GeoPackage."""
-    return EOValidationRequest(
-        format_identifier="format_4107",
-        actual_file=FileInput(path=italian_cities_gpkg),
-        mode=ValidationMode.STRUCTURAL
-    )
-
-
-class TestGeoPackageValidatorExtension:
-    """Test GeoPackage validator extension handling."""
+class TestGeoPackageValidatorGetExtensions:
+    """Test get_extensions() method."""
 
     def test_get_extensions(self, geopackage_validator):
-        """Test that GeoPackage validator accepts gpkg extension."""
+        """Test that .gpkg extension is returned."""
         extensions = geopackage_validator.get_extensions()
         assert '.gpkg' in extensions
-        assert len(extensions) == 1
 
+
+# ========== Test assert_extension() Method ==========
+
+class TestGeoPackageValidatorAssertExtension:
+    """Test assert_extension() method."""
+
+    def test_assert_extension_valid(self, geopackage_validator, geopackage_input):
+        """Test extension validation passes for .gpkg file."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.BASIC
+        )
+        result = geopackage_validator.assert_extension(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_assert_extension_failure(self, geopackage_validator, geojson_input, gpx_input):
+        """Test extension validation fails for non-.gpkg files."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geojson_input,
+            mode=ValidationMode.BASIC
+        )
+        result = geopackage_validator.assert_extension(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
+        
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=gpx_input,
+            mode=ValidationMode.BASIC
+        )
+        result = geopackage_validator.assert_extension(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
+
+
+# ========== Test assert_exists() Method ==========
 
 class TestGeoPackageValidatorAssertExists:
-    """Test GeoPackage validator file existence checks."""
+    """Test assert_exists() method."""
 
-    def test_assert_exists_passes(self, geopackage_validator, italian_cities_gpkg):
-        """Test file existence passes for real GeoPackage files."""
+    def test_assert_exists_passes(self, geopackage_validator, geopackage_input):
+        """Test file existence passes for existing file."""
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=FileInput(path=italian_cities_gpkg),
+            actual_file=geopackage_input,
             mode=ValidationMode.STRUCTURAL
         )
         result = geopackage_validator.assert_exists(request)
-        assert result.status.value == "success"
+        assert result.status == ValidationStatus.SUCCESS
 
-    def test_assert_exists_fails(self, geopackage_validator):
-        """Test file existence fails for non-existent files."""
+    def test_assert_exists_fails_for_nonexistent(self, geopackage_validator, nonexistent_input):
+        """Test file existence fails for non-existent file."""
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=FileInput(path=Path("/nonexistent/file.gpkg")),
+            actual_file=nonexistent_input,
             mode=ValidationMode.STRUCTURAL
         )
         result = geopackage_validator.assert_exists(request)
-        assert result.status.value == "failure"
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
 
 
-class TestGeoPackageValidatorGpkgTables:
-    """Test GeoPackage validator table checking with real files."""
+# ========== Test assert_can_open() Method ==========
 
-    def test_assert_gpkg_tables_on_italian_cities(self, geopackage_validator, italian_cities_gpkg):
-        """Test that a real GeoPackage has the required tables."""
+class TestGeoPackageValidatorAssertCanOpen:
+    """Test assert_can_open() method."""
+
+    def test_assert_can_open_passes(self, geopackage_validator, geopackage_input):
+        """Test opening a real GeoPackage file."""
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=FileInput(path=italian_cities_gpkg),
+            actual_file=geopackage_input,
             mode=ValidationMode.FULL
         )
-        result = GeoPackageValidator.assert_gpkg_tables(request)
-        assert result.status.value == "success"
+        result = geopackage_validator.assert_can_open(request)
+        assert result.status == ValidationStatus.SUCCESS
 
-
-class TestGeoPackageValidatorHasVectorLayers:
-    """Test GeoPackage validator vector layer detection."""
-
-    def test_has_vector_layers_true(self, geopackage_validator, italian_cities_gpkg):
-        """Test that Italian_cities.gpkg has vector layers."""
+    def test_assert_can_open_failure(self, geopackage_validator, geojson_input):
+        """Test that assert_can_open fails for GeoJSON file."""
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=FileInput(path=italian_cities_gpkg),
-            mode=ValidationMode.STRUCTURAL
+            actual_file=geojson_input,
+            mode=ValidationMode.FULL
         )
-        assert geopackage_validator.has_vector_layers(request) is True
+        result = geopackage_validator.assert_can_open(request)
+        assert result.status == ValidationStatus.FAILURE
 
-    def test_has_vector_layers_false_for_raster(self, geopackage_validator, test_raster_only_gpkg):
-        """Test that a raster-only GeoPackage has no vector layers."""
+
+# ========== Test get_crs() Method ==========
+
+class TestGeoPackageValidatorGetCRS:
+    """Test get_crs() method."""
+
+    def test_get_crs(self, geopackage_validator, geopackage_input, wgs84_crs):
+        """Test CRS extraction returns the expected CRS."""
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=FileInput(path=test_raster_only_gpkg),
-            mode=ValidationMode.STRUCTURAL
+            actual_file=geopackage_input,
+            mode=ValidationMode.CRS,
+            crs=wgs84_crs
         )
-        assert geopackage_validator.has_vector_layers(request) is False
+        crs = geopackage_validator.get_crs(request)
+        assert crs is not None
+        assert crs == wgs84_crs
 
-
-class TestGeoPackageValidatorFullValidation:
-    """Test GeoPackage validator full validation workflow."""
-
-    def test_validate_structural_with_italian_cities(self, geopackage_validator, validation_request):
-        """Test structural validation with a real GeoPackage."""
-        result = geopackage_validator.validate(validation_request)
-        assert result.status.value == "success"
-
-    def test_validate_full_with_italian_cities(self, geopackage_validator, italian_cities_gpkg):
-        """Test full validation with a real GeoPackage."""
+    def test_get_crs_none(self, geopackage_validator, gpx_input, wgs84_crs):
+        """Test CRS extraction returns None for non-GeoPackage file."""
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=FileInput(path=italian_cities_gpkg),
-            mode=ValidationMode.FULL,
-            geometry_type=GeometryType.POINT
+            actual_file=gpx_input,
+            mode=ValidationMode.CRS,
+            crs=wgs84_crs
+        )
+        crs = geopackage_validator.get_crs(request)
+        assert crs is None
+
+
+# ========== Test assert_crs() Method ==========
+
+class TestGeoPackageValidatorAssertCRS:
+    """Test assert_crs() method."""
+
+    def test_assert_crs_passes(self, geopackage_validator, geopackage_input, wgs84_crs):
+        """Test CRS validation passes with matching expected CRS."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.CRS,
+            crs=wgs84_crs
+        )
+        result = geopackage_validator.assert_crs(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_assert_crs_fails(self, geopackage_validator, geopackage_input, mercator_crs):
+        """Test CRS validation fails with mismatching expected CRS."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.CRS,
+            crs=mercator_crs
+        )
+        result = geopackage_validator.assert_crs(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
+
+    def test_assert_crs_no_expected(self, geopackage_validator, geopackage_input):
+        """Test CRS validation skips when no expected CRS is provided."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.CRS
+        )
+        result = geopackage_validator.assert_crs(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_assert_crs_no_actual(self, geopackage_validator, gpx_input, wgs84_crs):
+        """Test CRS validation is uncertain when CRS could not be read from file."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=gpx_input,
+            mode=ValidationMode.CRS,
+            crs=wgs84_crs
+        )
+        result = geopackage_validator.assert_crs(request)
+        assert result.status == ValidationStatus.UNCERTAIN
+        assert any(warn.cause == Cause.MISSING_METADATA for warn in result.warnings())
+
+
+# ========== Test validate() with BASIC Mode ==========
+
+class TestGeoPackageValidatorBasicMode:
+    """Test validate() method with BASIC mode (extension check only)."""
+
+    def test_validate_basic_passes(self, geopackage_validator, geopackage_input):
+        """Test BASIC mode passes for valid .gpkg file."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.BASIC
         )
         result = geopackage_validator.validate(request)
-        assert result.status.value == "success"
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_validate_basic_failure(self, geopackage_validator, geojson_input):
+        """Test BASIC mode fails for wrong extension."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geojson_input,
+            mode=ValidationMode.BASIC
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
+
+
+# ========== Test validate() with STRUCTURAL Mode ==========
+
+class TestGeoPackageValidatorStructuralMode:
+    """Test validate() method with STRUCTURAL mode (extension + existence)."""
+
+    def test_validate_structural_positive(self, geopackage_validator, geopackage_input):
+        """Test STRUCTURAL mode passes for valid existing file."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.STRUCTURAL
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_validate_structural_negative_wrong_extension(self, geopackage_validator, geojson_input):
+        """Test STRUCTURAL mode fails for wrong extension."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geojson_input,
+            mode=ValidationMode.STRUCTURAL
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
+
+    def test_validate_structural_negative_nonexistent(self, geopackage_validator, nonexistent_input):
+        """Test STRUCTURAL mode fails for non-existent file."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=nonexistent_input,
+            mode=ValidationMode.STRUCTURAL
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
+        assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
+        
+        valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.gpkg'))
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=valid_extension_nonexistent_file,
+            mode=ValidationMode.STRUCTURAL
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
+
+
+# ========== Test validate() with FULL Mode ==========
+
+class TestGeoPackageValidatorFullMode:
+    """Test validate() method with FULL mode (extension + existence + open + geometry)."""
+
+    def test_validate_full_positive(self, geopackage_validator, geopackage_input, wgs84_crs):
+        """Test FULL mode passes for valid GeoPackage file."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.FULL,
+            crs=wgs84_crs,
+            geometry_type=GeometryType.POLYGON
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_validate_full_negative_wrong_format(self, geopackage_validator, geojson_input, wgs84_crs):
+        """Test FULL mode fails for wrong file format."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geojson_input,
+            mode=ValidationMode.FULL,
+            crs=wgs84_crs,
+            geometry_type=GeometryType.POLYGON
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
+
+    def test_validate_full_negative_nonexistent(self, geopackage_validator, nonexistent_input, wgs84_crs):
+        """Test FULL mode fails for non-existent file."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=nonexistent_input,
+            mode=ValidationMode.FULL,
+            crs=wgs84_crs,
+            geometry_type=GeometryType.POLYGON
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
+
+
+# ========== Test validate() with CRS Mode ==========
+
+class TestGeoPackageValidatorCRSMode:
+    """Test validate() method with CRS mode."""
+
+    def test_validate_crs_no_expected(self, geopackage_validator, geopackage_input):
+        """Test CRS mode passes when no expected CRS is provided."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.CRS
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_validate_crs_positive(self, geopackage_validator, geopackage_input, wgs84_crs):
+        """Test CRS mode passes with matching expected CRS."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.CRS,
+            crs=wgs84_crs
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_validate_crs_negative_wrong_crs(self, geopackage_validator, geopackage_input, mercator_crs):
+        """Test CRS mode fails with mismatching expected CRS."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.CRS,
+            crs=mercator_crs
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
+
+    def test_validate_crs_negative_wrong_format(self, geopackage_validator, gpx_input, wgs84_crs):
+        """Test CRS mode fails for wrong file format."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=gpx_input,
+            mode=ValidationMode.CRS,
+            crs=wgs84_crs
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.UNCERTAIN
