@@ -136,11 +136,11 @@ class TestGeoJSONValidatorGetCRS:
         assert crs is not None
         assert crs == wgs84_crs
 
-    def test_get_crs_none(self, geojson_validator, gpx_input, wgs84_crs):
+    def test_get_crs_none(self, geojson_validator, geotiff_input, wgs84_crs):
         """Test CRS extraction returns None for non-GeoJSON file."""
         request = EOValidationRequest(
             format_identifier="format_4106",
-            actual_file=gpx_input,
+            actual_file=geotiff_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
         )
@@ -186,11 +186,11 @@ class TestGeoJSONValidatorAssertCRS:
         result = geojson_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
 
-    def test_assert_crs_no_actual(self, geojson_validator, gpx_input, wgs84_crs):
+    def test_assert_crs_no_actual(self, geojson_validator, geotiff_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = EOValidationRequest(
             format_identifier="format_4106",
-            actual_file=gpx_input,
+            actual_file=geotiff_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
         )
@@ -292,6 +292,19 @@ class TestGeoJSONValidatorFullMode:
         result = geojson_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
+    def test_validate_full_negative_wrong_geometry(self, geojson_validator, geojson_input, wgs84_crs):
+        """Test FULL mode fails for mismatching expected geometry type."""
+        request = EOValidationRequest(
+            format_identifier="format_4106",
+            actual_file=geojson_input,
+            mode=ValidationMode.FULL,
+            crs=wgs84_crs,
+            geometry_type=GeometryType.POINT
+        )
+        result = geojson_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
+        
     def test_validate_full_negative_wrong_format(self, geojson_validator, geotiff_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = EOValidationRequest(

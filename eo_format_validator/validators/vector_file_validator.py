@@ -34,22 +34,30 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
             return None
 
     def assert_geometry_type(self,request: EOValidationRequest) -> ValidationResult:
+        MAX_FEATURES_TO_INSPECT = 10  # Limit the number of features to inspect for geometry type
+        expected_geometry_type = request.geometry_type
+        if not expected_geometry_type:
+            return ValidationResult.success(
+                request,
+                Info(message=f"No expected geometry type given, skipping geometry type validation.")
+            )
         try:
-            with fiona.open(str(request.actual_file.path)) as src:
-                schema = src.schema
-                actual_geometry_type = GeometryType(schema.get('geometry', None)) if schema and schema.get('geometry') else None
-                if not actual_geometry_type:
-                    return ValidationResult.uncertain(
-                        request,
-                        Warning(message=f"File has no geometry type defined, cannot validate against expected shape type.", cause=Cause.MISSING_METADATA)
-                    )
-            expected_geometry_type = request.geometry_type
-
-            if not expected_geometry_type:
-                return ValidationResult.success(
+            actual_geometry_type = None
+            with fiona.open(str(request.actual_file.path)) as ds:
+                for feature,_ in zip(ds, range(min(len(ds), MAX_FEATURES_TO_INSPECT))):
+                    current_geometry_type = GeometryType(feature.get('geometry', {}).get('type',None)) if feature.get('geometry') else None
+                    #TODO create GeometryType object from string and compare with expected_geometry_type
+                    if actual_geometry_type is not None and current_geometry_type is not None and actual_geometry_type != current_geometry_type:
+                        return ValidationResult.uncertain(
+                            request,
+                            Warning(message=f"File has mixed geometry types: '{actual_geometry_type}' and '{current_geometry_type}'. Cannot validate against expected shape type.", cause=Cause.MIXED_GEOMETRY_TYPES)
+                        )
+            if not actual_geometry_type:
+                return ValidationResult.uncertain(
                     request,
-                    Info(message=f"Geometry type '{actual_geometry_type}' detected. No expected geometry type given, skipping geometry type validation.")
+                    Warning(message=f"File has no geometry type defined, cannot validate against expected shape type.", cause=Cause.MISSING_METADATA)
                 )
+
             if expected_geometry_type != actual_geometry_type:
                 return ValidationResult.failure(
                     request,
