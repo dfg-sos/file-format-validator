@@ -184,7 +184,8 @@ class ValidationResult:
                 self.status = ValidationStatus.FAILURE
             case ValidationStatus.UNCERTAIN:
                 self.status = ValidationStatus.UNCERTAIN
-            case _: pass
+            case _: 
+                self.status = self.status
         for new_event in [e for e in other.events if e not in self._events]:
             self.add(new_event)
         return self
