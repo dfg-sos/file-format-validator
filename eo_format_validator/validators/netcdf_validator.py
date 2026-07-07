@@ -44,7 +44,7 @@ class NetCDFValidator(RasterFileValidator):
                         )
                 return ValidationResult.success(request)
 
-        except (OSError, IOError) as e:
+        except (OSError, IOError,ValueError) as e:
             return ValidationResult.failure(
                 request,
                 Error(message=f"Failed to open NetCDF file: {str(e)}", cause=Cause.FILE_OPEN_ERROR)
