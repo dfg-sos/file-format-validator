@@ -1,8 +1,10 @@
-from typing import List, Optional,Dict
+from typing import List, Optional, Dict
 from attr import dataclass
+from eo_format_validator import Info
 import geopandas as gpd
 import fiona
 from pyproj import CRS
+from shapely import GeometryType
 
 from eo_format_validator.model import ValidationResult,ValidationRequest, Warning, Cause, Error
 from .eo_file_format_validator import EOValidationRequest
@@ -46,9 +48,9 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = {row["name"] for row in cur.fetchall()}
         except Exception as exc:
-            return ValidationResult.uncertain(
+            return ValidationResult.failure(
                 request,
-                Warning(message=f"Failed to inspect GeoPackage SQLite file: \n{exc}", cause=Cause.UNKNOWN)
+                Error(message=f"Failed to query GeoPackage database: \n{exc}", cause=Cause.STRUCTURAL_MALFORMED)
             )
         REQUIRED_TABLES = {"gpkg_contents", "gpkg_spatial_ref_sys"}
         RECOMMENDED_TABLES = {"gpkg_extensions", "gpkg_metadata", "gpkg_metadata_reference"}
@@ -88,55 +90,32 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             return False
 
     def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
-        pass
-
-    def assert_crs(self, request: EOValidationRequest) -> ValidationResult:
-        if request.crs is None:
-            return ValidationResult.uncertain(request, Warning(message="No expected CRS provided, skipping CRS validation.", cause=Cause.MISSING_METADATA))
         try:
             dfs = self._read(request)
-            def extract_epsg_from_gdf(gdf: gpd.GeoDataFrame) -> Optional[CRS]:
-                if hasattr(gdf, "crs") and gdf.crs:
-                    return gdf.crs
-                return None
+            # Return CRS from first layer found
             for df in dfs:
-                crs = extract_epsg_from_gdf(df)
-                layer_name = df.attrs.get("layer", "unknown_layer")
-                if crs is None:
-                    return ValidationResult.uncertain(request, Warning(message=f"Layer '{layer_name}' has no CRS defined, cannot validate against expected CRS.", cause=Cause.MISSING_METADATA))
-                if crs != request.crs:
-                    return ValidationResult.failure(request, Error(message=f"Layer '{layer_name}' CRS '{crs}' does not match expected CRS '{request.crs}'.", cause=Cause.METADATA_MISMATCH))
-            return ValidationResult.success(request)
-        except Exception as exc:
-            return ValidationResult.uncertain(request, Warning(message=f"Failed to read CRS from GeoPackage with Geopandas: \n{exc}", cause=Cause.UNKNOWN))
+                if hasattr(df, "crs") and df.crs:
+                    return df.crs
+            return None
+        except Exception:
+            return None
 
-    def validate(self, request: ValidationRequest) -> ValidationResult:
-        if self.has_vector_layers(request):
-            return VectorFileValidator.validate(self, request)
-        else:
-            return RasterFileValidator.validate(self, request)
-
-    def assert_geometry_type(self, request: EOValidationRequest) -> ValidationResult:
+    def get_geometry_types(self, request: EOValidationRequest) -> List[GeometryType]:
+        """Get all geometry types found in the GeoPackage file.
+        
+        Iterates through all layers and collects geometry types from vector layers.
+        
+        Args:
+            request: The validation request containing the file to analyze
+            
+        Returns:
+            List of GeometryType enum values found in the file
         """
-        Assert geometry types for each vector layer in the geopackage.
-        - Iterate through all layers in the geopackage
-        - For each layer, check if it has vector geometry
-        - Validate against expected geometry type from the request
-        - Return success if all vector layers match expected geometry type
-        """
+        from .vector_file_validator import geometry_type_from_string
+        types = set()
         try:
-            if not hasattr(request, 'geometry_type') or request.geometry_type is None:
-                return ValidationResult.uncertain(
-                    request,
-                    Warning(message="No expected geometry type provided, skipping geometry type validation.", cause=Cause.MISSING_METADATA)
-                )
-            
             dfs = self._read(request)
-            layer_geometries = {}
-            
             for df in dfs:
-                layer_name = df.attrs.get("layer", "unknown_layer")
-                
                 # Skip non-geometry layers
                 if df.empty or getattr(df, "geometry", None) is None:
                     continue
@@ -146,31 +125,20 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
                     continue
                 
                 # Get geometry types in this layer
-                geom_types = set()
                 for geom in df.geometry:
                     if geom is not None and hasattr(geom, "geom_type"):
-                        geom_types.add(geom.geom_type)
-                
-                if geom_types:
-                    layer_geometries[layer_name] = geom_types
-                    
-                    # Validate against expected geometry type
-                    if request.geometry_type not in geom_types:
-                        return ValidationResult.failure(
-                            request,
-                            Error(message=f"Layer '{layer_name}' geometry type(s) {sorted(geom_types)} do not match expected geometry type '{request.geometry_type}'.", cause=Cause.METADATA_MISMATCH)
-                        )
-            
-            if not layer_geometries:
-                return ValidationResult.uncertain(
-                    request,
-                    Warning(message="No vector layers with valid geometries found in GeoPackage.", cause=Cause.STRUCTURAL_MALFORMED)
-                )
-            
-            return ValidationResult.success(request)
-            
-        except Exception as exc:
-            return ValidationResult.uncertain(
-                request,
-                Warning(message=f"Failed to assert geometry types: \n{exc}", cause=Cause.UNKNOWN)
-            )
+                        geom_type_str = geom.geom_type
+                        geom_type = geometry_type_from_string(geom_type_str) if geom_type_str else None
+                        if geom_type is not None:
+                            types.add(geom_type)
+        except Exception:
+            # Return empty list on error - let assert_geometry_type handle it
+            pass
+        
+        return list(types)
+
+    def validate(self, request: ValidationRequest) -> ValidationResult:
+        if self.has_vector_layers(request):
+            return VectorFileValidator.validate(self, request)
+        else:
+            return RasterFileValidator.validate(self, request)
