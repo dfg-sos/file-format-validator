@@ -3,9 +3,10 @@ This package provides a validation tool for EO file formats to examine a file ac
 
 | Mode | File Extension | File Open | CRS Validation | Geometry Type Validation|
 |---|---|---|---|---|
-| `STRUCTURAL` | &#10004; | &#10005; | &#10005; | &#10005;
-| `CRS` | &#10005; | &#10004; | &#10004;| &#10005; |
-| `STRICT` | &#10004; | &#10004; | &#10004;| (&#10004;)
+| `BASIC` | &#10004; | &#10005; | &#10005; | &#10005;
+| `STRUCTURAL` | &#10004; | &#10004; | &#10005; | &#10005;
+| `CRS` | &#10005; | (&#10004;) | &#10004;| &#10005; |
+| `FULL` | &#10004; | &#10004; | &#10004;| (&#10004;)
 
 
 # Installation
