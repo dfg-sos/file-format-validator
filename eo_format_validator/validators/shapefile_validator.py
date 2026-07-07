@@ -57,7 +57,7 @@ class ShapefileValidator(VectorFileValidator):
         validation_result = super().assert_extension(request=request)
 
         # 2) If basic extension check failed, further checks not useful, return early
-        if not validation_result.status:
+        if not validation_result:
             return validation_result
 
         path = request.actual_file.path
@@ -86,7 +86,6 @@ class ShapefileValidator(VectorFileValidator):
                 request,
                 Error(message=f"Missing required secondary files for EO Shapefile: {missing_required}", cause=Cause.STRUCTURAL_MALFORMED)
             )
-        validation_result.set_success()
         # 6) Identify OPTIONAL files present
         found_optional = available_extensions & OPTIONAL_EXTENSIONS
         if found_optional:
