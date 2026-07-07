@@ -30,17 +30,14 @@ class GRIBValidator(RasterFileValidator):
         If xarray/cfgrib can open the file, infer CRS as EPSG from shapeOfTheEarth parameter. Extend mapping for further codes.
         """
         try:
-            ds = xr.open_dataset(str(request.actual_file.path), engine="cfgrib",
-                                 backend_kwargs={'read_keys': ['shapeOfTheEarth']})
-
-            epsg = None
-            match ds[list(ds.keys())[0]].GRIB_shapeOfTheEarth:
-                case 4:
-                    epsg = 42310
-                case 5:
-                    epsg = 4326
-                case 9:
-                    epsg = 4277
-            return CRS.from_epsg(epsg) if epsg else None
+            ds = xr.open_dataset(
+                request.actual_file.path, 
+                engine="cfgrib",
+                backend_kwargs={'read_keys': ['projString']}
+            )
+            first_var = ds[list(ds.keys())[0]]
+            if getattr(first_var, "GRIB_gridType", None) == "regular_ll":
+                return CRS.from_epsg(4326)
+            return None
         except Exception as exc:
             return None
