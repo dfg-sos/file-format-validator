@@ -241,7 +241,7 @@ class TestWKTValidatorAssertGeometryType:
             format_identifier="format_4122",
             actual_file=wkt_input,
             mode=ValidationMode.FULL,
-            geometry_type=GeometryType.POLYGON
+            geometry_type=GeometryType.GEOMETRYCOLLECTION  # This type is not in the file
         )
         result = wkt_validator.assert_geometry_type(request)
         assert result.status == ValidationStatus.FAILURE

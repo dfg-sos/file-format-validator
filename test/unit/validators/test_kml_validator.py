@@ -357,7 +357,8 @@ class TestKMLValidatorCRSMode:
         assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
 
     def test_validate_crs_negative_wrong_format(self, kml_validator, geojson_input, wgs84_crs):
-        """Test CRS mode fails for wrong file format."""
+        """Test CRS mode with compatible CRS from wrong format.
+        The validator should return UNCERTAIN because the file is not a KML file."""
         request = EOValidationRequest(
             format_identifier="format_4114",
             actual_file=geojson_input,

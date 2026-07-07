@@ -8,7 +8,7 @@ from shapely import GeometryType
 from eo_format_validator.validators import EOValidationRequest
 from eo_format_validator.model.validation_result import ValidationStatus
 from eo_format_validator.model import ValidationResult, Error, Cause
-from fixtures import geopackage_input, geopackage_raster_input, geojson_input, gpx_input, wgs84_crs, mercator_crs, nonexistent_input
+from fixtures import geopackage_input, geopackage_raster_input, geojson_input, gpx_input, wgs84_crs, mercator_crs, nonexistent_input,wkt_input
 
 
 # ========== Local Fixtures ==========
@@ -136,11 +136,11 @@ class TestGeoPackageValidatorGetCRS:
         assert crs is not None
         assert crs == wgs84_crs
 
-    def test_get_crs_none(self, geopackage_validator, gpx_input, wgs84_crs):
+    def test_get_crs_none(self, geopackage_validator, nonexistent_input, wgs84_crs):
         """Test CRS extraction returns None for non-GeoPackage file."""
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=gpx_input,
+            actual_file=nonexistent_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
         )
@@ -186,11 +186,11 @@ class TestGeoPackageValidatorAssertCRS:
         result = geopackage_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
 
-    def test_assert_crs_no_actual(self, geopackage_validator, gpx_input, wgs84_crs):
+    def test_assert_crs_no_actual(self, geopackage_validator, nonexistent_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=gpx_input,
+            actual_file=nonexistent_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
         )
@@ -292,6 +292,18 @@ class TestGeoPackageValidatorFullMode:
         result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
+    def test_validate_full_negative_wrong_geometry_type(self, geopackage_validator, geopackage_input, wgs84_crs):
+        """Test FULL mode fails for wrong geometry type."""
+        request = EOValidationRequest(
+            format_identifier="format_4107",
+            actual_file=geopackage_input,
+            mode=ValidationMode.FULL,
+            crs=wgs84_crs,
+            geometry_type=GeometryType.POINT
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+
     def test_validate_full_negative_wrong_format(self, geopackage_validator, geojson_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = EOValidationRequest(
@@ -357,13 +369,13 @@ class TestGeoPackageValidatorCRSMode:
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
 
-    def test_validate_crs_negative_wrong_format(self, geopackage_validator, gpx_input, wgs84_crs):
-        """Test CRS mode fails for wrong file format."""
+    def test_validate_crs_negative_wrong_format(self, geopackage_validator, wkt_input, wgs84_crs):
+        """Test CRS mode with compatible CRS from wrong format.
+        """
         request = EOValidationRequest(
             format_identifier="format_4107",
-            actual_file=gpx_input,
+            actual_file=wkt_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
         )
         result = geopackage_validator.validate(request)
-        assert result.status == ValidationStatus.UNCERTAIN

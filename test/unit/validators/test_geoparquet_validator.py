@@ -153,6 +153,29 @@ class TestGeoParquetValidatorGetCRS:
 class TestGeoParquetValidatorAssertCRS:
     """Test assert_crs() method."""
 
+    def test_assert_crs_passes(self, geoparquet_validator, geoparquet_input, wgs84_crs):
+        """Test CRS validation passes with matching expected CRS."""
+        request = EOValidationRequest(
+            format_identifier="format_4108",
+            actual_file=geoparquet_input,
+            mode=ValidationMode.CRS,
+            crs=wgs84_crs
+        )
+        result = geoparquet_validator.assert_crs(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_assert_crs_fails(self, geoparquet_validator, geoparquet_input, mercator_crs):
+        """Test CRS validation fails with mismatching expected CRS."""
+        request = EOValidationRequest(
+            format_identifier="format_4108",
+            actual_file=geoparquet_input,
+            mode=ValidationMode.CRS,
+            crs=mercator_crs
+        )
+        result = geoparquet_validator.assert_crs(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
+
     def test_assert_crs_no_expected(self, geoparquet_validator, geoparquet_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = EOValidationRequest(
@@ -339,6 +362,29 @@ class TestGeoParquetValidatorCRSMode:
         )
         result = geoparquet_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
+
+    def test_validate_crs_positive(self, geoparquet_validator, geoparquet_input, wgs84_crs):
+        """Test CRS mode passes with matching expected CRS."""
+        request = EOValidationRequest(
+            format_identifier="format_4108",
+            actual_file=geoparquet_input,
+            mode=ValidationMode.CRS,
+            crs=wgs84_crs
+        )
+        result = geoparquet_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+
+    def test_validate_crs_negative_wrong_crs(self, geoparquet_validator, geoparquet_input, mercator_crs):
+        """Test CRS mode fails with mismatching expected CRS."""
+        request = EOValidationRequest(
+            format_identifier="format_4108",
+            actual_file=geoparquet_input,
+            mode=ValidationMode.CRS,
+            crs=mercator_crs
+        )
+        result = geoparquet_validator.validate(request)
+        assert result.status == ValidationStatus.FAILURE
+        assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
 
     def test_validate_crs_negative_wrong_format(self, geoparquet_validator, geojson_input, wgs84_crs):
         """Test CRS mode fails for wrong file format."""
