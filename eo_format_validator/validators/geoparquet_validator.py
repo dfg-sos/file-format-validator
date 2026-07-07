@@ -82,24 +82,41 @@ class GeoParquetValidator(VectorFileValidator):
                     #     return EPSGCoordinateReferenceSystem(epsg)
                 except Exception:
                     pass
-            return None
+            return CRS.from_user_input("WGS84")  # default value is WGS84 if no CRS found in metadata
         except Exception:
             return None
 
-
-
-    def assert_geometry_type(self, request: EOValidationRequest) -> ValidationResult:
-        """Quick geometry/shape hinting for GeoParquet.
-           - Detect geometry column names.
-           - If geopandas is available and a small read succeeds, inspect geometry types.
+    def get_geometry_types(self, request: EOValidationRequest) -> List[GeometryType]:
+        """Get all geometry types found in the GeoParquet file.
+        
+        Reads geometry type information from GeoParquet metadata.
+        
+        Args:
+            request: The validation request containing the file to analyze
+            
+        Returns:
+            List of GeometryType enum values found in the file
         """
-        metadata = pq.read_metadata(request.actual_file.path).metadata
-        if b"geo" not in metadata:
-            return ValidationResult.uncertain(request, Warning(message="No 'geo' metadata found in Parquet file, cannot validate geometry type.", cause=Cause.MISSING_METADATA))
-        geo_meta = json.loads(metadata[b"geo"].decode("utf-8"))
-        primary_col = geo_meta["primary_column"]
-        geom_types = geo_meta["columns"][primary_col].get("geometry_types", [])
-        file_geom_types = [GeometryType[gt.upper()] for gt in geom_types]
-        if request.geometry_type not in file_geom_types:
-            return ValidationResult.failure(request, Error(message=f"File geometry type(s) '{geom_types}' do not match expected geometry type '{request.geometry_type}'.", cause=Cause.METADATA_MISMATCH))
-        return ValidationResult.success(request)
+        types = []
+        try:
+            metadata = pq.read_metadata(request.actual_file.path).metadata
+            if b"geo" not in metadata:
+                return types
+            
+            geo_meta = json.loads(metadata[b"geo"].decode("utf-8"))
+            primary_col = geo_meta["primary_column"]
+            geom_types = geo_meta["columns"][primary_col].get("geometry_types", [])
+            
+            # Convert string geometry types to GeometryType enum
+            for gt in geom_types:
+                try:
+                    geom_type = GeometryType[gt.upper()]
+                    types.append(geom_type)
+                except (KeyError, AttributeError):
+                    # Unknown geometry type, skip
+                    pass
+        except Exception:
+            # Return empty list on error - let assert_geometry_type handle it
+            pass
+        
+        return types

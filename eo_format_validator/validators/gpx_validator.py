@@ -1,10 +1,12 @@
 """GPX (GPS Exchange Format), Sepcification: V1.1 https://www.topografix.com/GPX/1/1/gpx-strict.xsd,
                                              V1.0 https://www.topografix.com/GPX/1/0/gpx-strict.xsd"""
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Set
 import xml.etree.ElementTree as ET
 import fiona
+from shapely import GeometryType
 
 from eo_format_validator.model import ValidationRequest, ValidationResult,Error,Cause,Warning
+from .eo_file_format_validator import EOValidationRequest
 from .vector_file_validator import VectorFileValidator
 from ..registry import Registry
 
@@ -34,7 +36,6 @@ class GPXValidator(VectorFileValidator):
                 request,
                 Error(message=f"GPX parse error: {exc}", cause=Cause.STRUCTURAL_MALFORMED)
             )
-            return validation_result
         except Exception as exc:
             return ValidationResult.uncertain(
                 request,
@@ -113,3 +114,70 @@ class GPXValidator(VectorFileValidator):
             return namespace, local_name
         return None, tag
 
+    def get_geometry_types(self, request: EOValidationRequest) -> List[GeometryType]:
+        """Get all geometry types found in the GPX file.
+        
+        Parses GPX file and detects geometry types based on feature types:
+        - wpt (waypoints) → Point
+        - rte (routes) with route points → LineString
+        - trk (tracks) with track segments → LineString
+        
+        Args:
+            request: The validation request containing the file to analyze
+            
+        Returns:
+            List of GeometryType enum values found in the file
+        """
+        types = set()
+        try:
+            tree = ET.parse(str(request.actual_file.path))
+            root = tree.getroot()
+        except Exception:
+            return list(types)
+
+        def strip_tag(tag: str) -> str:
+            return tag.split("}", 1)[-1] if "}" in tag else tag
+
+        max_features_to_inspect = 50
+        waypoint_count = 0
+        route_count = 0
+        track_count = 0
+
+        for elem in root.iter():
+            tag = strip_tag(elem.tag)
+            
+            # Check for waypoints (wpt) - represent Point geometry
+            if tag.lower() == "wpt" and waypoint_count < max_features_to_inspect:
+                waypoint_count += 1
+                types.add(GeometryType.POINT)
+                
+            # Check for routes (rte) - represent LineString geometry
+            elif tag.lower() == "rte" and route_count < max_features_to_inspect:
+                route_count += 1
+                # Check if route has at least 2 route points to form a line
+                rtept_count = 0
+                for child in elem.iter():
+                    if strip_tag(child.tag).lower() == "rtept":
+                        rtept_count += 1
+                        if rtept_count >= 2:
+                            break
+                if rtept_count >= 2:
+                    types.add(GeometryType.LINESTRING)
+                    
+            # Check for tracks (trk) - represent LineString geometry
+            elif tag.lower() == "trk" and track_count < max_features_to_inspect:
+                track_count += 1
+                # Check if track has at least one segment with 2 track points to form a line
+                for trkseg in elem.iter():
+                    if strip_tag(trkseg.tag).lower() == "trkseg":
+                        trkpt_count = 0
+                        for child in trkseg.iter():
+                            if strip_tag(child.tag).lower() == "trkpt":
+                                trkpt_count += 1
+                                if trkpt_count >= 2:
+                                    break
+                        if trkpt_count >= 2:
+                            types.add(GeometryType.LINESTRING)
+                            break
+
+        return list(types)
