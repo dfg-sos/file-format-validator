@@ -97,7 +97,19 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
         try:
             with fiona.open(request.actual_file.path) as fiona_collection:
                 crs = fiona_collection.crs
-                return CRS.from_epsg(crs.to_epsg()) if crs and crs.to_epsg() else None
+                if crs is None:
+                    return None
+                # Try to convert Fiona CRS to pyproj CRS
+                try:
+                    # Fiona CRS object can be converted to pyproj CRS directly
+                    return CRS.from_user_input(str(crs))
+                except Exception:
+                    # Fallback: try to get EPSG code
+                    try:
+                        epsg_code = crs.to_epsg()
+                        return CRS.from_epsg(epsg_code) if epsg_code else None
+                    except Exception:
+                        return None
         except Exception as e:
             return None
 
