@@ -106,12 +106,34 @@ class TestRegistration:
 
 class TestModuleLevelRegistry:
     def test_module_level_registry_has_defaults(self):
-        """The real module-level registry should contain the production validators."""
-        # This test runs after reset_registry restores the original state
-        identifiers = registry.get_registered_identifiers()
-        assert len(identifiers) >= 15
-        assert "format_4100" in identifiers  # COG
-        assert "format_4109" in identifiers  # GeoTIFF
+        """
+        The module-level registry must contain the production validators
+        without relying on any prior test imports.  We spawn a fresh
+        subprocess so that validator test modules (which import concrete
+        validators and trigger their decorators as a side effect) do not
+        pollute the state.
+        """
+        import subprocess
+        import sys
+
+        code = (
+            "from eo_format_validator.registry import registry; "
+            "ids = registry.get_registered_identifiers(); "
+            "assert len(ids) >= 15, f'Registry under-populated: {ids}'; "
+            "assert 'format_4100' in ids, 'Missing COG validator'; "
+            "assert 'format_4109' in ids, 'Missing GeoTIFF validator'; "
+            "print('registry_ok')"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            pytest.fail(
+                f"Registry not correctly initialised in fresh process.\n"
+                f"stdout: {result.stdout}\nstderr: {result.stderr}"
+            )
 
 
 @pytest.mark.usefixtures("reset_registry")

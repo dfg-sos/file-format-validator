@@ -2,7 +2,7 @@ import sys
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .validation_result import ValidationResult
+from .validation_result import ValidationResult,ValidationStatus
 
 
 class ValidationResponseHandler(ABC):
@@ -14,6 +14,23 @@ class ValidationResponseHandler(ABC):
            - HTTP: Return JSON with status code
            - CLI: Print formatted text to console
     """
+    def handle(self, validation_result: ValidationResult) -> Any:
+        """
+           Handle the ValidationResult and return a client-specific response.
+
+               Args:
+                   validation_result: ValidationResult object to handle
+
+               Returns:
+                   Client-specific response
+        """
+        match validation_result.status:
+            case ValidationStatus.SUCCESS:
+                return self.handle_success(validation_result)
+            case ValidationStatus.FAILURE:
+                return self.handle_failure(validation_result)
+            case ValidationStatus.UNCERTAIN:
+                return self.handle_uncertain(validation_result)
 
     @abstractmethod
     def handle_success(self, validation_result: ValidationResult) -> Any:
@@ -42,42 +59,14 @@ class ValidationResponseHandler(ABC):
         pass
 
     @abstractmethod
-    def handle_exception(self, exception: Exception, validation_result: ValidationResult) -> Any:
+    def handle_uncertain(self, validation_result: ValidationResult) -> Any:
         """
-           Handle exception during validation.
+           Handle uncertain validation results.
 
             Args:
-                exception: Exception that occurred during validation process
                 validation_result: ValidationResult object to handle
 
             Returns:
-                Client-specific error response
+                Client-specific uncertain response
         """
         pass
-
-    @staticmethod
-    def _print_error(error):
-        """
-        Print error to stderr in human-readable format.
-
-        Format:
-          ERROR [CODE]: Message
-            Details: {...}
-        """
-        print(f"  ERROR [{error.code}]: {error.get_message()}", file=sys.stderr)
-
-        if error.details:
-            print(f"    Details: {error.details}", file=sys.stderr)
-
-    @staticmethod
-    def _print_warning(warning):
-        """
-        Print warning to stderr in human-readable format.
-
-        Format:
-          WARNING [CODE]: Message
-        """
-        print(f"  WARNING [{warning.code}]: {warning.get_message()}", file=sys.stderr)
-
-        if hasattr(warning, 'details') and warning.details:
-            print(f"    Details: {warning.details}", file=sys.stderr)

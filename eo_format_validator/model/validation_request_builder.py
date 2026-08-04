@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import Optional
 
 from .validation_request import ValidationRequest
-
 
 class ValidationRequestBuilder(ABC):
     """
@@ -13,7 +12,7 @@ class ValidationRequestBuilder(ABC):
     """
 
     @abstractmethod
-    def build(self) -> ValidationRequest:
+    def build(self) -> Optional[ValidationRequest]:
         """
            Build a ValidationRequest from a client-specific source.
 
@@ -25,7 +24,7 @@ class ValidationRequestBuilder(ABC):
                    ValidationRequest ready for validation
 
                Raises:
-                   BuilderException: If request cannot be built
+                   RequestBuilderException: If request cannot be built
         """
         pass
 

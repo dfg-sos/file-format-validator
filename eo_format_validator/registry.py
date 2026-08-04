@@ -27,7 +27,7 @@ class _Registry:
 
     def load_validators_from_package(
         self,
-        pkg_name: str = "eo_format_validator.validators",
+        pkg_name: str,
         skip_private: bool = True,
     ) -> None:
         """
@@ -96,4 +96,3 @@ class _Registry:
 
 # Module-level singleton instance – imported by validators and consumers alike.
 registry = _Registry()
-registry.load_validators_from_package("eo_format_validator.validators")

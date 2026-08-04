@@ -1,4 +1,5 @@
-from .entrypoint import EOFormatValidator
+from .format_validator import FormatValidator
+
 from .registry import registry
 
 # # Re-export core model types for convenience
@@ -41,6 +42,7 @@ __all__ = [
     "FileFormatValidator",
     "ValidationRequestBuilder",
     "ValidationResponseHandler",
+    "FormatValidator",
     "EOFileFormatValidator",
     "EOValidationRequest",
     "VectorFileValidator",
