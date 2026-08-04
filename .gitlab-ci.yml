@@ -7,7 +7,7 @@ stages:
   - test
 test:
   stage: test
-  image: python:3.14
+  image: logru/format-validator-deps:latest
   tags: [secloud]
   script:
     - python -m venv venv
