@@ -10,7 +10,7 @@ from eo_format_validator.model import ValidationResult,ValidationRequest, Warnin
 from .eo_file_format_validator import EOValidationRequest
 from .raster_file_validator import RasterFileValidator
 from .vector_file_validator import VectorFileValidator
-from ..registry import registry
+from ...registry import registry
 
 
 @registry.register("format_4107")

@@ -2,7 +2,7 @@
 import pytest
 from pathlib import Path
 
-from eo_format_validator.validators.dsm_validator import DSMValidator
+from eo_format_validator.validators.eo.dsm_validator import DSMValidator
 from eo_format_validator import ValidationMode, FileInput
 from eo_format_validator.validators import EOValidationRequest
 from eo_format_validator.model.validation_result import ValidationStatus

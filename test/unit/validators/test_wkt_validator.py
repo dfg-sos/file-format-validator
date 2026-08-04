@@ -2,7 +2,7 @@
 import pytest
 from pathlib import Path
 
-from eo_format_validator.validators.wkt_validator import WKTValidator
+from eo_format_validator.validators.eo.wkt_validator import WKTValidator
 from eo_format_validator import ValidationMode, FileInput
 from shapely import GeometryType
 from eo_format_validator.validators import EOValidationRequest

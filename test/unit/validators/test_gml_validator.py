@@ -3,7 +3,7 @@ from pyproj import CRS
 import pytest
 from pathlib import Path
 
-from eo_format_validator.validators.gml_validator import GMLValidator
+from eo_format_validator.validators.eo.gml_validator import GMLValidator
 from eo_format_validator import ValidationMode, FileInput
 from shapely import GeometryType
 from eo_format_validator.validators import EOValidationRequest

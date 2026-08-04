@@ -2,7 +2,7 @@
 import pytest
 from pathlib import Path
 
-from eo_format_validator.validators.geoparquet_validator import GeoParquetValidator
+from eo_format_validator.validators.eo.geoparquet_validator import GeoParquetValidator
 from eo_format_validator import ValidationMode, FileInput
 from shapely import GeometryType
 from eo_format_validator.validators import EOValidationRequest

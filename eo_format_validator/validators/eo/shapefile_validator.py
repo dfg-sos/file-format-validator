@@ -2,7 +2,7 @@ from typing import List
 
 from eo_format_validator.model import ValidationRequest,ValidationResult,Error,Cause,Info
 from .vector_file_validator import VectorFileValidator
-from ..registry import registry
+from ...registry import registry
 
 # Define required, recommended, and optional Shapefile components
 REQUIRED_EXTENSIONS = {'.shx', '.dbf', '.prj'} # .shp is also required, but checked separately

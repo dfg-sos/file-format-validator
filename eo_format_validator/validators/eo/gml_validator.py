@@ -4,9 +4,9 @@ from typing import List,Optional
 import xml.etree.ElementTree as ET
 import fiona
 
-from ..model import ValidationRequest,ValidationResult,Error,Cause,Warning
+from ...model import ValidationRequest,ValidationResult,Error,Cause,Warning
 from .vector_file_validator import VectorFileValidator
-from ..registry import registry
+from ...registry import registry
 
 # extend namespaces to allow further gml files deviating from the specification, e.g. platform-specific definitions
 GML_NAMESPACES = {

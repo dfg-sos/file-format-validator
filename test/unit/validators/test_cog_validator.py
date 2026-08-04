@@ -3,7 +3,7 @@ import pytest
 from pathlib import Path
 from pyproj import CRS
 
-from eo_format_validator.validators.cog_validator import COGValidator
+from eo_format_validator.validators.eo.cog_validator import COGValidator
 from eo_format_validator import ValidationMode, FileInput
 from eo_format_validator.validators import EOValidationRequest
 from eo_format_validator.model.validation_result import ValidationStatus

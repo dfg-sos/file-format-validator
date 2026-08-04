@@ -2,7 +2,7 @@
 import pytest
 from pathlib import Path
 
-from eo_format_validator.validators.geojson_validator import GeoJSONValidator
+from eo_format_validator.validators.eo.geojson_validator import GeoJSONValidator
 from eo_format_validator import ValidationMode, FileInput
 from shapely import GeometryType
 from eo_format_validator.validators import EOValidationRequest

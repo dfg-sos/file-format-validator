@@ -3,10 +3,10 @@ from typing import List, Optional
 import xarray as xr
 from pyproj import CRS
 
-from ..model import ValidationRequest,ValidationResult,Error,Warning,Cause
+from ...model import ValidationRequest,ValidationResult,Error,Warning,Cause
 from .raster_file_validator import RasterFileValidator
 from .eo_file_format_validator import EOValidationRequest
-from ..registry import registry
+from ...registry import registry
 
 
 @registry.register("format_4115")

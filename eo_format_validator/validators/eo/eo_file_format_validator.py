@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pyproj import CRS
 from shapely import GeometryType
 
-from ..model import FileFormatValidator, ValidationRequest, ValidationMode, ValidationResult,Info,Warning,Cause,Error
+from ...model import FileFormatValidator, ValidationRequest, ValidationMode, ValidationResult,Info,Warning,Cause,Error
 
 
 @dataclass(frozen=True)

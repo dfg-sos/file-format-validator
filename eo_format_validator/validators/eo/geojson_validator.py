@@ -1,6 +1,6 @@
 from typing import List
 
-from ..registry import registry
+from ...registry import registry
 from .vector_file_validator import VectorFileValidator
 
 @registry.register("format_4106")

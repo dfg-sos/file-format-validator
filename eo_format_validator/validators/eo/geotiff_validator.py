@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List
 
 from .raster_file_validator import RasterFileValidator
-from ..registry import registry
+from ...registry import registry
 
 @registry.register("format_4109")
 class GeoTIFFValidator(RasterFileValidator):

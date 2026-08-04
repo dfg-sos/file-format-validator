@@ -2,7 +2,7 @@
 import pytest
 from pathlib import Path
 
-from eo_format_validator.validators.geotiff_validator import GeoTIFFValidator
+from eo_format_validator.validators.eo.geotiff_validator import GeoTIFFValidator
 from eo_format_validator import ValidationMode, FileInput
 from eo_format_validator.validators import EOValidationRequest
 from eo_format_validator.model.validation_result import ValidationStatus

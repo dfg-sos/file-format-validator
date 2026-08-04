@@ -6,10 +6,10 @@ import re
 from pyproj import CRS
 from shapely import GeometryType
 
-from ..model import ValidationRequest, ValidationResult,Error,Cause,Warning,Cause,Info
+from ...model import ValidationRequest, ValidationResult,Error,Cause,Warning,Cause,Info
 from .eo_file_format_validator import EOValidationRequest
 from .vector_file_validator import VectorFileValidator
-from ..registry import registry
+from ...registry import registry
 
 
 @registry.register("format_4114")

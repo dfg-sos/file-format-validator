@@ -1,6 +1,6 @@
 from typing import List
 
-from ..registry import registry 
+from ...registry import registry 
 from .raster_file_validator import RasterFileValidator
 
 

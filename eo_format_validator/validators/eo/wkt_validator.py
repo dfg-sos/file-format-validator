@@ -3,8 +3,8 @@ from typing import List, Optional
 from pyproj import CRS
 from shapely import wkt, GeometryType
 
-from ..model import ValidationResult,ValidationRequest,Error,Cause,Warning
-from ..registry import registry
+from ...model import ValidationResult,ValidationRequest,Error,Cause,Warning
+from ...registry import registry
 from .vector_file_validator import VectorFileValidator
 from .eo_file_format_validator import EOValidationRequest
 

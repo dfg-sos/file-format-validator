@@ -3,9 +3,9 @@ import xarray as xr
 from pyproj import CRS
 
 from .eo_file_format_validator import EOValidationRequest
-from ..model import ValidationRequest,ValidationResult,Error,Cause
+from ...model import ValidationRequest,ValidationResult,Error,Cause
 from .raster_file_validator import RasterFileValidator
-from ..registry import registry
+from ...registry import registry
 
 
 @registry.register("format_4113")

@@ -6,7 +6,7 @@ from rio_cogeo.cogeo import cog_validate
 
 from eo_format_validator.model import ValidationRequest,ValidationResult,Error,Warning,Cause
 from .raster_file_validator import RasterFileValidator
-from ..registry import registry
+from ...registry import registry
 
 
 
