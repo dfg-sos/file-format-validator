@@ -1,10 +1,10 @@
 from typing import List
 
-from ..registry import Registry 
+from ..registry import registry 
 from .raster_file_validator import RasterFileValidator
 
 
-@Registry.register("format_4103")
+@registry.register("format_4103")
 class DSMValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

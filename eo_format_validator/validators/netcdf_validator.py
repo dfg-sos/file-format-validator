@@ -6,10 +6,10 @@ from pyproj import CRS
 from ..model import ValidationRequest,ValidationResult,Error,Warning,Cause
 from .raster_file_validator import RasterFileValidator
 from .eo_file_format_validator import EOValidationRequest
-from ..registry import Registry
+from ..registry import registry
 
 
-@Registry.register("format_4115")
+@registry.register("format_4115")
 class NetCDFValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

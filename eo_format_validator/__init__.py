@@ -1,21 +1,22 @@
 from .entrypoint import EOFormatValidator
-from .registry import Registry
+from .registry import registry
 
 # # Re-export core model types for convenience
 from .model import (
     FileInput,
     MultiFileInput,
     ValidationMode,
-	ValidationRequest,
+    ValidationRequest,
     Severity,
     Cause,
     Info,
     Warning,
     Error,
-	ValidationResult,
+    ValidationResult,
+    ValidationStatus,
     FileFormatValidator,
-	ValidationRequestBuilder,
-	ValidationResponseHandler,
+    ValidationRequestBuilder,
+    ValidationResponseHandler,
 )
 
 from .validators import (
@@ -36,6 +37,7 @@ __all__ = [
     "Warning",
     "Error",
     "ValidationResult",
+    "ValidationStatus",
     "FileFormatValidator",
     "ValidationRequestBuilder",
     "ValidationResponseHandler",
@@ -43,4 +45,5 @@ __all__ = [
     "EOValidationRequest",
     "VectorFileValidator",
     "RasterFileValidator",
+    "registry",
 ]

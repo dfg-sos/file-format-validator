@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict
 from attr import dataclass
-from eo_format_validator import Info
+from eo_format_validator.model import Info
 import geopandas as gpd
 import fiona
 from pyproj import CRS
@@ -10,10 +10,10 @@ from eo_format_validator.model import ValidationResult,ValidationRequest, Warnin
 from .eo_file_format_validator import EOValidationRequest
 from .raster_file_validator import RasterFileValidator
 from .vector_file_validator import VectorFileValidator
-from ..registry import Registry
+from ..registry import registry
 
 
-@Registry.register("format_4107")
+@registry.register("format_4107")
 @dataclass
 class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure correct use of _validate_open method, implementation of left parent is used due to MRO (https://docs.python.org/3/howto/mro.html)
     geopandas_dfs: Dict[str,List[gpd.GeoDataFrame]] = {}

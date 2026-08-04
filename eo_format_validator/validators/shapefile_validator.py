@@ -2,7 +2,7 @@ from typing import List
 
 from eo_format_validator.model import ValidationRequest,ValidationResult,Error,Cause,Info
 from .vector_file_validator import VectorFileValidator
-from ..registry import Registry
+from ..registry import registry
 
 # Define required, recommended, and optional Shapefile components
 REQUIRED_EXTENSIONS = {'.shx', '.dbf', '.prj'} # .shp is also required, but checked separately
@@ -22,7 +22,7 @@ OPTIONAL_EXTENSIONS = {
     '.mxs'  # Geocoding index
 }
 
-@Registry.register("format_4119")
+@registry.register("format_4119")
 class ShapefileValidator(VectorFileValidator):
     """Shapefile validator, lightweight validation for ESRI Shapefiles:
         - extension check (.shp), additional files check (REQUIRED: .shp (geometry), .shx (index), .dbf (attributes), .prj (CRS)

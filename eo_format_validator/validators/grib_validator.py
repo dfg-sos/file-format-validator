@@ -5,10 +5,10 @@ from pyproj import CRS
 from .eo_file_format_validator import EOValidationRequest
 from ..model import ValidationRequest,ValidationResult,Error,Cause
 from .raster_file_validator import RasterFileValidator
-from ..registry import Registry
+from ..registry import registry
 
 
-@Registry.register("format_4113")
+@registry.register("format_4113")
 class GRIBValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

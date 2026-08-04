@@ -6,7 +6,7 @@ import fiona
 
 from ..model import ValidationRequest,ValidationResult,Error,Cause,Warning
 from .vector_file_validator import VectorFileValidator
-from ..registry import Registry
+from ..registry import registry
 
 # extend namespaces to allow further gml files deviating from the specification, e.g. platform-specific definitions
 GML_NAMESPACES = {
@@ -16,7 +16,7 @@ GML_NAMESPACES = {
 }
 
 
-@Registry.register("format_4111")
+@registry.register("format_4111")
 class GMLValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

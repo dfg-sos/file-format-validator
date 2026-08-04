@@ -1,9 +1,9 @@
 from typing import List
 
-from ..registry import Registry 
+from ..registry import registry 
 from .raster_file_validator import RasterFileValidator
 
-@Registry.register("format_4104")
+@registry.register("format_4104")
 class DTMValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

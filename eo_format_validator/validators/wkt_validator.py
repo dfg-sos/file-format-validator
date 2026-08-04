@@ -4,11 +4,11 @@ from pyproj import CRS
 from shapely import wkt, GeometryType
 
 from ..model import ValidationResult,ValidationRequest,Error,Cause,Warning
-from ..registry import Registry
+from ..registry import registry
 from .vector_file_validator import VectorFileValidator
 from .eo_file_format_validator import EOValidationRequest
 
-@Registry.register("format_4122")
+@registry.register("format_4122")
 class WKTValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:
