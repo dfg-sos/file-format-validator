@@ -20,6 +20,16 @@ GEOJSON_TO_GEOMETRY_TYPE = {
     "GeometryCollection": GeometryType.GEOMETRYCOLLECTION,
 }
 
+# Compatible geometry types: single-part and multi-part types are considered compatible
+COMPATIBLE_GEOMETRY_TYPES = {
+    GeometryType.POINT: {GeometryType.POINT, GeometryType.MULTIPOINT},
+    GeometryType.MULTIPOINT: {GeometryType.POINT, GeometryType.MULTIPOINT},
+    GeometryType.LINESTRING: {GeometryType.LINESTRING, GeometryType.MULTILINESTRING},
+    GeometryType.MULTILINESTRING: {GeometryType.LINESTRING, GeometryType.MULTILINESTRING},
+    GeometryType.POLYGON: {GeometryType.POLYGON, GeometryType.MULTIPOLYGON},
+    GeometryType.MULTIPOLYGON: {GeometryType.POLYGON, GeometryType.MULTIPOLYGON},
+}
+
 
 def geometry_type_from_string(type_string: str) -> Optional[GeometryType]:
     """Convert a GeoJSON geometry type string to a shapely GeometryType enum.
@@ -149,7 +159,9 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
                     Warning(message="File has no geometry type defined, cannot validate against expected shape type.", cause=Cause.MISSING_METADATA)
                 )
             
-            if expected_geometry_type in actual_types:
+            # Check if expected type is compatible with any actual type
+            compatible_types = COMPATIBLE_GEOMETRY_TYPES.get(expected_geometry_type, {expected_geometry_type})
+            if any(actual in compatible_types for actual in actual_types):
                 # Expected type found - success
                 result = ValidationResult.success(request)
                 # If multiple types found, add a warning about mixed geometry
