@@ -5,7 +5,7 @@ from types import ModuleType
 from typing import Dict, Type, Optional, List, Callable
 import logging
 
-from eo_format_validator.model import FileFormatValidator, ValidationRequest
+from eo_format_validator.model import FileFormatValidator, ValidationRequest, FormatIdentifier
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,8 @@ class _Registry:
     """Internal registry implementation. Use the module-level ``registry`` instance."""
 
     def __init__(self):
-        self._id_to_validators: Dict[str, Type[FileFormatValidator]] = {}
-        self._validators_to_id: Dict[Type[FileFormatValidator], str] = {}
+        self._id_to_validators: Dict[FormatIdentifier, Type[FileFormatValidator]] = {}
+        self._validators_to_id: Dict[Type[FileFormatValidator], FormatIdentifier] = {}
 
     def load_validators_from_package(
         self,
@@ -49,16 +49,18 @@ class _Registry:
             import_module(full_name)
 
     def register(
-        self, identifier: str
+        self, identifier: str | FormatIdentifier
     ) -> Callable[[Type[FileFormatValidator]], Type[FileFormatValidator]]:
         """Registers a validator class implementation according to the identifier set in the decorator.
 
         Identifier must not be empty. Registration is case-sensitive, e.g.
         ``'format_1234'`` and ``'Format_1234'`` can be registered separately.
         """
-        identifier = identifier.strip()
-        if not identifier:
-            raise ValueError("Identifier must be non-empty")
+        if isinstance(identifier, str):
+            stripped = identifier.strip()
+            if not stripped:
+                raise ValueError("Identifier must be non-empty")
+            identifier = FormatIdentifier(stripped)
 
         def decorator(cls: Type[FileFormatValidator]) -> Type[FileFormatValidator]:
             if identifier in self._id_to_validators:
@@ -77,18 +79,18 @@ class _Registry:
 
         return decorator
 
-    def get_registered_identifiers(self) -> List[str]:
-        return sorted(self._id_to_validators.keys())
+    def get_registered_identifiers(self) -> List[FormatIdentifier]:
+        return sorted(self._id_to_validators.keys(), key=lambda fi: fi.value)
 
     def get_identifier_for_validator(
         self, cls: Type[FileFormatValidator]
-    ) -> Optional[str]:
+    ) -> Optional[FormatIdentifier]:
         return self._validators_to_id.get(cls)
 
     def choose_and_instantiate(
         self, request: ValidationRequest
     ) -> Optional[FileFormatValidator]:
-        cls = self._id_to_validators.get(request.format_identifier.strip())
+        cls = self._id_to_validators.get(request.format_identifier)
         if cls:
             return cls()
         return None

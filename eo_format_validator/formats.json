@@ -1,0 +1,166 @@
+{
+  "version": "1.0.0",
+  "description": "Canonical module-local format identifiers with parent/child taxonomy",
+  "formats": {
+    "geotiff": {
+      "label": "GeoTIFF",
+      "category": "raster",
+      "description": "Geographic Tagged Image File Format",
+      "parent": "raster"
+    },
+    "cog": {
+      "label": "COG",
+      "category": "raster",
+      "description": "Cloud Optimized GeoTIFF",
+      "parent": "geotiff"
+    },
+    "dem": {
+      "label": "DEM",
+      "category": "raster",
+      "description": "Digital Elevation Model",
+      "parent": "raster"
+    },
+    "dsm": {
+      "label": "DSM",
+      "category": "raster",
+      "description": "Digital Surface Model",
+      "parent": "raster"
+    },
+    "dtm": {
+      "label": "DTM",
+      "category": "raster",
+      "description": "Digital Terrain Model",
+      "parent": "raster"
+    },
+    "grib": {
+      "label": "GRIB",
+      "category": "raster",
+      "description": "GRIdded Binary",
+      "parent": "raster"
+    },
+    "netcdf": {
+      "label": "NetCDF",
+      "category": "raster",
+      "description": "Network Common Data Form",
+      "parent": "raster"
+    },
+    "vrt": {
+      "label": "VRT",
+      "category": "raster",
+      "description": "GDAL Virtual Dataset",
+      "parent": "raster"
+    },
+    "shapefile": {
+      "label": "Shapefile",
+      "category": "vector",
+      "description": "ESRI Shapefile",
+      "parent": "vector"
+    },
+    "geojson": {
+      "label": "GeoJSON",
+      "category": "vector",
+      "description": "GeoJSON format",
+      "parent": "vector"
+    },
+    "geopackage": {
+      "label": "GeoPackage",
+      "category": "hybrid",
+      "description": "OGC GeoPackage",
+      "parent": "gis_data"
+    },
+    "geoparquet": {
+      "label": "GeoParquet",
+      "category": "vector",
+      "description": "Geospatial Parquet",
+      "parent": "vector"
+    },
+    "gml": {
+      "label": "GML",
+      "category": "vector",
+      "description": "Geography Markup Language",
+      "parent": "vector"
+    },
+    "gpx": {
+      "label": "GPX",
+      "category": "vector",
+      "description": "GPS Exchange Format",
+      "parent": "vector"
+    },
+    "kml": {
+      "label": "KML",
+      "category": "vector",
+      "description": "Keyhole Markup Language",
+      "parent": "vector"
+    },
+    "wkt": {
+      "label": "WKT",
+      "category": "vector",
+      "description": "Well-known text representation of geometry",
+      "parent": "vector"
+    },
+    "wkb": {
+      "label": "WKB",
+      "category": "vector",
+      "description": "Well-known binary representation of geometry",
+      "parent": "vector"
+    },
+    "osm_json": {
+      "label": "OSM JSON",
+      "category": "vector",
+      "description": "OpenStreetMap JSON",
+      "parent": "vector"
+    },
+    "osm_xml": {
+      "label": "OSM XML",
+      "category": "vector",
+      "description": "OpenStreetMap XML",
+      "parent": "vector"
+    },
+    "pbf": {
+      "label": "PBF",
+      "category": "vector",
+      "description": "OpenStreetMap Protocolbuffer Binary Format",
+      "parent": "vector"
+    },
+    "csv": {
+      "label": "CSV",
+      "category": "tabular",
+      "description": "Comma-separated values",
+      "parent": "gis_data"
+    },
+    "esrijson": {
+      "label": "EsriJSON",
+      "category": "vector",
+      "description": "Esri JSON",
+      "parent": "vector"
+    },
+    "geozarr": {
+      "label": "GeoZarr",
+      "category": "raster",
+      "description": "Geospatial Zarr",
+      "parent": "raster"
+    },
+    "raster": {
+      "label": "Raster format",
+      "category": "abstract",
+      "description": "Abstract raster geographical data format",
+      "parent": "gis_data"
+    },
+    "vector": {
+      "label": "Vector format",
+      "category": "abstract",
+      "description": "Abstract vector geographical data format",
+      "parent": "gis_data"
+    },
+    "gis_data": {
+      "label": "Geographical data format",
+      "category": "abstract",
+      "description": "Abstract geographical data format"
+    },
+    "test_unsupported": {
+      "label": "Test Unsupported",
+      "category": "test",
+      "description": "Format with no registered validator for testing"
+    }
+  }
+}

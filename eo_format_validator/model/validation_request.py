@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 from enum import Enum
 from .file_input import FileInput
+from .format_identifier import FormatIdentifier
 
 class ValidationMode(Enum):
     BASIC = "basic"             # file extension only
@@ -11,7 +12,7 @@ class ValidationMode(Enum):
 
 @dataclass(frozen=True)
 class ValidationRequest:
-    format_identifier: str
+    format_identifier: FormatIdentifier
     actual_file: FileInput
     mode: ValidationMode
 

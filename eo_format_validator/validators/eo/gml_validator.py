@@ -4,7 +4,7 @@ from typing import List,Optional
 import xml.etree.ElementTree as ET
 import fiona
 
-from ...model import ValidationRequest,ValidationResult,Error,Cause,Warning
+from ...model import ValidationRequest,ValidationResult,Error,Cause,Warning,FormatIdentifier
 from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
@@ -16,7 +16,7 @@ GML_NAMESPACES = {
 }
 
 
-@registry.register("format_4111")
+@registry.register(FormatIdentifier("gml"))
 class GMLValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

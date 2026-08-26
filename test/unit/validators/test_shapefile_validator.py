@@ -5,6 +5,7 @@ from pathlib import Path
 from eo_format_validator.validators.eo.shapefile_validator import ShapefileValidator
 from eo_format_validator import ValidationMode, FileInput, MultiFileInput
 from shapely import GeometryType
+from eo_format_validator.model.format_identifier import FormatIdentifier
 from eo_format_validator.validators import EOValidationRequest
 from eo_format_validator.model.validation_result import ValidationStatus
 from eo_format_validator.model import ValidationResult, Error, Cause
@@ -39,7 +40,7 @@ class TestShapefileValidatorAssertExtension:
     def test_assert_extension_valid(self, shapefile_validator, shapefile_input):
         """Test extension validation passes for .shp file with all required files."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.BASIC
         )
@@ -49,7 +50,7 @@ class TestShapefileValidatorAssertExtension:
     def test_assert_extension_failure(self, shapefile_validator, geojson_input):
         """Test extension validation fails for non-.shp files."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=geojson_input,
             mode=ValidationMode.BASIC
         )
@@ -65,7 +66,7 @@ class TestShapefileValidatorAssertExtension:
             secondary_files=set()
         )
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=file_input,
             mode=ValidationMode.BASIC
         )
@@ -81,7 +82,7 @@ class TestShapefileValidatorAssertExists:
     def test_assert_exists_passes(self, shapefile_validator, shapefile_input):
         """Test file existence passes for existing files."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -100,7 +101,7 @@ class TestShapefileValidatorAssertExists:
             secondary_files={shx_file, dbf_file, prj_file, cpg_file}
         )
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=file_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -117,7 +118,7 @@ class TestShapefileValidatorAssertCanOpen:
     def test_assert_can_open_passes(self, shapefile_validator, shapefile_input):
         """Test opening a real Shapefile."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.FULL
         )
@@ -127,7 +128,7 @@ class TestShapefileValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, shapefile_validator, geotiff_input):
         """Test that assert_can_open fails for GeoJSON file."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=geotiff_input,
             mode=ValidationMode.FULL
         )
@@ -143,7 +144,7 @@ class TestShapefileValidatorGetCRS:
     def test_get_crs(self, shapefile_validator, shapefile_input, wgs84_crs):
         """Test CRS extraction returns the expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -154,7 +155,7 @@ class TestShapefileValidatorGetCRS:
     def test_get_crs_none(self, shapefile_validator, geotiff_input):
         """Test CRS extraction returns None for non-Shapefile."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=geotiff_input,
             mode=ValidationMode.CRS
         )
@@ -170,7 +171,7 @@ class TestShapefileValidatorAssertCRS:
     def test_assert_crs_passes(self, shapefile_validator, shapefile_input, wgs84_crs):
         """Test CRS validation passes with matching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -181,7 +182,7 @@ class TestShapefileValidatorAssertCRS:
     def test_assert_crs_fails(self, shapefile_validator, shapefile_input, mercator_crs):
         """Test CRS validation fails with mismatching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.CRS,
             crs=mercator_crs
@@ -193,7 +194,7 @@ class TestShapefileValidatorAssertCRS:
     def test_assert_crs_no_expected(self, shapefile_validator, shapefile_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.CRS
         )
@@ -209,7 +210,7 @@ class TestShapefileValidatorAssertGeometryType:
     def test_assert_geometry_type_passes(self, shapefile_validator, shapefile_input):
         """Test geometry type validation passes with matching expected type."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.FULL,
             geometry_type=GeometryType.POLYGON
@@ -220,7 +221,7 @@ class TestShapefileValidatorAssertGeometryType:
     def test_assert_geometry_type_fails(self, shapefile_validator, shapefile_input):
         """Test geometry type validation fails with mismatching expected type."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.FULL,
             geometry_type=GeometryType.POINT
@@ -238,7 +239,7 @@ class TestShapefileValidatorBasicMode:
     def test_validate_basic_passes(self, shapefile_validator, shapefile_input):
         """Test BASIC mode passes for valid .shp file."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.BASIC
         )
@@ -248,7 +249,7 @@ class TestShapefileValidatorBasicMode:
     def test_validate_basic_failure(self, shapefile_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=geojson_input,
             mode=ValidationMode.BASIC
         )
@@ -265,7 +266,7 @@ class TestShapefileValidatorStructuralMode:
     def test_validate_structural_positive(self, shapefile_validator, shapefile_input):
         """Test STRUCTURAL mode passes for valid existing files."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -275,7 +276,7 @@ class TestShapefileValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, shapefile_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=geojson_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -295,7 +296,7 @@ class TestShapefileValidatorStructuralMode:
             secondary_files={shx_file, dbf_file, prj_file, cpg_file}
         )
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=file_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -312,7 +313,7 @@ class TestShapefileValidatorFullMode:
     def test_validate_full_positive(self, shapefile_validator, shapefile_input, wgs84_crs):
         """Test FULL mode passes for valid Shapefile."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs,
@@ -324,7 +325,7 @@ class TestShapefileValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, shapefile_validator, geojson_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=geojson_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs,
@@ -346,7 +347,7 @@ class TestShapefileValidatorFullMode:
             secondary_files={shx_file, dbf_file, prj_file, cpg_file}
         )
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=file_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs,
@@ -365,7 +366,7 @@ class TestShapefileValidatorCRSMode:
     def test_validate_crs_no_expected(self, shapefile_validator, shapefile_input):
         """Test CRS mode passes when no expected CRS is provided."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.CRS
         )
@@ -375,7 +376,7 @@ class TestShapefileValidatorCRSMode:
     def test_validate_crs_positive(self, shapefile_validator, shapefile_input, wgs84_crs):
         """Test CRS mode passes with matching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -386,7 +387,7 @@ class TestShapefileValidatorCRSMode:
     def test_validate_crs_negative_wrong_crs(self, shapefile_validator, shapefile_input, mercator_crs):
         """Test CRS mode fails with mismatching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=shapefile_input,
             mode=ValidationMode.CRS,
             crs=mercator_crs
@@ -403,7 +404,7 @@ class TestShapefileValidatorCRSMode:
         This is expected behavior - the validator validates CRS content, not file format.
         """
         request = EOValidationRequest(
-            format_identifier="format_4119",
+            format_identifier=FormatIdentifier("shapefile"),
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs

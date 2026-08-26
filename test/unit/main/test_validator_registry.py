@@ -5,6 +5,7 @@ import pytest
 from eo_format_validator.model import (
     FileFormatValidator,
     FileInput,
+    FormatIdentifier,
     ValidationRequest,
     ValidationResult,
     ValidationMode,
@@ -47,14 +48,14 @@ def reset_registry():
 @pytest.mark.usefixtures("reset_registry")
 class TestRegistration:
     def test_register_and_retrieve(self):
-        registry.register("fmt_1")(DummyValidator)
-        assert registry.get_registered_identifiers() == ["fmt_1"]
-        assert registry.get_identifier_for_validator(DummyValidator) == "fmt_1"
+        registry.register("geotiff")(DummyValidator)
+        assert registry.get_registered_identifiers() == [FormatIdentifier("geotiff")]
+        assert registry.get_identifier_for_validator(DummyValidator) == FormatIdentifier("geotiff")
 
     def test_choose_and_instantiate_success(self):
-        registry.register("fmt_1")(DummyValidator)
+        registry.register("geotiff")(DummyValidator)
         request = ValidationRequest(
-            format_identifier="fmt_1",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=FileInput(path=Path("x.dummy")),
             mode=ValidationMode.BASIC,
         )
@@ -63,45 +64,45 @@ class TestRegistration:
 
     def test_choose_and_instantiate_none(self):
         request = ValidationRequest(
-            format_identifier="unknown",
+            format_identifier=FormatIdentifier("test_unsupported"),
             actual_file=FileInput(path=Path("x.dummy")),
             mode=ValidationMode.BASIC,
         )
         assert registry.choose_and_instantiate(request) is None
 
     def test_duplicate_identifier_raises(self):
-        registry.register("fmt_1")(DummyValidator)
+        registry.register("geotiff")(DummyValidator)
         with pytest.raises(KeyError, match="already registered"):
-            registry.register("fmt_1")(AnotherDummyValidator)
+            registry.register("geotiff")(AnotherDummyValidator)
 
     def test_duplicate_class_raises(self):
-        registry.register("fmt_1")(DummyValidator)
+        registry.register("geotiff")(DummyValidator)
         with pytest.raises(KeyError, match="already registered"):
-            registry.register("fmt_2")(DummyValidator)
+            registry.register("cog")(DummyValidator)
 
     @pytest.mark.parametrize(
         "identifier",
         [
-            "simple",
-            "with-dash",
-            "CAPS",
-            "with_underscore",
-            "format_webprotege_012",
-            "format_4103",
-            "1234",
+            "cog",
+            "geojson",
+            "shapefile",
+            "geopackage",
+            "netcdf",
+            "grib",
+            "gml",
         ],
     )
     def test_various_identifier_formats(self, identifier):
         registry.register(identifier)(DummyValidator)
-        assert identifier in registry.get_registered_identifiers()
+        assert FormatIdentifier(identifier) in registry.get_registered_identifiers()
 
     def test_empty_identifier_raises(self):
         with pytest.raises(ValueError, match="non-empty"):
             registry.register("")(DummyValidator)
 
     def test_whitespace_identifier_stripped(self):
-        registry.register("  fmt_1  ")(DummyValidator)
-        assert "fmt_1" in registry.get_registered_identifiers()
+        registry.register("  geotiff  ")(DummyValidator)
+        assert FormatIdentifier("geotiff") in registry.get_registered_identifiers()
 
 
 class TestModuleLevelRegistry:
@@ -118,10 +119,11 @@ class TestModuleLevelRegistry:
 
         code = (
             "from eo_format_validator.registry import registry; "
+            "from eo_format_validator.model.format_identifier import FormatIdentifier; "
             "ids = registry.get_registered_identifiers(); "
             "assert len(ids) >= 15, f'Registry under-populated: {ids}'; "
-            "assert 'format_4100' in ids, 'Missing COG validator'; "
-            "assert 'format_4109' in ids, 'Missing GeoTIFF validator'; "
+            "assert FormatIdentifier('cog') in ids, 'Missing COG validator'; "
+            "assert FormatIdentifier('geotiff') in ids, 'Missing GeoTIFF validator'; "
             "print('registry_ok')"
         )
         result = subprocess.run(
@@ -144,7 +146,7 @@ class TestRegistryClass:
         assert fresh.get_registered_identifiers() == []
         assert fresh.choose_and_instantiate(
             ValidationRequest(
-                format_identifier="x",
+                format_identifier=FormatIdentifier("test_unsupported"),
                 actual_file=FileInput(path=Path("a")),
                 mode=ValidationMode.BASIC,
             )

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from eo_format_validator.validators.eo.geotiff_validator import GeoTIFFValidator
 from eo_format_validator import ValidationMode, FileInput
+from eo_format_validator.model.format_identifier import FormatIdentifier
 from eo_format_validator.validators import EOValidationRequest
 from eo_format_validator.model.validation_result import ValidationStatus
 from eo_format_validator.model import ValidationResult, Error, Cause
@@ -38,7 +39,7 @@ class TestGeoTIFFValidatorAssertExtension:
     def test_assert_extension_valid(self, geotiff_validator, geotiff_input):
         """Test extension validation passes for .tif file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.BASIC
         )
@@ -48,7 +49,7 @@ class TestGeoTIFFValidatorAssertExtension:
     def test_assert_extension_failure(self, geotiff_validator, geojson_input, geopackage_input):
         """Test extension validation fails for non-.tif files."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geojson_input,
             mode=ValidationMode.BASIC
         )
@@ -57,7 +58,7 @@ class TestGeoTIFFValidatorAssertExtension:
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geopackage_input,
             mode=ValidationMode.BASIC
         )
@@ -74,7 +75,7 @@ class TestGeoTIFFValidatorAssertExists:
     def test_assert_exists_passes(self, geotiff_validator, geotiff_input):
         """Test file existence passes for existing file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -84,7 +85,7 @@ class TestGeoTIFFValidatorAssertExists:
     def test_assert_exists_fails_for_nonexistent(self, geotiff_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=nonexistent_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -101,7 +102,7 @@ class TestGeoTIFFValidatorAssertCanOpen:
     def test_assert_can_open_passes(self, geotiff_validator, geotiff_input):
         """Test opening a real TIFF file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.FULL
         )
@@ -111,7 +112,7 @@ class TestGeoTIFFValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, geotiff_validator, geojson_input):
         """Test that assert_can_open fails for GeoJSON file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geojson_input,
             mode=ValidationMode.FULL
         )
@@ -127,7 +128,7 @@ class TestGeoTIFFValidatorGetCRS:
     def test_get_crs(self, geotiff_validator, geotiff_input, wgs84_crs):
         """Test CRS extraction returns the expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -139,7 +140,7 @@ class TestGeoTIFFValidatorGetCRS:
     def test_get_crs_none(self, geotiff_validator, geojson_input, wgs84_crs):
         """Test CRS extraction returns None for non-GeoTIFF file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -156,7 +157,7 @@ class TestGeoTIFFValidatorAssertCRS:
     def test_assert_crs_passes(self, geotiff_validator, geotiff_input, wgs84_crs):
         """Test CRS validation passes with matching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -167,7 +168,7 @@ class TestGeoTIFFValidatorAssertCRS:
     def test_assert_crs_fails(self, geotiff_validator, geotiff_input, mercator_crs):
         """Test CRS validation fails with mismatching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.CRS,
             crs=mercator_crs
@@ -179,7 +180,7 @@ class TestGeoTIFFValidatorAssertCRS:
     def test_assert_crs_no_expected(self, geotiff_validator, geotiff_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.CRS
         )
@@ -189,7 +190,7 @@ class TestGeoTIFFValidatorAssertCRS:
     def test_assert_crs_no_actual(self, geotiff_validator, geojson_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -207,7 +208,7 @@ class TestGeoTIFFValidatorBasicMode:
     def test_validate_basic_passes(self, geotiff_validator, geotiff_input):
         """Test BASIC mode passes for valid .tif file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.BASIC
         )
@@ -217,7 +218,7 @@ class TestGeoTIFFValidatorBasicMode:
     def test_validate_basic_failure(self, geotiff_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geojson_input,
             mode=ValidationMode.BASIC
         )
@@ -234,7 +235,7 @@ class TestGeoTIFFValidatorStructuralMode:
     def test_validate_structural_positive(self, geotiff_validator, geotiff_input):
         """Test STRUCTURAL mode passes for valid existing file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -244,7 +245,7 @@ class TestGeoTIFFValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, geotiff_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geojson_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -255,7 +256,7 @@ class TestGeoTIFFValidatorStructuralMode:
     def test_validate_structural_negative_nonexistent(self, geotiff_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=nonexistent_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -266,7 +267,7 @@ class TestGeoTIFFValidatorStructuralMode:
         
         valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.tif'))
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=valid_extension_nonexistent_file,
             mode=ValidationMode.STRUCTURAL
         )
@@ -283,7 +284,7 @@ class TestGeoTIFFValidatorFullMode:
     def test_validate_full_positive(self, geotiff_validator, geotiff_input, wgs84_crs):
         """Test FULL mode passes for valid GeoTIFF file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs
@@ -294,7 +295,7 @@ class TestGeoTIFFValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, geotiff_validator, geojson_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geojson_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs
@@ -306,7 +307,7 @@ class TestGeoTIFFValidatorFullMode:
     def test_validate_full_negative_nonexistent(self, geotiff_validator, nonexistent_input, wgs84_crs):
         """Test FULL mode fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=nonexistent_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs
@@ -324,7 +325,7 @@ class TestGeoTIFFValidatorCRSMode:
     def test_validate_crs_no_expected(self, geotiff_validator, geotiff_input):
         """Test CRS mode passes when no expected CRS is provided."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.CRS
         )
@@ -334,7 +335,7 @@ class TestGeoTIFFValidatorCRSMode:
     def test_validate_crs_positive(self, geotiff_validator, geotiff_input, wgs84_crs):
         """Test CRS mode passes with matching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -345,7 +346,7 @@ class TestGeoTIFFValidatorCRSMode:
     def test_validate_crs_negative_wrong_crs(self, geotiff_validator, geotiff_input, mercator_crs):
         """Test CRS mode fails with mismatching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geotiff_input,
             mode=ValidationMode.CRS,
             crs=mercator_crs
@@ -357,7 +358,7 @@ class TestGeoTIFFValidatorCRSMode:
     def test_validate_crs_negative_wrong_format(self, geotiff_validator, geojson_input, wgs84_crs):
         """Test CRS mode fails for wrong file format."""
         request = EOValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs

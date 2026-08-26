@@ -3,8 +3,9 @@ from typing import List
 
 from .raster_file_validator import RasterFileValidator
 from ...registry import registry
+from eo_format_validator.model import FormatIdentifier
 
-@registry.register("format_4109")
+@registry.register(FormatIdentifier("geotiff"))
 class GeoTIFFValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

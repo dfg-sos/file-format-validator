@@ -4,13 +4,13 @@
 from typing import List
 from rio_cogeo.cogeo import cog_validate
 
-from eo_format_validator.model import ValidationRequest,ValidationResult,Error,Warning,Cause
+from eo_format_validator.model import ValidationRequest,ValidationResult,Error,Warning,Cause, FormatIdentifier
 from .raster_file_validator import RasterFileValidator
 from ...registry import registry
 
 
 
-@registry.register("format_4100")
+@registry.register(FormatIdentifier("cog"))
 class COGValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

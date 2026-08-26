@@ -3,12 +3,12 @@ import xarray as xr
 from pyproj import CRS
 
 from .eo_file_format_validator import EOValidationRequest
-from ...model import ValidationRequest,ValidationResult,Error,Cause
+from ...model import ValidationRequest,ValidationResult,Error,Cause,FormatIdentifier
 from .raster_file_validator import RasterFileValidator
 from ...registry import registry
 
 
-@registry.register("format_4113")
+@registry.register(FormatIdentifier("grib"))
 class GRIBValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

@@ -6,13 +6,13 @@ import re
 from pyproj import CRS
 from shapely import GeometryType
 
-from ...model import ValidationRequest, ValidationResult,Error,Cause,Warning,Cause,Info
+from ...model import ValidationRequest, ValidationResult,Error,Cause,Warning,Cause,Info,FormatIdentifier
 from .eo_file_format_validator import EOValidationRequest
 from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
 
-@registry.register("format_4114")
+@registry.register(FormatIdentifier("kml"))
 class KMLValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

@@ -6,6 +6,7 @@ from eo_format_validator.format_validator import FormatValidator
 from eo_format_validator.model import (
     ValidationRequestBuilder,
     ValidationResponseHandler,
+    FormatIdentifier,
     ValidationRequest,
     ValidationResult,
     ValidationStatus,
@@ -32,7 +33,7 @@ class DummyValidator(FileFormatValidator):
 @pytest.fixture
 def dummy_request():
     return ValidationRequest(
-        format_identifier="fmt_dummy",
+        format_identifier=FormatIdentifier("geotiff"),
         actual_file=FileInput(path=Path("file.dummy")),
         mode=ValidationMode.BASIC,
     )
@@ -75,16 +76,20 @@ def isolated_registry(monkeypatch):
 
 class TestValidateStatic:
     def test_successful_validation(self, isolated_registry, dummy_request):
-        isolated_registry.register("fmt_dummy")(DummyValidator)
+        isolated_registry.register("geotiff")(DummyValidator)
         result = FormatValidator.validate(dummy_request)
         assert result.status == ValidationStatus.SUCCESS
 
-    def test_unsupported_format_returns_uncertain(self, dummy_request):
-        result = FormatValidator.validate(dummy_request)
+    def test_unsupported_format_returns_uncertain(self):
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier("test_unsupported"),
+            actual_file=FileInput(path=Path("file.dummy")),
+            mode=ValidationMode.BASIC,
+        )
+        result = FormatValidator.validate(request)
         assert result.status == ValidationStatus.UNCERTAIN
         assert len(result.warnings()) == 1
         assert "not supported" in result.warnings()[0].message.lower()
-
     def test_exception_during_validation(self, isolated_registry, dummy_request):
         class BrokenValidator(FileFormatValidator):
             def get_extensions(self):
@@ -93,9 +98,9 @@ class TestValidateStatic:
             def assert_can_open(self, request):
                 raise RuntimeError("boom")
 
-        isolated_registry.register("fmt_dummy")(BrokenValidator)
+        isolated_registry.register("geotiff")(BrokenValidator)
         dummy_request_full = ValidationRequest(
-            format_identifier="fmt_dummy",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=FileInput(path=Path("file.dummy")),
             mode=ValidationMode.FULL,
         )
@@ -107,7 +112,7 @@ class TestValidateStatic:
 
 class TestRun:
     def test_run_success(self, isolated_registry, mock_builder, mock_handler):
-        isolated_registry.register("fmt_dummy")(DummyValidator)
+        isolated_registry.register("geotiff")(DummyValidator)
         eo = FormatValidator(mock_builder, mock_handler)
         response = eo.run()
         mock_builder.build.assert_called_once()
@@ -127,9 +132,9 @@ class TestRun:
                     request, Error(message="fail", cause=Cause.UNKNOWN)
                 )
 
-        isolated_registry.register("fmt_dummy")(FailingValidator)
+        isolated_registry.register("geotiff")(FailingValidator)
         request = ValidationRequest(
-            format_identifier="fmt_dummy",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=FileInput(path=Path("file.dummy")),
             mode=ValidationMode.FULL,
         )
@@ -157,9 +162,9 @@ class TestRun:
             def validate(self, request):
                 raise RuntimeError("validation crashed")
 
-        isolated_registry.register("fmt_dummy")(BrokenValidator)
+        isolated_registry.register("geotiff")(BrokenValidator)
         request = ValidationRequest(
-            format_identifier="fmt_dummy",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=FileInput(path=Path("file.dummy")),
             mode=ValidationMode.BASIC,
         )
@@ -176,11 +181,11 @@ class TestRunWithoutRegistryIsolation:
     """Integration-ish tests using the real module-level registry."""
 
     def test_real_registry_has_cog(self):
-        assert "format_4100" in registry.get_registered_identifiers()
+        assert FormatIdentifier("cog") in registry.get_registered_identifiers()
 
     def test_validate_with_real_geotiff(self):
         request = ValidationRequest(
-            format_identifier="format_4109",
+            format_identifier=FormatIdentifier("geotiff"),
             actual_file=FileInput(path=Path("data/geo/o41078a2.tif")),
             mode=ValidationMode.STRUCTURAL,
         )

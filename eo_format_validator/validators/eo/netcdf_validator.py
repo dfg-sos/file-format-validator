@@ -3,13 +3,13 @@ from typing import List, Optional
 import xarray as xr
 from pyproj import CRS
 
-from ...model import ValidationRequest,ValidationResult,Error,Warning,Cause
+from ...model import ValidationRequest,ValidationResult,Error,Warning,Cause,FormatIdentifier
 from .raster_file_validator import RasterFileValidator
 from .eo_file_format_validator import EOValidationRequest
 from ...registry import registry
 
 
-@registry.register("format_4115")
+@registry.register(FormatIdentifier("netcdf"))
 class NetCDFValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

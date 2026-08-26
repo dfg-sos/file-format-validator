@@ -2,11 +2,12 @@ from .format_validator import FormatValidator
 
 from .registry import registry
 
-# # Re-export core model types for convenience
+# Re-export core model types for convenience
 from .model import (
     FileInput,
     MultiFileInput,
     ValidationMode,
+    FormatIdentifier,
     ValidationRequest,
     Severity,
     Cause,
@@ -26,6 +27,9 @@ from .validators import (
     VectorFileValidator,
     RasterFileValidator,
 )
+
+from .translator import FormatTranslator, translator
+from .compatibility import FormatOntology, CompatibilityResult
 
 __all__ = [
     "FileInput",
@@ -48,4 +52,9 @@ __all__ = [
     "VectorFileValidator",
     "RasterFileValidator",
     "registry",
+    "FormatTranslator",
+    "translator",
+    "FormatIdentifier",
+    "FormatOntology",
+    "CompatibilityResult",
 ]

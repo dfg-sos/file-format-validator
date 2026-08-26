@@ -1,9 +1,10 @@
 from typing import List
 
-from ...registry import registry 
+from ...registry import registry
+from eo_format_validator.model import FormatIdentifier 
 from .raster_file_validator import RasterFileValidator
 
-@registry.register("format_4102")
+@registry.register(FormatIdentifier("dem"))
 class DEMValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

@@ -46,6 +46,3 @@ http = [
     "uvicorn",
     "requests"
 ]
-
-[project.scripts]
-eo-format-validator = "eo_format_validator.adapters.cli.cli:main"

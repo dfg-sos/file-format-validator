@@ -9,6 +9,9 @@ from .model import (
     Error,
     Cause,
 )
+from .compatibility import FormatOntology, CompatibilityResult
+from .model.format_identifier import FormatIdentifier
+from .model.format_identifier import FormatIdentifier
 from typing import Any, Optional
 
 
@@ -56,6 +59,55 @@ class FormatValidator:
                     message=f"Exception during validation: {exc}.",
                     cause=Cause.UNKNOWN,
                 ),
+            )
+
+    @staticmethod
+    def check_compatibility(
+        expected_format: str,
+        actual_format: str,
+        ontology_source: str,
+    ) -> CompatibilityResult:
+        """Check whether ``actual_format`` is compatible with ``expected_format``
+        according to the provided ontology.
+
+        Compatibility is **directional**: the actual format must be the same as,
+        or a subclass of, the expected format.
+
+        Args:
+            expected_format: The required/expected format identifier.
+            actual_format: The available/provided format identifier.
+            ontology_source: Path or URI to the ontology file.
+
+        Returns:
+            A ``CompatibilityResult`` indicating whether the formats are compatible.
+        """
+        try:
+            ontology = FormatOntology(ontology_source)
+            compatible = ontology.are_compatible(expected_format, actual_format)
+            if compatible:
+                msg = (
+                    f"'{actual_format}' is compatible with '{expected_format}' "
+                    f"according to ontology '{ontology_source}'."
+                )
+            else:
+                msg = (
+                    f"'{actual_format}' is NOT compatible with '{expected_format}' "
+                    f"according to ontology '{ontology_source}'."
+                )
+            return CompatibilityResult(
+                compatible=compatible,
+                expected=expected_format,
+                actual=actual_format,
+                message=msg,
+                ontology_source=ontology_source,
+            )
+        except Exception as exc:
+            return CompatibilityResult(
+                compatible=False,
+                expected=expected_format,
+                actual=actual_format,
+                message=f"Error during compatibility check: {exc}",
+                ontology_source=ontology_source,
             )
 
     def run(self) -> Any:

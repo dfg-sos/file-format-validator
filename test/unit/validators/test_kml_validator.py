@@ -5,6 +5,7 @@ from pathlib import Path
 from eo_format_validator.validators.eo.kml_validator import KMLValidator
 from eo_format_validator import ValidationMode, FileInput
 from shapely import GeometryType
+from eo_format_validator.model.format_identifier import FormatIdentifier
 from eo_format_validator.validators import EOValidationRequest
 from eo_format_validator.model.validation_result import ValidationStatus
 from eo_format_validator.model import ValidationResult, Error, Cause
@@ -38,7 +39,7 @@ class TestKMLValidatorAssertExtension:
     def test_assert_extension_valid(self, kml_validator, kml_input):
         """Test extension validation passes for .kml file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.BASIC
         )
@@ -48,7 +49,7 @@ class TestKMLValidatorAssertExtension:
     def test_assert_extension_failure(self, kml_validator, geojson_input, gpx_input):
         """Test extension validation fails for non-.kml files."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=geojson_input,
             mode=ValidationMode.BASIC
         )
@@ -57,7 +58,7 @@ class TestKMLValidatorAssertExtension:
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=gpx_input,
             mode=ValidationMode.BASIC
         )
@@ -74,7 +75,7 @@ class TestKMLValidatorAssertExists:
     def test_assert_exists_passes(self, kml_validator, kml_input):
         """Test file existence passes for existing file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -84,7 +85,7 @@ class TestKMLValidatorAssertExists:
     def test_assert_exists_fails_for_nonexistent(self, kml_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=nonexistent_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -101,7 +102,7 @@ class TestKMLValidatorAssertCanOpen:
     def test_assert_can_open_passes(self, kml_validator, kml_input):
         """Test opening a real KML file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.FULL
         )
@@ -111,7 +112,7 @@ class TestKMLValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, kml_validator, geojson_input):
         """Test that assert_can_open fails for GeoJSON file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=geojson_input,
             mode=ValidationMode.FULL
         )
@@ -127,7 +128,7 @@ class TestKMLValidatorGetCRS:
     def test_get_crs(self, kml_validator, kml_input, wgs84_crs):
         """Test CRS extraction returns WGS84 CRS (KML default)."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -139,7 +140,7 @@ class TestKMLValidatorGetCRS:
     def test_get_crs_none(self, kml_validator, geojson_input):
         """Test CRS extraction returns None for non-KML file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=geojson_input,
             mode=ValidationMode.CRS
         )
@@ -155,7 +156,7 @@ class TestKMLValidatorAssertCRS:
     def test_assert_crs_passes(self, kml_validator, kml_input, wgs84_crs):
         """Test CRS validation passes with matching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -166,7 +167,7 @@ class TestKMLValidatorAssertCRS:
     def test_assert_crs_fails(self, kml_validator, kml_input, mercator_crs):
         """Test CRS validation fails with mismatching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.CRS,
             crs=mercator_crs
@@ -178,7 +179,7 @@ class TestKMLValidatorAssertCRS:
     def test_assert_crs_no_expected(self, kml_validator, kml_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.CRS
         )
@@ -188,7 +189,7 @@ class TestKMLValidatorAssertCRS:
     def test_assert_crs_no_actual(self, kml_validator, geojson_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -206,7 +207,7 @@ class TestKMLValidatorBasicMode:
     def test_validate_basic_passes(self, kml_validator, kml_input):
         """Test BASIC mode passes for valid .kml file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.BASIC
         )
@@ -216,7 +217,7 @@ class TestKMLValidatorBasicMode:
     def test_validate_basic_failure(self, kml_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=geojson_input,
             mode=ValidationMode.BASIC
         )
@@ -233,7 +234,7 @@ class TestKMLValidatorStructuralMode:
     def test_validate_structural_positive(self, kml_validator, kml_input):
         """Test STRUCTURAL mode passes for valid existing file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -243,7 +244,7 @@ class TestKMLValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, kml_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=geojson_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -254,7 +255,7 @@ class TestKMLValidatorStructuralMode:
     def test_validate_structural_negative_nonexistent(self, kml_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=nonexistent_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -265,7 +266,7 @@ class TestKMLValidatorStructuralMode:
         
         valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.kml'))
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=valid_extension_nonexistent_file,
             mode=ValidationMode.STRUCTURAL
         )
@@ -282,7 +283,7 @@ class TestKMLValidatorFullMode:
     def test_validate_full_positive(self, kml_validator, kml_input, wgs84_crs):
         """Test FULL mode passes for valid KML file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs,
@@ -294,7 +295,7 @@ class TestKMLValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, kml_validator, geojson_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=geojson_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs,
@@ -307,7 +308,7 @@ class TestKMLValidatorFullMode:
     def test_validate_full_negative_nonexistent(self, kml_validator, nonexistent_input, wgs84_crs):
         """Test FULL mode fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=nonexistent_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs,
@@ -326,7 +327,7 @@ class TestKMLValidatorCRSMode:
     def test_validate_crs_no_expected(self, kml_validator, kml_input):
         """Test CRS mode passes when no expected CRS is provided."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.CRS
         )
@@ -336,7 +337,7 @@ class TestKMLValidatorCRSMode:
     def test_validate_crs_positive(self, kml_validator, kml_input, wgs84_crs):
         """Test CRS mode passes with matching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -347,7 +348,7 @@ class TestKMLValidatorCRSMode:
     def test_validate_crs_negative_wrong_crs(self, kml_validator, kml_input, mercator_crs):
         """Test CRS mode fails with mismatching expected CRS."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=kml_input,
             mode=ValidationMode.CRS,
             crs=mercator_crs
@@ -360,7 +361,7 @@ class TestKMLValidatorCRSMode:
         """Test CRS mode with compatible CRS from wrong format.
         The validator should return UNCERTAIN because the file is not a KML file."""
         request = EOValidationRequest(
-            format_identifier="format_4114",
+            format_identifier=FormatIdentifier("kml"),
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs

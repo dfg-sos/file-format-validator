@@ -9,13 +9,13 @@ from pyproj import CRS
 from shapely import GeometryType
 
 from .eo_file_format_validator import EOValidationRequest
-from ...model import ValidationResult,ValidationRequest, Error,Warning,Cause
+from ...model import ValidationResult,ValidationRequest, Error,Warning,Cause, FormatIdentifier
 from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
 
 
-@registry.register("format_4108")
+@registry.register(FormatIdentifier("geoparquet"))
 class GeoParquetValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

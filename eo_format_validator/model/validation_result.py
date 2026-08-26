@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 import json
 import datetime
-from dataclasses import dataclass, field
-from typing import Optional, List
+from dataclasses import dataclass, field, asdict
+from typing import Optional, List, Dict, Any
 from enum import Enum
 from .validation_request import ValidationRequest
 
@@ -22,12 +22,22 @@ class Cause(Enum):
 
 @dataclass(frozen=True)
 class Event(ABC):
-    message: str 
+    message: str
     timestamp: datetime.datetime = field(default_factory=lambda: datetime.datetime.now())
 
     @abstractmethod
     def severity(self) -> Severity:
         pass
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize the event to a dictionary."""
+        d = asdict(self)
+        d["severity"] = self.severity().value
+        d["timestamp"] = self.timestamp.isoformat()
+        d.pop("cause", None)
+        if hasattr(self, "cause") and self.cause is not None: # type: ignore
+            d["cause"] = self.cause.value # type: ignore
+        return d
 
 @dataclass(frozen=True)
 class Info(Event):
@@ -125,17 +135,6 @@ class ValidationResult:
         self.add(warning)
         return self
 
-
-    # @classmethod
-    # def from_error(cls, source: Optional[str], message: str, code: Optional[str] = None, details: Optional[Dict[str,Any]] = None):
-    #     vr = cls(_source=source)
-    #     vr.set_failure(message, code=code, details=details)
-    #     return vr
-
-    # @classmethod
-    # def from_exception(cls, source: Optional[str], exc: Exception, code: str = "EXCEPTION", details: Optional[Dict[str,Any]] = None):
-    #     return cls.from_error(source, str(exc), code=code, details=details)
-    
     # Factories
 
     @staticmethod
@@ -158,21 +157,28 @@ class ValidationResult:
     
 
     # --- utility --------------------------------------------------------------
-    # def to_dict(self, include_details: bool = True) -> Dict[str, Any]:
-    #     d = {
-    #         "source": self._source,
-    #         "validated": self._validated,
-    #         "summary": self.summary,
-    #         "errors": [i.to_dict() for i in self._errors],
-    #         "warnings": [i.to_dict() for i in self._warnings],
-    #         "infos": [i.to_dict() for i in self._infos],
-    #     }
-    #     if include_details:
-    #         d["details"] = self._details
-    #     return d
 
-    # def to_json(self) -> str:
-    #     return json.dumps(self.to_dict(), indent=4)
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize the validation result to a dictionary."""
+        request = None
+        if self._request is not None:
+            request = {
+                "format_identifier": self._request.format_identifier,
+                "file": str(self._request.actual_file.path),
+                "mode": self._request.mode.value,
+            }
+        return {
+            "status": self.status.value,
+            "request": request,
+            "events": [e.to_dict() for e in self._events],
+            "errors": [e.to_dict() for e in self.errors()],
+            "warnings": [e.to_dict() for e in self.warnings()],
+            "infos": [e.to_dict() for e in self.infos()],
+        }
+
+    def to_json(self) -> str:
+        """Serialize the validation result to a JSON string."""
+        return json.dumps(self.to_dict(), indent=4)
 
     def merge(self, other: 'ValidationResult') -> "ValidationResult":
         if other is None:
