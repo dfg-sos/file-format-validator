@@ -29,7 +29,6 @@ from .validators import (
 )
 
 from .translator import FormatTranslator, translator
-from .compatibility import FormatOntology, CompatibilityResult
 
 __all__ = [
     "FileInput",
