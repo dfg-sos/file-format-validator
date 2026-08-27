@@ -1,9 +1,10 @@
 from typing import List
+from shapely import GeometryType
+import fiona
 
 from eo_format_validator.model import ValidationRequest,ValidationResult,Error,Cause,Info,FormatIdentifier
-from .vector_file_validator import VectorFileValidator
+from .vector_file_validator import VectorFileValidator, geometry_type_from_string
 from ...registry import registry
-
 
 # Define required, recommended, and optional Shapefile components
 REQUIRED_EXTENSIONS = {'.shx', '.dbf', '.prj'} # .shp is also required, but checked separately
@@ -92,3 +93,20 @@ class ShapefileValidator(VectorFileValidator):
         if found_optional:
             validation_result.add(Info(f"Shapefile has optional file(s): {', '.join(sorted(found_optional))}"))
         return validation_result
+
+    def get_geometry_types(self, request) -> List[GeometryType]:
+        """Get geometry types from the Shapefile's declared schema.
+        
+        Uses Fiona's layer schema geometry type declaration rather than
+        iterating individual features. This is more reliable across GDAL
+        versions, as different OGR builds may report feature-level geometry
+        types differently (e.g., MultiPolygon vs Polygon for the same file).
+        """
+        try:
+            with fiona.open(str(request.actual_file.path)) as ds:
+                geom_type_str = ds.schema.get('geometry')
+                geom_type = geometry_type_from_string(geom_type_str)
+                return [geom_type] if geom_type is not None else []
+        except Exception:
+            # Return empty list on error - let assert_geometry_type handle it
+            return []
