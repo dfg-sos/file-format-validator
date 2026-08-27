@@ -1,6 +1,8 @@
 # EO Format Validator
-This package provides a validation tool for EO file formats to examine a file according to a specified format. It relies on (ontology-defined) format identifiers to uniquely reference different file formats. For a supported format, the *EO Format Validator* can decide for certain input file whether it adheres to that format specification. Depending on the selected mode, the file extension is validated and the file is opened to infer the coordinate reference system (CRS) or the geometry type for vector file formats.
+This package provides a validation tool for EO file formats to examine a file according to a specified format. It provides ontology-agnostic format identifiers to uniquely reference different file formats. For existing ontologies a mapping to the internal formats can be supplied as a json file. For a supported format, the [Format Validator](format_validator/validator.py) can decide for a certain input file whether it adheres to that format specification. Depending on the selected mode, the file extension is validated, the file is opened, it infers the coordinate reference system (CRS) or the geometry type for vector file formats.
 
+
+## Validation Modes
 | Mode | File Extension | File Open | CRS Validation | Geometry Type Validation|
 |---|---|---|---|---|
 | `BASIC` | &#10004; | &#10005; | &#10005; | &#10005;
@@ -8,8 +10,10 @@ This package provides a validation tool for EO file formats to examine a file ac
 | `CRS` | &#10005; | (&#10004;) | &#10004;| &#10005; |
 | `FULL` | &#10004; | &#10004; | &#10004;| (&#10004;)
 
+## Integration
+Integrating the format validator into your project can be achieved with the [ValidationRequestBuilder](format_validator/model/validation_request_builder.py) and the [ValidationResponseHandler](format_validator/model/validation_response_handler.py) interfaces. You pass your implementation of those interfaces to the [FormatValidator](format_validator/validator.py), which first creates a [ValidationRequest](format_validator/model/validation_request.py) using your builder, performs the validation and passes the [ValidationResult](format_validator/model/validation_result.py) to your response handler. Converting from your ontology identifiers to the internal identifiers should be done in the request builder utilizing the [FormatTranslator](format_validator/translator.py) with your custom mappings (e.g. [Test Mappings](test/data/mappings/http---edamontology-org.json))
 
-# Installation
+## Installation
 
 ### System Requirements
 - Python 3.13.5+
@@ -25,24 +29,7 @@ python -m pip install -U pip
 python -m pip install -e .
 ```
 # Tests
-## Unittest
 ```sh
 python -m pip install -e .[test]
 python -m pytest
-```
-## Integration Test
-### CWL
-Since CWL requires a running ontology to resolve references to file format identifiers a local ontology containing the validated EO file formats must be hosted:
-```sh
-python3 -m http.server -b localhost -d data/ontology/
-```
-
-This will make the _.owl_ definition file available on `http://localhost:8000/edamontology_adapted.org.owl`, which is expected by [cwl integration test](test/cwl/).
-
-To include the ontology in cwl files use:
-```
-$namespaces:
-  edam: http://edamontology.org/
-$schemas:
-  - http://localhost:8000/edamontology_adapted.org.owl
 ```

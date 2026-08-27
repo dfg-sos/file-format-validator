@@ -3,11 +3,11 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["eo_format_validator*"]
+include = ["format_validator*"]
 
 [project]
-name = "eo-format-validator"
-version = "0.2.0"
+name = "format-validator"
+version = "1.0.0"
 authors = [
     { name = "Moritz Pataky", email = "moritz.pataky@stud-mail.uni-wuerzburg.de" },
     { name = "Lorenz Gruber ", email = "lorenz.gruber@uni-wuerzburg.de" }
@@ -34,15 +34,4 @@ dependencies = [
 test = [
     "pytest",
     "pytest-cov"
-]
-
-# Optional adapter dependencies
-cli = [
-    "click"
-]
-
-http = [
-    "fastapi",
-    "uvicorn",
-    "requests"
 ]
