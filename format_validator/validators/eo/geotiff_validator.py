@@ -5,7 +5,8 @@ from .raster_file_validator import RasterFileValidator
 from ...registry import registry
 from format_validator.model import FormatIdentifier
 
-@registry.register(FormatIdentifier("geotiff"))
+
+@registry.register(FormatIdentifier.GEOTIFF)
 class GeoTIFFValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

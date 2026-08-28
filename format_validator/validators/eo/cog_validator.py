@@ -9,8 +9,7 @@ from .raster_file_validator import RasterFileValidator
 from ...registry import registry
 
 
-
-@registry.register(FormatIdentifier("cog"))
+@registry.register(FormatIdentifier.COG)
 class COGValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

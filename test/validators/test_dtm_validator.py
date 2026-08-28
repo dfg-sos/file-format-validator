@@ -39,7 +39,7 @@ class TestDTMValidatorAssertExtension:
     def test_assert_extension_valid(self, dtm_validator, dtm_input):
         """Test extension validation passes for .tif file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.BASIC
         )
@@ -49,7 +49,7 @@ class TestDTMValidatorAssertExtension:
     def test_assert_extension_failure(self, dtm_validator, geojson_input, geopackage_input):
         """Test extension validation fails for non-.tif files."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC
         )
@@ -58,7 +58,7 @@ class TestDTMValidatorAssertExtension:
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geopackage_input,
             mode=ValidationMode.BASIC
         )
@@ -75,7 +75,7 @@ class TestDTMValidatorAssertExists:
     def test_assert_exists_passes(self, dtm_validator, dtm_input):
         """Test file existence passes for existing file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -85,7 +85,7 @@ class TestDTMValidatorAssertExists:
     def test_assert_exists_fails_for_nonexistent(self, dtm_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=nonexistent_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -102,7 +102,7 @@ class TestDTMValidatorAssertCanOpen:
     def test_assert_can_open_passes(self, dtm_validator, dtm_input):
         """Test opening a real DTM file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.FULL
         )
@@ -112,7 +112,7 @@ class TestDTMValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, dtm_validator, geojson_input):
         """Test that assert_can_open fails for GeoJSON file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geojson_input,
             mode=ValidationMode.FULL
         )
@@ -128,7 +128,7 @@ class TestDTMValidatorGetCRS:
     def test_get_crs(self, dtm_validator, dtm_input, wgs84_crs):
         """Test CRS extraction returns the expected CRS."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -140,7 +140,7 @@ class TestDTMValidatorGetCRS:
     def test_get_crs_none(self, dtm_validator, geojson_input, wgs84_crs):
         """Test CRS extraction returns None for non-DTM file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -157,7 +157,7 @@ class TestDTMValidatorAssertCRS:
     def test_assert_crs_passes(self, dtm_validator, dtm_input, wgs84_crs):
         """Test CRS validation passes with matching expected CRS."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -168,7 +168,7 @@ class TestDTMValidatorAssertCRS:
     def test_assert_crs_fails(self, dtm_validator, dtm_input, mercator_crs):
         """Test CRS validation fails with mismatching expected CRS."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.CRS,
             crs=mercator_crs
@@ -180,7 +180,7 @@ class TestDTMValidatorAssertCRS:
     def test_assert_crs_no_expected(self, dtm_validator, dtm_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.CRS
         )
@@ -190,7 +190,7 @@ class TestDTMValidatorAssertCRS:
     def test_assert_crs_no_actual(self, dtm_validator, geojson_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -208,7 +208,7 @@ class TestDTMValidatorBasicMode:
     def test_validate_basic_passes(self, dtm_validator, dtm_input):
         """Test BASIC mode passes for valid .tif file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.BASIC
         )
@@ -218,7 +218,7 @@ class TestDTMValidatorBasicMode:
     def test_validate_basic_failure(self, dtm_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC
         )
@@ -235,7 +235,7 @@ class TestDTMValidatorStructuralMode:
     def test_validate_structural_positive(self, dtm_validator, dtm_input):
         """Test STRUCTURAL mode passes for valid existing file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -245,7 +245,7 @@ class TestDTMValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, dtm_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geojson_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -256,7 +256,7 @@ class TestDTMValidatorStructuralMode:
     def test_validate_structural_negative_nonexistent(self, dtm_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=nonexistent_input,
             mode=ValidationMode.STRUCTURAL
         )
@@ -267,7 +267,7 @@ class TestDTMValidatorStructuralMode:
         
         valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.tif'))
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=valid_extension_nonexistent_file,
             mode=ValidationMode.STRUCTURAL
         )
@@ -284,7 +284,7 @@ class TestDTMValidatorFullMode:
     def test_validate_full_positive(self, dtm_validator, dtm_input, wgs84_crs):
         """Test FULL mode passes for valid DTM file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs
@@ -295,7 +295,7 @@ class TestDTMValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, dtm_validator, geojson_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geojson_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs
@@ -307,7 +307,7 @@ class TestDTMValidatorFullMode:
     def test_validate_full_negative_nonexistent(self, dtm_validator, nonexistent_input, wgs84_crs):
         """Test FULL mode fails for non-existent file."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=nonexistent_input,
             mode=ValidationMode.FULL,
             crs=wgs84_crs
@@ -325,7 +325,7 @@ class TestDTMValidatorCRSMode:
     def test_validate_crs_no_expected(self, dtm_validator, dtm_input):
         """Test CRS mode passes when no expected CRS is provided."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.CRS
         )
@@ -335,7 +335,7 @@ class TestDTMValidatorCRSMode:
     def test_validate_crs_positive(self, dtm_validator, dtm_input, wgs84_crs):
         """Test CRS mode passes with matching expected CRS."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs
@@ -346,7 +346,7 @@ class TestDTMValidatorCRSMode:
     def test_validate_crs_negative_wrong_crs(self, dtm_validator, dtm_input, mercator_crs):
         """Test CRS mode fails with mismatching expected CRS."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=dtm_input,
             mode=ValidationMode.CRS,
             crs=mercator_crs
@@ -358,7 +358,7 @@ class TestDTMValidatorCRSMode:
     def test_validate_crs_negative_wrong_format(self, dtm_validator, geojson_input, wgs84_crs):
         """Test CRS mode fails for wrong file format."""
         request = EOValidationRequest(
-            format_identifier=FormatIdentifier("dtm"),
+            format_identifier=FormatIdentifier.DTM,
             actual_file=geojson_input,
             mode=ValidationMode.CRS,
             crs=wgs84_crs

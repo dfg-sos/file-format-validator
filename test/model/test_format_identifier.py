@@ -1,113 +1,98 @@
 """Tests for the FormatIdentifier value object."""
 import pytest
-from format_validator.model.format_identifier import FormatIdentifier, UnknownFormatError
-
-
-class TestConstruction:
-    def test_from_valid_string(self):
-        fi = FormatIdentifier.from_string("geotiff")
-        assert fi.value == "geotiff"
-        assert fi.label == "GeoTIFF"
-        assert fi.category == "raster"
-
-    def test_from_string_alias(self):
-        assert FormatIdentifier.from_string("geotiff") == FormatIdentifier.GEOTIFF
-
-    def test_unknown_identifier_raises(self):
-        with pytest.raises(UnknownFormatError, match="Unknown format identifier 'not_a_format'"):
-            FormatIdentifier("not_a_format")
-
-    def test_constant_shorthand(self):
-        assert FormatIdentifier.GEOTIFF == FormatIdentifier("geotiff")
-        assert FormatIdentifier.RASTER == FormatIdentifier("raster")
-        assert FormatIdentifier.COG == FormatIdentifier("cog")
+from format_validator.model.format_identifier import FormatIdentifier
 
 
 class TestStringRepr:
     def test_str(self):
-        assert str(FormatIdentifier("geotiff")) == "geotiff"
+        assert str(FormatIdentifier.GEOTIFF) == "GeoTIFF"
 
     def test_repr(self):
-        assert "FormatIdentifier" in repr(FormatIdentifier("geotiff"))
-        assert "geotiff" in repr(FormatIdentifier("geotiff"))
+        assert "FormatIdentifier" in repr(FormatIdentifier.GEOTIFF)
+        assert "GeoTIFF" in repr(FormatIdentifier.GEOTIFF)
 
 
 class TestEqualityHash:
     def test_equality(self):
-        a = FormatIdentifier("geotiff")
-        b = FormatIdentifier("geotiff")
-        c = FormatIdentifier("cog")
+        a = FormatIdentifier.GEOTIFF
+        b = FormatIdentifier.GEOTIFF
+        c = FormatIdentifier.COG
         assert a == b
         assert a != c
-        assert a != "geotiff"
+        assert a != "GeoTIFF"
 
     def test_hash(self):
-        a = FormatIdentifier("geotiff")
-        b = FormatIdentifier("geotiff")
+        a = FormatIdentifier.GEOTIFF
+        b = FormatIdentifier.GEOTIFF
         assert hash(a) == hash(b)
         d = {a: "found"}
         assert d[b] == "found"
 
-    def test_sortable(self):
-        ids = [FormatIdentifier("cog"), FormatIdentifier("geotiff"), FormatIdentifier("dem")]
-        sorted_ids = sorted(ids)
-        assert [fi.value for fi in sorted_ids] == ["cog", "dem", "geotiff"]
+
+class TestSingleton:
+    def test_same_instance(self):
+        a = FormatIdentifier.GEOTIFF
+        b = FormatIdentifier("GeoTIFF")
+        assert a is b
+
+    def test_new_format_registered(self):
+        custom = FormatIdentifier("CustomFormat", description="A custom format", is_abstract=False)
+        assert FormatIdentifier.get("CustomFormat") is custom
+        assert custom in FormatIdentifier.all()
+
+    def test_reuse_existing(self):
+        first = FormatIdentifier("ReuseMe")
+        second = FormatIdentifier("ReuseMe", description="ignored")
+        assert first is second
+        assert second.description == ""  # first definition wins
 
 
 class TestTaxonomy:
     def test_abstract_format_has_children(self):
-        raster = FormatIdentifier("raster")
+        raster = FormatIdentifier.RASTER
         assert raster.is_abstract
         assert len(raster.children) > 0
-        assert FormatIdentifier("geotiff") in raster.children
+        assert FormatIdentifier.GEOTIFF in raster.children
 
     def test_concrete_format_no_children(self):
-        gml = FormatIdentifier("gml")
+        gml = FormatIdentifier.GML
         assert not gml.is_abstract
         assert gml.children == []
 
+    def test_geotiff_is_not_abstract_despite_children(self):
+        geotiff = FormatIdentifier.GEOTIFF
+        assert not geotiff.is_abstract
+        assert len(geotiff.children) > 0
+        assert FormatIdentifier.COG in geotiff.children
     def test_parent(self):
-        assert FormatIdentifier("geotiff").parent == FormatIdentifier("raster")
-        assert FormatIdentifier("cog").parent == FormatIdentifier("geotiff")
-        assert FormatIdentifier("raster").parent == FormatIdentifier("gis_data")
-        assert FormatIdentifier("gis_data").parent is None
-
-    def test_lineage(self):
-        cog = FormatIdentifier("cog")
-        lineage = cog.lineage
-        assert lineage == [FormatIdentifier("geotiff"), FormatIdentifier("raster"), FormatIdentifier("gis_data")]
+        assert FormatIdentifier.GEOTIFF.parent == FormatIdentifier.RASTER
+        assert FormatIdentifier.COG.parent == FormatIdentifier.GEOTIFF
+        assert FormatIdentifier.RASTER.parent == FormatIdentifier.GIS
+        assert FormatIdentifier.GIS.parent is None
 
     def test_leaves(self):
-        raster = FormatIdentifier("raster")
+        raster = FormatIdentifier.RASTER
         leaves = raster.leaves
-        assert FormatIdentifier("cog") in leaves
-        assert FormatIdentifier("geotiff") not in leaves  # geotiff has children (cog)
-        # vector is not under raster
-        assert FormatIdentifier("shapefile") not in leaves
+        assert FormatIdentifier.COG in leaves
+        assert FormatIdentifier.GEOTIFF in leaves # GEOTIFF is a leaf because it is not abstract
+        assert FormatIdentifier.SHAPEFILE not in leaves
 
     def test_vector_leaves(self):
-        vector = FormatIdentifier("vector")
+        vector = FormatIdentifier.VECTOR
         leaves = vector.leaves
-        assert FormatIdentifier("shapefile") in leaves
-        assert FormatIdentifier("geojson") in leaves
-        assert FormatIdentifier("geoparquet") in leaves
+        assert FormatIdentifier.SHAPEFILE in leaves
+        assert FormatIdentifier.GEOJSON in leaves
+        assert FormatIdentifier.GEOPARQUET in leaves
 
     def test_gis_data_leaves(self):
-        gis = FormatIdentifier("gis_data")
+        gis = FormatIdentifier.GIS
         leaves = gis.leaves
-        assert FormatIdentifier("cog") in leaves
-        assert FormatIdentifier("shapefile") in leaves
-        assert FormatIdentifier("csv") in leaves
+        assert FormatIdentifier.COG in leaves
+        assert FormatIdentifier.SHAPEFILE in leaves
+        assert FormatIdentifier.GEOTIFF in leaves
 
-
-class TestCatalog:
-    def test_all_identifiers(self):
-        all_ids = FormatIdentifier.all_identifiers()
-        assert len(all_ids) > 20
-        assert FormatIdentifier("geotiff") in all_ids
-
-    def test_all_values(self):
-        values = FormatIdentifier.all_values()
-        assert "geotiff" in values
-        assert "cog" in values
-        assert "vector" in values
+    def test_all_returns_sorted(self):
+        all_formats = FormatIdentifier.all()
+        labels = [f.value for f in all_formats]
+        assert labels == sorted(labels)
+        assert FormatIdentifier.GEOTIFF in all_formats

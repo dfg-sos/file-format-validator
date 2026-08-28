@@ -24,7 +24,7 @@ OPTIONAL_EXTENSIONS = {
     '.mxs'  # Geocoding index
 }
 
-@registry.register(FormatIdentifier("shapefile"))
+@registry.register(FormatIdentifier.SHAPEFILE)
 class ShapefileValidator(VectorFileValidator):
     """Shapefile validator, lightweight validation for ESRI Shapefiles:
         - extension check (.shp), additional files check (REQUIRED: .shp (geometry), .shx (index), .dbf (attributes), .prj (CRS)

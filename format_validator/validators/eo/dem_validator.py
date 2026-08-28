@@ -4,7 +4,8 @@ from ...registry import registry
 from format_validator.model import FormatIdentifier 
 from .raster_file_validator import RasterFileValidator
 
-@registry.register(FormatIdentifier("dem"))
+
+@registry.register(FormatIdentifier.DEM)
 class DEMValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

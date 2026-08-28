@@ -13,7 +13,7 @@ from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
 
-@registry.register(FormatIdentifier("geopackage"))
+@registry.register(FormatIdentifier.GEOPACKAGE)
 @dataclass
 class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure correct use of _validate_open method, implementation of left parent is used due to MRO (https://docs.python.org/3/howto/mro.html)
     geopandas_dfs: Dict[str,List[gpd.GeoDataFrame]] = {}

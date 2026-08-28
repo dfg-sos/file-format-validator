@@ -9,7 +9,7 @@ from .eo_file_format_validator import EOValidationRequest
 from ...registry import registry
 
 
-@registry.register(FormatIdentifier("netcdf"))
+@registry.register(FormatIdentifier.NETCDF)
 class NetCDFValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

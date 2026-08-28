@@ -1,11 +1,11 @@
 import pytest
 from pathlib import Path
-from format_validator import ValidationRequest, ValidationMode, FileInput
+from format_validator import ValidationRequest, ValidationMode, FileInput,FormatIdentifier
 
 @pytest.fixture
 def validation_request():
     return ValidationRequest(
-        format_identifier="test_format",
+        format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("test.txt")),
         mode=ValidationMode.STRUCTURAL
     )
@@ -16,7 +16,7 @@ def test_enabled_modes(validation_request):
 def test_post_init_valid_mode():
     try:
         ValidationRequest(
-            format_identifier="test_format",
+            format_identifier=FormatIdentifier.GIS,
             actual_file=FileInput(path=Path("test.txt")),
             mode=ValidationMode.CRS
         )
@@ -26,23 +26,23 @@ def test_post_init_valid_mode():
 
 def test_equality(validation_request):
     same_request = ValidationRequest(
-        format_identifier="test_format",
+        format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("test.txt")),
         mode=ValidationMode.STRUCTURAL
     )
     different_input = ValidationRequest(
-        format_identifier="test_format",
+        format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("different.txt")),
         mode=ValidationMode.STRUCTURAL
     )
     different_format = ValidationRequest(
-        format_identifier="different_format",
+        format_identifier=FormatIdentifier.GEOTIFF,
         actual_file=FileInput(path=Path("test.txt")),
         mode=ValidationMode.STRUCTURAL
     )
 
     different_mode = ValidationRequest(
-        format_identifier="test_format",
+        format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("test.txt")),
         mode=ValidationMode.FULL
     )

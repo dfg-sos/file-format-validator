@@ -8,7 +8,7 @@ from .raster_file_validator import RasterFileValidator
 from ...registry import registry
 
 
-@registry.register(FormatIdentifier("grib"))
+@registry.register(FormatIdentifier.GRIB)
 class GRIBValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

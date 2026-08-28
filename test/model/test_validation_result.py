@@ -6,6 +6,7 @@ from format_validator import (
     ValidationRequest,
     ValidationResult,
     ValidationMode,
+    FormatIdentifier,
     FileInput,
     Info,
     Warning,
@@ -19,7 +20,7 @@ from format_validator.model.validation_result import ValidationStatus
 @pytest.fixture
 def validation_request():
     return ValidationRequest(
-        format_identifier="test_format",
+        format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("test.txt")),
         mode=ValidationMode.STRUCTURAL,
     )
@@ -212,12 +213,12 @@ class TestMerge:
 
     def test_merge_different_requests_raises(self):
         req1 = ValidationRequest(
-            format_identifier="a",
+            format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=FileInput(path=Path("a.txt")),
             mode=ValidationMode.BASIC,
         )
         req2 = ValidationRequest(
-            format_identifier="b",
+            format_identifier=FormatIdentifier.KML,
             actual_file=FileInput(path=Path("b.txt")),
             mode=ValidationMode.BASIC,
         )

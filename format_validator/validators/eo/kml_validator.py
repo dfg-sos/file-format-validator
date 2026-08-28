@@ -12,7 +12,7 @@ from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
 
-@registry.register(FormatIdentifier("kml"))
+@registry.register(FormatIdentifier.KML)
 class KMLValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

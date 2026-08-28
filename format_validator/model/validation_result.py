@@ -180,7 +180,7 @@ class ValidationResult:
         """Serialize the validation result to a JSON string."""
         return json.dumps(self.to_dict(), indent=4)
 
-    def merge(self, other: 'ValidationResult') -> "ValidationResult":
+    def merge(self, other: 'ValidationResult | None') -> "ValidationResult":
         if other is None:
             return self
         if not self.request == other.request:

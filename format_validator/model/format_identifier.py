@@ -1,194 +1,296 @@
-"""Strongly-typed format identifier value object.
+"""Strongly-typed format identifier with singleton-like behavior.
 
-FormatIdentifier wraps a validated module-local format ID string.
-Construction validates against the canonical formats.json catalog,
-preventing accidental use of ontology-specific identifiers where
-module-local IDs are expected.
+Each distinct format instance only exists once. Format identifiers are case-insensitive. All registered formats are stored
+in a module-level dictionary, enabling consumers to add their own identifiers.
 
-Taxonomy traversal (parent, children, leaves) is built from the
-parent/child relationships declared in formats.json.
+Members:
+    ::label(): Human-readable label.
+    ::category(): Broad category (raster, vector, hybrid, tabular, abstract).
+    ::description(): Short description.
+    ::parent(): Immediate parent ``FormatIdentifier`` or ``None``.
 """
-
-from __future__ import annotations
-
-import json
 import logging
-from pathlib import Path
 from typing import Dict, List, Optional, Set
-from importlib import resources
 
 logger = logging.getLogger(__name__)
 
 
-class UnknownFormatError(ValueError):
-    """Raised when attempting to construct a FormatIdentifier with an unknown ID."""
-    pass
-
-
 class FormatIdentifier:
-    """Canonical, hashable, comparable format identifier.
+    """Singleton-like format identifier.
 
-    Usage::
-
-        ident = FormatIdentifier("geotiff")   # OK
-        ident = FormatIdentifier.GEOTIFF      # constant shortcut (also OK)
-        ident = FormatIdentifier("format_4109")  # raises UnknownFormatError
-
-    Attributes:
-        value: The canonical local ID string (e.g. ``"geotiff"``).
-        label: Human-readable label.
-        category: Broad category (raster, vector, hybrid, tabular, abstract).
-        description: Short description.
-        parent: Immediate parent ``FormatIdentifier`` or ``None``.
+    Creating ``FormatIdentifier("GeoTIFF")`` multiple times returns the *same*
+    object. New labels are automatically registered and can be discovered via
+    :meth:`all`.
     """
 
-    _ALL: Dict[str, "FormatIdentifier"] = {}
-    _CHILDREN: Dict[str, List["FormatIdentifier"]] = {}
-    _LOADED: bool = False
+    # Module-level registry for singleton-like behaviour
+    _REGISTRY: Dict[str, "FormatIdentifier"] = {}
 
-    value: str
-    label: str
-    category: str
-    description: str
-    parent: Optional["FormatIdentifier"]
+    # -- forward declarations of canonical built-in instances (populated below) --
+    GIS: "FormatIdentifier"
+    RASTER: "FormatIdentifier"
+    VECTOR: "FormatIdentifier"
+    GEOTIFF: "FormatIdentifier"
+    COG: "FormatIdentifier"
+    DEM: "FormatIdentifier"
+    DSM: "FormatIdentifier"
+    DTM: "FormatIdentifier"
+    GRIB: "FormatIdentifier"
+    NETCDF: "FormatIdentifier"
+    SHAPEFILE: "FormatIdentifier"
+    GEOJSON: "FormatIdentifier"
+    GEOPACKAGE: "FormatIdentifier"
+    GEOPARQUET: "FormatIdentifier"
+    GML: "FormatIdentifier"
+    GPX: "FormatIdentifier"
+    KML: "FormatIdentifier"
+    WKT: "FormatIdentifier"
+    CSV: "FormatIdentifier"
 
-    # Instances are created by _Catalog.load() via object.__new__ +
-    # object.__setattr__.  __init__ must be a no-op so that calling
-    # FormatIdentifier("geotiff") (which triggers __new__ then __init__)
-    # does NOT overwrite the cached attributes.
-    def __init__(self, *args, **kwargs):  # type: ignore[no-redef]
-        pass
+    def __new__(
+        cls,
+        label: str,
+        description: Optional[str] = None,
+        children_labels: Optional[List[str]] = None,
+        is_abstract: bool = False,
+    ) -> "FormatIdentifier":
+        label = label.strip()
+        if not label:
+            raise ValueError("FormatIdentifier label must be non-empty")
 
-    @classmethod
-    def _ensure_loaded(cls) -> None:
-        if not cls._LOADED:
-            _Catalog.load()
+        # Prefer exact match first, then fall back to case-insensitive lookup
+        existing = FormatIdentifier._REGISTRY.get(label.lower())
+        if existing is not None:
+            return existing
 
-    @classmethod
-    def from_string(cls, raw: str) -> "FormatIdentifier":
-        cls._ensure_loaded()
-        ident = cls._ALL.get(raw)
-        if ident is None:
-            raise UnknownFormatError(
-                f"Unknown format identifier '{raw}'. Known: {sorted(cls._ALL.keys())}"
-            )
-        return ident
-
-    def __new__(cls, raw: str) -> "FormatIdentifier":
-        cls._ensure_loaded()
-        instance = cls._ALL.get(raw)
-        if instance is None:
-            raise UnknownFormatError(
-                f"Unknown format identifier '{raw}'. Known: {sorted(cls._ALL.keys())}"
-            )
+        instance = super().__new__(cls)
+        FormatIdentifier._REGISTRY[label.lower()] = instance
         return instance
-    
-    def __str__(self) -> str:
-        return self.value
 
-    def __repr__(self) -> str:
-        return f"FormatIdentifier({self.value!r} label={self.label!r})"
+    def __init__(
+        self,
+        label: str,
+        description: Optional[str] = None,
+        children_labels: Optional[List[str]] = None,
+        is_abstract: bool = False,
+    ) -> None:
+        # Avoid re-initialising an already-seen singleton.
+        if hasattr(self, "_label"):
+            return
+        self._label = label.strip()
+        self._description = description or ""
+        self._children_labels = list(map(str.lower, children_labels)) if children_labels else []
+        self._is_abstract = bool(is_abstract)
 
-    def __hash__(self) -> int:
-        return hash(self.value)
+    # ------------------------------------------------------------------
+    # Properties
+    # ------------------------------------------------------------------
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, FormatIdentifier):
-            return NotImplemented
-        return self.value == other.value
+    @property
+    def value(self) -> str:
+        """Human-readable label (backward-compatible alias)."""
+        return self._label
 
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, FormatIdentifier):
-            return NotImplemented
-        return self.value < other.value
+    @property
+    def label(self) -> str:
+        """Human-readable label."""
+        return self._label
+
+    @property
+    def description(self) -> str:
+        return self._description
 
     @property
     def is_abstract(self) -> bool:
-        return bool(self._CHILDREN.get(self.value))
+        return self._is_abstract
 
     @property
     def children(self) -> List["FormatIdentifier"]:
-        return list(self._CHILDREN.get(self.value, []))
+        """Immediate child formats."""
+        result: List[FormatIdentifier] = []
+        for child_label in self._children_labels:
+            child = FormatIdentifier._REGISTRY.get(child_label.lower())
+            if child is not None:
+                result.append(child)
+        return result
+
+    @property
+    def parent(self) -> Optional["FormatIdentifier"]:
+        return self.parents[0] if self.parents else None
+
+    @property
+    def parents(self) -> Optional[List["FormatIdentifier"]]:
+        result: List[FormatIdentifier] = []
+        for fi in FormatIdentifier._REGISTRY.values():
+            if self._label.lower() in fi._children_labels:
+                result.append(fi)
+        return result if result else None
 
     @property
     def leaves(self) -> List["FormatIdentifier"]:
+        """All non-abstract descendants."""
         result: List[FormatIdentifier] = []
         visited: Set[str] = set()
         stack = list(self.children)
         while stack:
             child = stack.pop()
-            if child.value in visited:
+            if child._label in visited:
                 continue
-            visited.add(child.value)
-            child_kids = self._CHILDREN.get(child.value, [])
-            if not child_kids:
+            visited.add(child._label)
+            child_kids = child.children
+            if not child.is_abstract:
                 result.append(child)
-            else:
+            if child_kids:
                 stack.extend(child_kids)
         return result
 
-    @property
-    def lineage(self) -> List["FormatIdentifier"]:
-        result = []
-        current = self.parent
-        while current is not None:
-            result.append(current)
-            current = current.parent
-        return result
+    # ------------------------------------------------------------------
+    # Dunder methods
+    # ------------------------------------------------------------------
+
+    def __str__(self) -> str:
+        return self._label
+
+    def __repr__(self) -> str:
+        return f"FormatIdentifier({self._label!r} label={self._label!r})"
+
+    def __hash__(self) -> int:
+        return hash(self._label)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, FormatIdentifier):
+            return False
+        return self._label == other._label
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, FormatIdentifier):
+            return NotImplemented
+        return self._label < other._label
+
+    # ------------------------------------------------------------------
+    # Class-level helpers
+    # ------------------------------------------------------------------
 
     @classmethod
-    def all_identifiers(cls) -> List["FormatIdentifier"]:
-        cls._ensure_loaded()
-        return list(cls._ALL.values())
+    def all(cls) -> List["FormatIdentifier"]:
+        """Return all registered format identifiers sorted by label."""
+        return sorted(FormatIdentifier._REGISTRY.values(), key=lambda fi: fi._label)
 
     @classmethod
-    def all_values(cls) -> List[str]:
-        cls._ensure_loaded()
-        return sorted(cls._ALL.keys())
-
-
-class _Catalog:
-    _loaded: bool = False
+    def get(cls, label: str) -> Optional["FormatIdentifier"]:
+        """Lookup a registered format by label (case-insensitive)."""
+        existing = FormatIdentifier._REGISTRY.get(label.lower())
+        return existing
 
     @classmethod
-    def load(cls, path: Optional[Path] = None) -> None:
-        if cls._loaded:
-            return
-        cls._loaded = True  # Prevent re-entry during _install_constants
-        FormatIdentifier._LOADED = True
-        if path is None:
-            path = Path(str(resources.files("format_validator") / "formats.json"))
-        with path.open("r", encoding="utf-8") as fh:
-            data = json.load(fh)
-        formats_data = data.get("formats", {})
-
-        for key, meta in formats_data.items():
-            fi = object.__new__(FormatIdentifier)
-            object.__setattr__(fi, "value", key)
-            object.__setattr__(fi, "label", meta.get("label", key))
-            object.__setattr__(fi, "category", meta.get("category", "unknown"))
-            object.__setattr__(fi, "description", meta.get("description", ""))
-            object.__setattr__(fi, "parent", None)
-            FormatIdentifier._ALL[key] = fi
-
-        for key, meta in formats_data.items():
-            parent_key = meta.get("parent")
-            if parent_key:
-                fi = FormatIdentifier._ALL[key]
-                parent_fi = FormatIdentifier._ALL.get(parent_key)
-                object.__setattr__(fi, "parent", parent_fi)
-                if parent_key not in FormatIdentifier._CHILDREN:
-                    FormatIdentifier._CHILDREN[parent_key] = []
-                FormatIdentifier._CHILDREN[parent_key].append(fi)
-
-        logger.debug("Loaded %d format identifiers", len(FormatIdentifier._ALL))
+    def clear_registry(cls) -> None:
+        """Remove *all* formats from the registry.  Useful for testing."""
+        FormatIdentifier._REGISTRY.clear()
 
 
-def _install_constants() -> None:
-    for key in sorted(FormatIdentifier._ALL.keys()):
-        attr = key.upper().replace("-", "_")
-        setattr(FormatIdentifier, attr, FormatIdentifier._ALL[key])
+# ------------------------------------------------------------------
+# Built-in canonical instances
+# ------------------------------------------------------------------
 
+FormatIdentifier.GIS = FormatIdentifier(
+    "Geographical Information System Data",
+    description="Geographical Information System (GIS) data encompasses various formats and types of data that represent geographic features and their attributes, enabling spatial analysis and visualization.",
+    children_labels=["Raster Format", "Vector Format"],
+    is_abstract=True,
+)
 
-_Catalog.load()
-_install_constants()
+FormatIdentifier.RASTER = FormatIdentifier(
+    "Raster Format",
+    description="Raster formats are used to represent spatial data in a grid of pixels or cells, where each pixel has a value representing information, such as color or elevation.",
+    children_labels=["GeoTIFF", "DEM", "DSM", "DTM", "GRIB", "NetCDF", "GeoPackage"],
+    is_abstract=True,
+)
+
+FormatIdentifier.VECTOR = FormatIdentifier(
+    "Vector Format",
+    description="Vector formats are used to represent spatial data using geometric shapes such as points, lines, and polygons, which are defined by coordinates.",
+    children_labels=["Shapefile", "GeoJSON", "GeoPackage", "GeoParquet", "GML", "GPX", "KML", "WKT"],
+    is_abstract=True,
+)
+
+FormatIdentifier.GEOTIFF = FormatIdentifier(
+    "GeoTIFF",
+    description="GeoTIFF is a public domain metadata standard which allows georeferencing information to be embedded within a TIFF file.",
+    children_labels=["COG"],
+    is_abstract=False,
+)
+
+FormatIdentifier.COG = FormatIdentifier(
+    "COG",
+    description="Cloud Optimized GeoTIFF (COG) is a regular GeoTIFF file that is organized in such a way that it can be efficiently streamed from HTTP-based web servers.",
+)
+
+FormatIdentifier.DEM = FormatIdentifier(
+    "DEM",
+    description="Digital Elevation Model (DEM) is a 3D representation of a terrain's surface created from terrain elevation data.",
+)
+
+FormatIdentifier.DSM = FormatIdentifier(
+    "DSM",
+    description="Digital Surface Model (DSM) represents the Earth's surface and includes all objects on it.",
+)
+
+FormatIdentifier.DTM = FormatIdentifier(
+    "DTM",
+    description="Digital Terrain Model (DTM) represents the bare ground surface without any objects like plants and buildings.",
+)
+
+FormatIdentifier.GRIB = FormatIdentifier(
+    "GRIB",
+    description="GRIB (GRIdded Binary or General Regularly-distributed Information in Binary form) is a concise data format commonly used in meteorology to store historical and forecast weather data.",
+)
+
+FormatIdentifier.NETCDF = FormatIdentifier(
+    "NetCDF",
+    description="NetCDF (Network Common Data Form) is a set of software libraries and machine-independent data formats that support the creation, access, and sharing of array-oriented scientific data.",
+)
+
+FormatIdentifier.SHAPEFILE = FormatIdentifier(
+    "Shapefile",
+    description="Shapefile is a popular geospatial vector data format for geographic information system (GIS) software.",
+)
+
+FormatIdentifier.GEOJSON = FormatIdentifier(
+    "GeoJSON",
+    description="GeoJSON is an open standard format designed for representing simple geographical features, along with their non-spatial attributes, based on JavaScript Object Notation (JSON).",
+)
+
+FormatIdentifier.GEOPACKAGE = FormatIdentifier(
+    "GeoPackage",
+    description="GeoPackage is an open, standards-based, platform-independent, portable, self-describing, compact format for transferring geospatial information.",
+)
+
+FormatIdentifier.GEOPARQUET = FormatIdentifier(
+    "GeoParquet",
+    description="GeoParquet is an open-source project that extends the Apache Parquet columnar storage format to support geospatial data types and operations.",
+)
+
+FormatIdentifier.GML = FormatIdentifier(
+    "GML",
+    description="Geography Markup Language (GML) is an XML grammar defined by the Open Geospatial Consortium (OGC) to express geographical features.",
+)
+
+FormatIdentifier.GPX = FormatIdentifier(
+    "GPX",
+    description="GPS Exchange Format (GPX) is an XML schema designed as a common GPS data format for software applications.",
+)
+
+FormatIdentifier.KML = FormatIdentifier(
+    "KML",
+    description="Keyhole Markup Language (KML) is an XML notation for expressing geographic annotation and visualization within Internet-based, two-dimensional maps and three-dimensional Earth browsers.",
+)
+
+FormatIdentifier.WKT = FormatIdentifier(
+    "WKT",
+    description="Well-Known Text (WKT) is a text markup language for representing vector geometry objects on a map.",
+)
+
+FormatIdentifier.CSV = FormatIdentifier(
+    "CSV",
+    description="Comma-Separated Values (CSV) is a simple file format used to store tabular data, such as a spreadsheet or database.",
+)

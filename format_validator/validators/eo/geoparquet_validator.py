@@ -14,8 +14,7 @@ from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
 
-
-@registry.register(FormatIdentifier("geoparquet"))
+@registry.register(FormatIdentifier.GEOPARQUET)
 class GeoParquetValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

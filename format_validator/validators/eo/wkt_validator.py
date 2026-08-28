@@ -9,7 +9,7 @@ from .vector_file_validator import VectorFileValidator
 from .eo_file_format_validator import EOValidationRequest
 
 
-@registry.register(FormatIdentifier("wkt"))
+@registry.register(FormatIdentifier.WKT)
 class WKTValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

@@ -5,7 +5,7 @@ from format_validator.model import FormatIdentifier
 from .raster_file_validator import RasterFileValidator
 
 
-@registry.register(FormatIdentifier("dsm"))
+@registry.register(FormatIdentifier.DSM)
 class DSMValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

@@ -19,7 +19,7 @@ GPX_NAMESPACES = {
 # the required root element name that identifies a GPX document
 GPX_ROOT_ELEMENT = 'gpx'
 
-@registry.register(FormatIdentifier("gpx"))
+@registry.register(FormatIdentifier.GPX)
 class GPXValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

@@ -16,7 +16,7 @@ GML_NAMESPACES = {
 }
 
 
-@registry.register(FormatIdentifier("gml"))
+@registry.register(FormatIdentifier.GML)
 class GMLValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:
