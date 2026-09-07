@@ -5,20 +5,9 @@ from shapely import GeometryType
 import fiona
 from fiona.errors import DriverError
 
-from .eo_file_format_validator import EOFileFormatValidator, EOMetadata, eo_metadata
+from .eo_file_format_validator import EOFileFormatValidator, EOMetadata, eo_metadata, geometry_type_from_string
 from format_validator.model import ValidationResult, ValidationRequest, Error, Warning, Info, Cause, ValidationMode
 
-
-# Mapping from GeoJSON geometry type strings to shapely GeometryType enum
-GEOJSON_TO_GEOMETRY_TYPE = {
-    "Point": GeometryType.POINT,
-    "LineString": GeometryType.LINESTRING,
-    "Polygon": GeometryType.POLYGON,
-    "MultiPoint": GeometryType.MULTIPOINT,
-    "MultiLineString": GeometryType.MULTILINESTRING,
-    "MultiPolygon": GeometryType.MULTIPOLYGON,
-    "GeometryCollection": GeometryType.GEOMETRYCOLLECTION,
-}
 
 # Compatible geometry types: single-part and multi-part types are considered compatible
 COMPATIBLE_GEOMETRY_TYPES = {
@@ -29,31 +18,6 @@ COMPATIBLE_GEOMETRY_TYPES = {
     GeometryType.POLYGON: {GeometryType.POLYGON, GeometryType.MULTIPOLYGON},
     GeometryType.MULTIPOLYGON: {GeometryType.POLYGON, GeometryType.MULTIPOLYGON},
 }
-
-
-def geometry_type_from_string(type_string: str) -> Optional[GeometryType]:
-    """Convert a GeoJSON geometry type string to a shapely GeometryType enum.
-    
-    Args:
-        type_string: The geometry type string from GeoJSON (e.g., "Polygon", "Point")
-        
-    Returns:
-        The corresponding GeometryType enum value, or None if not recognized
-    """
-    if type_string is None:
-        return None
-    # Handle both regular and lowercase variants
-    normalized = type_string.capitalize() if type_string.islower() else type_string
-    # Special handling for multi-part types
-    if type_string.lower() == "multilinestring":
-        return GeometryType.MULTILINESTRING
-    if type_string.lower() == "multipoint":
-        return GeometryType.MULTIPOINT
-    if type_string.lower() == "multipolygon":
-        return GeometryType.MULTIPOLYGON
-    if type_string.lower() == "geometrycollection":
-        return GeometryType.GEOMETRYCOLLECTION
-    return GEOJSON_TO_GEOMETRY_TYPE.get(type_string)
 
 
 class VectorFileValidator(EOFileFormatValidator, ABC):

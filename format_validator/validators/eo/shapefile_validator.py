@@ -105,7 +105,7 @@ class ShapefileValidator(VectorFileValidator):
         try:
             with fiona.open(str(request.actual_file.path)) as ds:
                 geom_type_str = ds.schema.get('geometry')
-                geom_type = geometry_type_from_string(geom_type_str)
+                geom_type = geometry_type_from_string(geom_type_str) if geom_type_str else None
                 return [geom_type] if geom_type is not None else []
         except Exception:
             # Return empty list on error - let assert_geometry_type handle it
