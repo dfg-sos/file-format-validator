@@ -1,4 +1,4 @@
-# EO Format Validator
+# File Format Validator
 This package provides a validation tool for file formats to examine a file according to a specified format. It provides ontology-agnostic format identifiers to uniquely reference different file formats. For existing ontologies a mapping to the internal formats can be supplied as a json file. For a supported format, the [Format Validator](format_validator/validator.py) can decide for a certain input file whether it adheres to that format specification. Depending on the selected mode, the file extension is validated, the file is opened, and additional metadata is validated. 
 
 ## Validation Modes
