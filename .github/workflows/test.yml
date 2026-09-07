@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run tests
+        shell: bash
         run: |
           python -m venv venv
           source venv/bin/activate
