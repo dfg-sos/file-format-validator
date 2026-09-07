@@ -5,7 +5,6 @@ from pyproj import CRS
 
 from ...model import ValidationRequest,ValidationResult,Error,Warning,Cause,FormatIdentifier
 from .raster_file_validator import RasterFileValidator
-from .eo_file_format_validator import EOValidationRequest
 from ...registry import registry
 
 
@@ -56,7 +55,7 @@ class NetCDFValidator(RasterFileValidator):
             )
 
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
+    def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         """
            Validate that the NetCDF file has a valid Coordinate Reference System.
 

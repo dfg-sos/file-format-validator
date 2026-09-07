@@ -8,37 +8,38 @@ from ...model import FileFormatValidator, ValidationRequest, ValidationMode, Val
 
 
 @dataclass(frozen=True)
-class EOValidationRequest(ValidationRequest):
+class EOMetadata:
     crs: Optional[CRS] = None
     geometry_type: Optional[GeometryType] = None
 
-    def enabled_modes(self) -> list[ValidationMode]:
-        return super().enabled_modes() + [ValidationMode.CRS]
+
+def eo_metadata(request: ValidationRequest) -> EOMetadata:
+    return request.metadata if isinstance(request.metadata, EOMetadata) else EOMetadata()
 
 class EOFileFormatValidator(FileFormatValidator):
-    """EO-specific validator that enables SRS validation mode and expects
-    an `EOValidationRequest` for SRS-related checks.
+    """EO-specific validator that enables SRS validation and expects
+    an `EOMetadata` sidecar on the request's `metadata` field for SRS-related checks.
     """
 
     @abstractmethod
-    def get_crs(self,request: EOValidationRequest) -> Optional[CRS]:
+    def get_crs(self,request: ValidationRequest) -> Optional[CRS]:
         pass
 
     def validate(self, request: ValidationRequest) -> ValidationResult:
         validation_result = super().validate(request)
-        if  not isinstance(request, EOValidationRequest):
+        if  not isinstance(request.metadata, EOMetadata):
             return validation_result
         match request.mode:
-            case ValidationMode.CRS | ValidationMode.FULL:
+            case ValidationMode.FULL:
                 validation_result += self.assert_crs(request)
-            case _: 
+            case _:
                 pass
         return validation_result
 
-    def assert_crs(self, request:EOValidationRequest) -> ValidationResult:
+    def assert_crs(self, request:ValidationRequest) -> ValidationResult:
         actual_srs = self.get_crs(request)
-        expected_srs = request.crs
-        if expected_srs is None: 
+        expected_srs = eo_metadata(request).crs
+        if expected_srs is None:
             return ValidationResult.success(request, Info(message="No expected CRS provided, skipping CRS validation."))
         if actual_srs is None:
             return ValidationResult.uncertain(request,Warning(message="File has no CRS defined, cannot validate against expected CRS.", cause=Cause.MISSING_METADATA))

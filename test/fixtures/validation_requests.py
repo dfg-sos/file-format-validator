@@ -1,8 +1,7 @@
 """Parametrized validation request fixtures for EO Format Validator tests."""
 import pytest
 
-from format_validator.model import ValidationMode, FormatIdentifier
-from format_validator.validators import EOValidationRequest
+from format_validator.model import ValidationMode, FormatIdentifier, ValidationRequest
 
 
 @pytest.fixture(
@@ -55,8 +54,8 @@ def validator_file_pair(request):
 
 
 @pytest.fixture(
-    params=[ValidationMode.BASIC, ValidationMode.STRUCTURAL, ValidationMode.FULL, ValidationMode.CRS],
-    ids=["basic", "structural", "full", "crs"]
+    params=[ValidationMode.BASIC, ValidationMode.STRUCTURAL, ValidationMode.FULL],
+    ids=["basic", "structural", "full"]
 )
 def validation_mode(request):
     """Parametrized fixture for ValidationMode."""
@@ -66,7 +65,7 @@ def validation_mode(request):
 @pytest.fixture
 def validation_request_with_mode(validator_file_pair, validation_mode):
     """
-    Parametrized fixture returning EOValidationRequest for all validator/file pairs
+    Parametrized fixture returning ValidationRequest for all validator/file pairs
     with all validation modes.
     
     Usage:
@@ -76,9 +75,9 @@ def validation_request_with_mode(validator_file_pair, validation_mode):
     """
     format_id, file_input, validator = validator_file_pair
     mode = validation_mode
-    request = EOValidationRequest(
+    request = ValidationRequest(
         format_identifier=format_id,
         actual_file=file_input,
-        mode=mode
+        mode=mode,
     )
     return (format_id, file_input, validator, mode, request)

@@ -7,7 +7,6 @@ from .format_identifier import FormatIdentifier
 class ValidationMode(Enum):
     BASIC = "basic"             # file extension only
     STRUCTURAL = "structural"   # file extension + file(s) exist
-    CRS = "crs"                 # coordinate reference system only
     FULL = "full"               # file extension, file(s) exist, crs, open file, (geometry type)
 
 @dataclass(frozen=True)
@@ -15,6 +14,7 @@ class ValidationRequest:
     format_identifier: FormatIdentifier
     actual_file: FileInput
     mode: ValidationMode
+    metadata: Optional[object] = None
 
     def __post_init__(self):
         assert self.mode in self.enabled_modes(), f"Validation mode {self.mode} is not enabled for this request type."

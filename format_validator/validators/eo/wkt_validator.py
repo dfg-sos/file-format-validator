@@ -6,7 +6,6 @@ from shapely import wkt, GeometryType
 from ...model import ValidationResult,ValidationRequest,Error,Cause,Warning,FormatIdentifier
 from ...registry import registry
 from .vector_file_validator import VectorFileValidator
-from .eo_file_format_validator import EOValidationRequest
 
 
 @registry.register(FormatIdentifier.WKT)
@@ -70,7 +69,7 @@ class WKTValidator(VectorFileValidator):
                 Error(message="Invalid WKT geometry.", cause=Cause.STRUCTURAL_MALFORMED)
             )
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
+    def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         try:
             text = request.actual_file.path.read_text(encoding="utf-8").strip()
             
@@ -111,7 +110,7 @@ class WKTValidator(VectorFileValidator):
         except Exception:
             return None
 
-    def get_geometry_types(self, request: EOValidationRequest) -> List[GeometryType]:
+    def get_geometry_types(self, request: ValidationRequest) -> List[GeometryType]:
         """Get all geometry types found in the WKT file.
         
         Handles multi-line WKT files and returns all geometry types present.

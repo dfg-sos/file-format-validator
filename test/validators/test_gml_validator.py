@@ -4,12 +4,8 @@ import pytest
 from pathlib import Path
 
 from format_validator.validators.eo.gml_validator import GMLValidator
-from format_validator import ValidationMode, FileInput
+from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, EOMetadata, ValidationResult, Cause, ValidationStatus
 from shapely import GeometryType
-from format_validator.model.format_identifier import FormatIdentifier
-from format_validator.validators import EOValidationRequest
-from format_validator.model.validation_result import ValidationStatus
-from format_validator.model import ValidationResult, Error, Cause
 from test.fixtures import gml_input, geojson_input, gpx_input, wgs84_crs, mercator_crs, nonexistent_input
 
 
@@ -43,29 +39,29 @@ class TestGMLValidatorAssertExtension:
 
     def test_assert_extension_valid(self, gml_validator, gml_input):
         """Test extension validation passes for .gml file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
-        result = gml_validator.assert_extension(request)
+        result: ValidationResult = gml_validator.assert_extension(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_extension_failure(self, gml_validator, geojson_input, gpx_input):
         """Test extension validation fails for non-.gml files."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=geojson_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
         result = gml_validator.assert_extension(request)
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gpx_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
         result = gml_validator.assert_extension(request)
         assert result.status == ValidationStatus.FAILURE
@@ -79,20 +75,20 @@ class TestGMLValidatorAssertExists:
 
     def test_assert_exists_passes(self, gml_validator, gml_input):
         """Test file existence passes for existing file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gml_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_exists_fails_for_nonexistent(self, gml_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gml_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -106,20 +102,20 @@ class TestGMLValidatorAssertCanOpen:
 
     def test_assert_can_open_passes(self, gml_validator, gml_input):
         """Test opening a real GML file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.FULL
+            mode=ValidationMode.FULL,
         )
         result = gml_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_can_open_failure(self, gml_validator, geojson_input):
         """Test that assert_can_open fails for GeoJSON file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL
+            mode=ValidationMode.FULL,
         )
         result = gml_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -132,20 +128,20 @@ class TestGMLValidatorGetCRS:
 
     def test_get_crs(self, gml_validator, gml_input):
         """Test CRS extraction returns a CRS."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.CRS
+            mode=ValidationMode.FULL,
         )
         crs = gml_validator.get_crs(request)
         assert crs is not None
 
     def test_get_crs_none(self, gml_validator, nonexistent_input):
         """Test CRS extraction returns None for non-GML file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.CRS
+            mode=ValidationMode.FULL,
         )
         crs = gml_validator.get_crs(request)
         assert crs is None
@@ -158,22 +154,22 @@ class TestGMLValidatorAssertCRS:
 
     def test_assert_crs_passes(self, gml_validator, gml_input,epsg_25832_crs):
         """Test CRS validation passes with matching expected CRS."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.CRS,
-            crs=epsg_25832_crs
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=epsg_25832_crs),
         )
         result = gml_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_crs_fails(self, gml_validator, gml_input,wgs84_crs):
         """Test CRS validation fails with mismatching expected CRS."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.CRS,
-            crs=wgs84_crs
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs),
         )
         result = gml_validator.assert_crs(request)
         assert result.status == ValidationStatus.FAILURE
@@ -181,21 +177,21 @@ class TestGMLValidatorAssertCRS:
 
     def test_assert_crs_no_expected(self, gml_validator, gml_input):
         """Test CRS validation skips when no expected CRS is provided."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.CRS
+            mode=ValidationMode.FULL,
         )
         result = gml_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_crs_no_actual(self, gml_validator, nonexistent_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.CRS,
-            crs=wgs84_crs
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs),
         )
         result = gml_validator.assert_crs(request)
         assert result.status == ValidationStatus.UNCERTAIN
@@ -209,20 +205,20 @@ class TestGMLValidatorBasicMode:
 
     def test_validate_basic_passes(self, gml_validator, gml_input):
         """Test BASIC mode passes for valid .gml file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_basic_failure(self, gml_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=geojson_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -236,20 +232,20 @@ class TestGMLValidatorStructuralMode:
 
     def test_validate_structural_positive(self, gml_validator, gml_input):
         """Test STRUCTURAL mode passes for valid existing file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_structural_negative_wrong_extension(self, gml_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -257,10 +253,10 @@ class TestGMLValidatorStructuralMode:
 
     def test_validate_structural_negative_nonexistent(self, gml_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -268,10 +264,10 @@ class TestGMLValidatorStructuralMode:
         assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
         
         valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.gml'))
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -285,24 +281,22 @@ class TestGMLValidatorFullMode:
 
     def test_validate_full_positive(self, gml_validator, gml_input,epsg_25832_crs):
         """Test FULL mode passes for valid GML file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
             mode=ValidationMode.FULL,
-            crs=epsg_25832_crs,
-            geometry_type=GeometryType.LINESTRING
+            metadata=EOMetadata(crs=epsg_25832_crs, geometry_type=GeometryType.LINESTRING),
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_full_negative_wrong_format(self, gml_validator, geojson_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=geojson_input,
             mode=ValidationMode.FULL,
-            crs=wgs84_crs,
-            geometry_type=GeometryType.POLYGON
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -310,75 +304,24 @@ class TestGMLValidatorFullMode:
 
     def test_validate_full_negative_wrong_geometry_type(self, gml_validator, gml_input, wgs84_crs):
         """Test FULL mode fails for wrong geometry type."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
             mode=ValidationMode.FULL,
-            crs=wgs84_crs,
-            geometry_type=GeometryType.POINT
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
 
     def test_validate_full_negative_nonexistent(self, gml_validator, nonexistent_input, wgs84_crs):
         """Test FULL mode fails for non-existent file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
             mode=ValidationMode.FULL,
-            crs=wgs84_crs,
-            geometry_type=GeometryType.POLYGON
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
 
-
-# ========== Test validate() with CRS Mode ==========
-
-class TestGMLValidatorCRSMode:
-    """Test validate() method with CRS mode."""
-
-    def test_validate_crs_no_expected(self, gml_validator, gml_input):
-        """Test CRS mode passes when no expected CRS is provided."""
-        request = EOValidationRequest(
-            format_identifier=FormatIdentifier.GML,
-            actual_file=gml_input,
-            mode=ValidationMode.CRS
-        )
-        result = gml_validator.validate(request)
-        assert result.status == ValidationStatus.SUCCESS
-
-    def test_validate_crs_positive(self, gml_validator, gml_input, epsg_25832_crs):
-        """Test CRS mode passes with matching expected CRS."""
-        request = EOValidationRequest(
-            format_identifier=FormatIdentifier.GML,
-            actual_file=gml_input,
-            mode=ValidationMode.CRS,
-            crs=epsg_25832_crs
-        )
-        result = gml_validator.validate(request)
-        assert result.status == ValidationStatus.SUCCESS
-
-    def test_validate_crs_negative_wrong_crs(self, gml_validator, gml_input, mercator_crs):
-        """Test CRS mode fails with mismatching expected CRS."""
-        request = EOValidationRequest(
-            format_identifier=FormatIdentifier.GML,
-            actual_file=gml_input,
-            mode=ValidationMode.CRS,
-            crs=mercator_crs
-        )
-        result = gml_validator.validate(request)
-        assert result.status == ValidationStatus.FAILURE
-        assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
-
-    def test_validate_crs_negative_wrong_format(self, gml_validator, nonexistent_input, wgs84_crs):
-        """Test CRS mode fails for wrong file format."""
-        request = EOValidationRequest(
-            format_identifier=FormatIdentifier.GML,
-            actual_file=nonexistent_input,
-            mode=ValidationMode.CRS,
-            crs=wgs84_crs
-        )
-        result = gml_validator.validate(request)
-        assert result.status == ValidationStatus.UNCERTAIN

@@ -4,7 +4,7 @@ from pyproj import CRS
 import rasterio
 from rasterio.errors import RasterioIOError
 
-from .eo_file_format_validator import EOFileFormatValidator,EOValidationRequest
+from .eo_file_format_validator import EOFileFormatValidator
 from format_validator.model import ValidationResult,ValidationRequest,Error,Warning,Cause
 
 
@@ -32,7 +32,7 @@ class RasterFileValidator(EOFileFormatValidator, ABC):
                 Warning(message=f"Unknown exception occurred while opening '{request.actual_file.path}' with RasterIO:\n{exc.__class__}:{str(exc)}", cause=Cause.FILE_OPEN_ERROR)
             )
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
+    def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         try:
             with rasterio.open(request.actual_file.path) as rasterGISFile:
                 srs = rasterGISFile.crs

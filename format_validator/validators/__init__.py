@@ -1,6 +1,6 @@
 from .eo import (
     EOFileFormatValidator,
-    EOValidationRequest,
+    EOMetadata,
     RasterFileValidator,
     VectorFileValidator,
 )
@@ -9,5 +9,5 @@ __all__ = [
     "VectorFileValidator",
     "RasterFileValidator",
     "EOFileFormatValidator",
-    "EOValidationRequest",
+    "EOMetadata",
 ]

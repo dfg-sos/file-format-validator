@@ -6,7 +6,6 @@ import fiona
 from shapely import GeometryType
 
 from format_validator.model import ValidationRequest, ValidationResult,Error,Cause,Warning,FormatIdentifier
-from .eo_file_format_validator import EOValidationRequest
 from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
@@ -115,7 +114,7 @@ class GPXValidator(VectorFileValidator):
             return namespace, local_name
         return None, tag
 
-    def get_geometry_types(self, request: EOValidationRequest) -> List[GeometryType]:
+    def get_geometry_types(self, request: ValidationRequest) -> List[GeometryType]:
         """Get all geometry types found in the GPX file.
         
         Parses GPX file and detects geometry types based on feature types:

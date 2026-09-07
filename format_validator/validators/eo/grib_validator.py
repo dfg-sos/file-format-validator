@@ -2,7 +2,6 @@ from typing import List,Optional
 import xarray as xr
 from pyproj import CRS
 
-from .eo_file_format_validator import EOValidationRequest
 from ...model import ValidationRequest,ValidationResult,Error,Cause,FormatIdentifier
 from .raster_file_validator import RasterFileValidator
 from ...registry import registry
@@ -25,7 +24,7 @@ class GRIBValidator(RasterFileValidator):
                 Error(message=f"Could not open GRIB file with cfgrib (xarray):\n{exc}", cause=Cause.FILE_OPEN_ERROR)
             )
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
+    def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         """
         If xarray/cfgrib can open the file, infer CRS as EPSG from shapeOfTheEarth parameter. Extend mapping for further codes.
         """

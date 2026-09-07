@@ -7,7 +7,6 @@ from pyproj import CRS
 from shapely import GeometryType
 
 from ...model import ValidationRequest, ValidationResult,Error,Cause,Warning,Cause,Info,FormatIdentifier
-from .eo_file_format_validator import EOValidationRequest
 from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
@@ -47,7 +46,7 @@ class KMLValidator(VectorFileValidator):
             )
         return ValidationResult.success(request)
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
+    def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         """Return EPSG:4326 if the file is a valid KML document."""
         try:
             tree = ET.parse(str(request.actual_file.path))
@@ -63,7 +62,7 @@ class KMLValidator(VectorFileValidator):
             
         return None
 
-    def get_geometry_types(self, request: EOValidationRequest) -> List[GeometryType]:
+    def get_geometry_types(self, request: ValidationRequest) -> List[GeometryType]:
         """Get all geometry types found in the KML file.
         
         Parses KML file and samples up to 200 Placemarks to detect geometry types.

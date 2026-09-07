@@ -23,7 +23,7 @@ from .model import (
 
 from .validators import (
     EOFileFormatValidator,
-    EOValidationRequest,
+    EOMetadata,
     VectorFileValidator,
     RasterFileValidator,
 )
@@ -45,7 +45,7 @@ __all__ = [
     "ValidationResponseHandler",
     "FormatValidator",
     "EOFileFormatValidator",
-    "EOValidationRequest",
+    "EOMetadata",
     "VectorFileValidator",
     "RasterFileValidator",
     "registry",

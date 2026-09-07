@@ -5,7 +5,7 @@ from shapely import GeometryType
 import fiona
 from fiona.errors import DriverError
 
-from .eo_file_format_validator import EOFileFormatValidator, EOValidationRequest
+from .eo_file_format_validator import EOFileFormatValidator, EOMetadata, eo_metadata
 from format_validator.model import ValidationResult, ValidationRequest, Error, Warning, Info, Cause, ValidationMode
 
 
@@ -57,7 +57,7 @@ def geometry_type_from_string(type_string: str) -> Optional[GeometryType]:
 
 
 class VectorFileValidator(EOFileFormatValidator, ABC):
-    def get_geometry_types(self, request: EOValidationRequest) -> List[GeometryType]:
+    def get_geometry_types(self, request: ValidationRequest) -> List[GeometryType]:
         """Get all geometry types found in the file using Fiona.
         
         This default implementation works for any vector format supported by Fiona.
@@ -103,7 +103,7 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
                 Warning(message=f"Unknown exception occurred while opening '{request.actual_file.path}' with Fiona:\n{exc.__class__}:{str(exc)}", cause=Cause.FILE_OPEN_ERROR)
             )
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
+    def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         try:
             with fiona.open(request.actual_file.path) as fiona_collection:
                 crs = fiona_collection.crs
@@ -123,7 +123,7 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
         except Exception as e:
             return None
 
-    def assert_geometry_type(self, request: EOValidationRequest) -> ValidationResult:
+    def assert_geometry_type(self, request: ValidationRequest) -> ValidationResult:
         """Assert that the file contains the expected geometry type.
         
         This method uses get_geometry_types() to retrieve all geometry types from the file
@@ -143,7 +143,7 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
         Returns:
             ValidationResult with appropriate status and messages
         """
-        expected_geometry_type = request.geometry_type
+        expected_geometry_type = eo_metadata(request).geometry_type
         if expected_geometry_type is None:
             return ValidationResult.success(
                 request,
@@ -187,7 +187,7 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
 
     def validate(self, request: ValidationRequest) -> ValidationResult:
         result = super().validate(request)
-        if not isinstance(request, EOValidationRequest):
+        if not isinstance(request.metadata, EOMetadata):
             return result
         match request.mode:
             case ValidationMode.FULL:

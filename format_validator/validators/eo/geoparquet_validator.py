@@ -8,7 +8,6 @@ import json
 from pyproj import CRS
 from shapely import GeometryType
 
-from .eo_file_format_validator import EOValidationRequest
 from ...model import ValidationResult,ValidationRequest, Error,Warning,Cause, FormatIdentifier
 from .vector_file_validator import VectorFileValidator
 from ...registry import registry
@@ -33,7 +32,7 @@ class GeoParquetValidator(VectorFileValidator):
         except Exception as exc_parquet:
             return ValidationResult.failure(request, Error(message=f"Could not open Parquet file with pyarrow:\n{exc_parquet}", cause=Cause.FILE_OPEN_ERROR))
 
-    def get_crs(self, request: EOValidationRequest) -> Optional[CRS]:
+    def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         """Find CRS candidate(s) in the GeoParquet file and compare them to the expected one."""
         # Try to read GeoParquet metadata via pyarrow.parquet to avoid loading data with geopandas
         try:
@@ -85,7 +84,7 @@ class GeoParquetValidator(VectorFileValidator):
         except Exception:
             return None
 
-    def get_geometry_types(self, request: EOValidationRequest) -> List[GeometryType]:
+    def get_geometry_types(self, request: ValidationRequest) -> List[GeometryType]:
         """Get all geometry types found in the GeoParquet file.
         
         Reads geometry type information from GeoParquet metadata.

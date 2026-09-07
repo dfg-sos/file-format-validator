@@ -3,12 +3,8 @@ import pytest
 from pathlib import Path
 
 from format_validator.validators.eo.gpx_validator import GPXValidator
-from format_validator import ValidationMode, FileInput
+from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, EOMetadata, ValidationResult, Cause, ValidationStatus
 from shapely import GeometryType
-from format_validator.model.format_identifier import FormatIdentifier
-from format_validator.validators import EOValidationRequest
-from format_validator.model.validation_result import ValidationStatus
-from format_validator.model import ValidationResult, Error, Cause
 from test.fixtures import gpx_input, geojson_input, kml_input, wgs84_crs, mercator_crs, nonexistent_input
 
 
@@ -38,29 +34,29 @@ class TestGPXValidatorAssertExtension:
 
     def test_assert_extension_valid(self, gpx_validator, gpx_input):
         """Test extension validation passes for .gpx file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
-        result = gpx_validator.assert_extension(request)
+        result: ValidationResult = gpx_validator.assert_extension(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_extension_failure(self, gpx_validator, geojson_input, kml_input):
         """Test extension validation fails for non-.gpx files."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=geojson_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
         result = gpx_validator.assert_extension(request)
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=kml_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
         result = gpx_validator.assert_extension(request)
         assert result.status == ValidationStatus.FAILURE
@@ -74,20 +70,20 @@ class TestGPXValidatorAssertExists:
 
     def test_assert_exists_passes(self, gpx_validator, gpx_input):
         """Test file existence passes for existing file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gpx_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_exists_fails_for_nonexistent(self, gpx_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gpx_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -101,20 +97,20 @@ class TestGPXValidatorAssertCanOpen:
 
     def test_assert_can_open_passes(self, gpx_validator, gpx_input):
         """Test opening a real GPX file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.FULL
+            mode=ValidationMode.FULL,
         )
         result = gpx_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_can_open_failure(self, gpx_validator, geojson_input):
         """Test that assert_can_open fails for GeoJSON file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL
+            mode=ValidationMode.FULL,
         )
         result = gpx_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -127,11 +123,11 @@ class TestGPXValidatorGetCRS:
 
     def test_get_crs(self, gpx_validator, gpx_input, wgs84_crs):
         """Test CRS extraction returns WGS84 CRS (GPX default)."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.CRS,
-            crs=wgs84_crs
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = gpx_validator.get_crs(request)
         assert crs is not None
@@ -139,10 +135,10 @@ class TestGPXValidatorGetCRS:
 
     def test_get_crs_none(self, gpx_validator, nonexistent_input):
         """Test CRS extraction returns None for non-GPX file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.CRS
+            mode=ValidationMode.FULL,
         )
         crs = gpx_validator.get_crs(request)
         assert crs is None
@@ -155,22 +151,22 @@ class TestGPXValidatorAssertCRS:
 
     def test_assert_crs_passes(self, gpx_validator, gpx_input, wgs84_crs):
         """Test CRS validation passes with matching expected CRS."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.CRS,
-            crs=wgs84_crs
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs),
         )
         result = gpx_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_crs_fails(self, gpx_validator, gpx_input, mercator_crs):
         """Test CRS validation fails with mismatching expected CRS."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.CRS,
-            crs=mercator_crs
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=mercator_crs),
         )
         result = gpx_validator.assert_crs(request)
         assert result.status == ValidationStatus.FAILURE
@@ -178,21 +174,21 @@ class TestGPXValidatorAssertCRS:
 
     def test_assert_crs_no_expected(self, gpx_validator, gpx_input):
         """Test CRS validation skips when no expected CRS is provided."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.CRS
+            mode=ValidationMode.FULL,
         )
         result = gpx_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_assert_crs_no_actual(self, gpx_validator, nonexistent_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.CRS,
-            crs=wgs84_crs
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs),
         )
         result = gpx_validator.assert_crs(request)
         assert result.status == ValidationStatus.UNCERTAIN
@@ -206,20 +202,20 @@ class TestGPXValidatorBasicMode:
 
     def test_validate_basic_passes(self, gpx_validator, gpx_input):
         """Test BASIC mode passes for valid .gpx file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_basic_failure(self, gpx_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=geojson_input,
-            mode=ValidationMode.BASIC
+            mode=ValidationMode.BASIC,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -233,20 +229,20 @@ class TestGPXValidatorStructuralMode:
 
     def test_validate_structural_positive(self, gpx_validator, gpx_input):
         """Test STRUCTURAL mode passes for valid existing file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_structural_negative_wrong_extension(self, gpx_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -254,10 +250,10 @@ class TestGPXValidatorStructuralMode:
 
     def test_validate_structural_negative_nonexistent(self, gpx_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -265,10 +261,10 @@ class TestGPXValidatorStructuralMode:
         assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
         
         valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.gpx'))
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL
+            mode=ValidationMode.STRUCTURAL,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -282,24 +278,22 @@ class TestGPXValidatorFullMode:
 
     def test_validate_full_positive(self, gpx_validator, gpx_input, wgs84_crs):
         """Test FULL mode passes for valid GPX file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
             mode=ValidationMode.FULL,
-            crs=wgs84_crs,
-            geometry_type=GeometryType.LINESTRING
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.LINESTRING),
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_full_negative_wrong_format(self, gpx_validator, geojson_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=geojson_input,
             mode=ValidationMode.FULL,
-            crs=wgs84_crs,
-            geometry_type=GeometryType.POLYGON
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -307,69 +301,13 @@ class TestGPXValidatorFullMode:
 
     def test_validate_full_negative_nonexistent(self, gpx_validator, nonexistent_input, wgs84_crs):
         """Test FULL mode fails for non-existent file."""
-        request = EOValidationRequest(
+        request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
             mode=ValidationMode.FULL,
-            crs=wgs84_crs,
-            geometry_type=GeometryType.POLYGON
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
 
-
-# ========== Test validate() with CRS Mode ==========
-
-class TestGPXValidatorCRSMode:
-    """Test validate() method with CRS mode."""
-
-    def test_validate_crs_no_expected(self, gpx_validator, gpx_input):
-        """Test CRS mode passes when no expected CRS is provided."""
-        request = EOValidationRequest(
-            format_identifier=FormatIdentifier.GPX,
-            actual_file=gpx_input,
-            mode=ValidationMode.CRS
-        )
-        result = gpx_validator.validate(request)
-        assert result.status == ValidationStatus.SUCCESS
-
-    def test_validate_crs_positive(self, gpx_validator, gpx_input, wgs84_crs):
-        """Test CRS mode passes with matching expected CRS."""
-        request = EOValidationRequest(
-            format_identifier=FormatIdentifier.GPX,
-            actual_file=gpx_input,
-            mode=ValidationMode.CRS,
-            crs=wgs84_crs
-        )
-        result = gpx_validator.validate(request)
-        assert result.status == ValidationStatus.SUCCESS
-
-    def test_validate_crs_negative_wrong_crs(self, gpx_validator, gpx_input, mercator_crs):
-        """Test CRS mode fails with mismatching expected CRS."""
-        request = EOValidationRequest(
-            format_identifier=FormatIdentifier.GPX,
-            actual_file=gpx_input,
-            mode=ValidationMode.CRS,
-            crs=mercator_crs
-        )
-        result = gpx_validator.validate(request)
-        assert result.status == ValidationStatus.FAILURE
-        assert any(err.cause == Cause.METADATA_MISMATCH for err in result.errors())
-
-    def test_validate_crs_negative_wrong_format(self, gpx_validator, geojson_input, wgs84_crs):
-        """Test CRS mode with compatible CRS from wrong format.
-        
-        Note: GeoJSON files can be opened by Fiona and have CRS information.
-        Since the GeoJSON file has EPSG:4326 which matches wgs84_crs, validation passes.
-        This is expected behavior - the validator validates CRS content, not file format.
-        """
-        request = EOValidationRequest(
-            format_identifier=FormatIdentifier.GPX,
-            actual_file=geojson_input,
-            mode=ValidationMode.CRS,
-            crs=wgs84_crs
-        )
-        result = gpx_validator.validate(request)
-        # GeoJSON file has EPSG:4326 which matches expected CRS
-        assert result.status == ValidationStatus.SUCCESS
