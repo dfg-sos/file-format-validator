@@ -19,11 +19,14 @@ GEOMETRY_TYPE_BY_NAME = {
 }
 
 
-def geometry_type_from_string(type_string: str) -> Optional[GeometryType]:
+def geometry_type_from_string(type_string: str) -> GeometryType:
     """Convert a geometry type name (e.g. GeoJSON's "Polygon") to a shapely GeometryType enum.
     Callers are responsible for not passing `None`/empty strings.
     """
-    return GEOMETRY_TYPE_BY_NAME.get(type_string.lower())
+    result = GEOMETRY_TYPE_BY_NAME.get(type_string.lower())
+    if result is None:
+        raise ValueError(f"Unknown geometry type: {type_string}")
+    return result
 
 
 @dataclass(frozen=True)
