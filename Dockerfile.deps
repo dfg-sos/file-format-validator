@@ -1,4 +1,0 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-small-latest
-RUN apt-get update && apt-get install -y python3-venv python3-dev build-essential
-RUN mkdir -p format-validator
-WORKDIR /format-validator
