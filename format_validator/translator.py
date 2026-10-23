@@ -1,79 +1,53 @@
 """Format identifier translation layer.
 
-Maps external ontology-specific format identifiers to module-local,
-ontology-agnostic format identifiers.
+Maps external format IRIs, e.g. the classes of the SOS EO formats ontology, to module-local,
+ontology-agnostic format identifiers. The caller supplies the mapping, with an explicit entry
+for every IRI, for example as a JSON file::
 
-- ``/path/to/mappings/<safe_uri>.json``     – per-ontology mappings (e.g. ``http---edamontology-org.json``).
+    {
+      "mappings": {
+        "https://dfg-sos.github.io/ontologies/eo-formats#GeoTIFF": "GeoTIFF",
+        "https://dfg-sos.github.io/ontologies/eo-formats#NetCDF_CF": "NetCDF"
+      }
+    }
 """
 from __future__ import annotations
 import json
-import logging
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Mapping, Optional
 from format_validator.model.format_identifier import FormatIdentifier
-
-logger = logging.getLogger(__name__)
 
 
 class FormatTranslator:
-    """Translate between external ontology format IDs and module-local IDs."""
+    """Translate between external format IRIs and module-local format identifiers."""
 
-    def __init__(self, mappings_dir: Path):
-        self._ontology_mappings: Dict[str, Dict[str, str]] = {}
-        self._load_ontology_mappings(mappings_dir)
+    def __init__(self, mapping: Mapping[str, str]):
+        """
+        Args:
+            mapping: Format identifier id for each external IRI.
 
-    def _load_ontology_mappings(self, mappings_dir: Path) -> None:
-        for path in mappings_dir.glob("*.json"):
-            with path.open("r", encoding="utf-8") as fh:
-                data = json.load(fh)
-            ontology_uri = data.get("ontology_uri", self._path_to_uri(path.stem))
-            mappings: Dict[str, str] = data.get("mappings", {})
-            self._ontology_mappings[ontology_uri] = mappings
-            logger.debug(
-                "Loaded mapping for ontology '%s' with %d entries", ontology_uri, len(mappings)
-            )
+        Raises:
+            ValueError: If an id is not a known ``FormatIdentifier``.
+        """
+        unknown = sorted({fid for fid in mapping.values() if FormatIdentifier.get(fid) is None})
+        if unknown:
+            raise ValueError(f"Mapping contains unknown format identifiers: {unknown}.")
+        self._to_local: dict[str, FormatIdentifier] = {iri: FormatIdentifier(fid) for iri, fid in mapping.items()}
 
-    @staticmethod
-    def _path_to_uri(stem: str) -> str:
-        return stem.replace("---", "://").replace("--", "/")
+    @classmethod
+    def from_json(cls, path: Path) -> FormatTranslator:
+        """Load the mapping from the ``mappings`` object of a JSON file. Other keys are ignored."""
+        with path.open("r", encoding="utf-8") as fh:
+            return cls(json.load(fh)["mappings"])
 
-    @staticmethod
-    def _uri_to_path(uri: str) -> str:
-        return uri.replace("://", "---").replace("/", "--")
+    def to_local(self, iri: str) -> Optional[FormatIdentifier]:
+        """The format identifier for an external IRI, or ``None`` if the IRI is not mapped."""
+        return self._to_local.get(iri)
 
-    @staticmethod
-    def _strip_uri_prefix(fmt: str) -> str:
-        if fmt.startswith("http://") or fmt.startswith("https://"):
-            without_protocol = fmt.split("://", 1)[-1]
-            parts = without_protocol.split("/")
-            for part in reversed(parts):
-                if part:
-                    return part
-        if ":" in fmt:
-            return fmt.split(":", 1)[-1]
-        return fmt
+    def to_external(self, format_identifier: FormatIdentifier) -> Optional[str]:
+        """The first external IRI mapped to the format identifier, or ``None``."""
+        return next((iri for iri, fi in self._to_local.items() if fi == format_identifier), None)
 
-    def to_local(self, external_id: str, ontology_uri: Optional[str] = None) -> Optional[FormatIdentifier]:
-        stripped = self._strip_uri_prefix(external_id)
-        if ontology_uri:
-            mapping = self._ontology_mappings.get(ontology_uri, {})
-            if stripped in mapping:
-                return FormatIdentifier(mapping[stripped])
-        for mapping in self._ontology_mappings.values():
-            if stripped in mapping:
-                return FormatIdentifier(mapping[stripped])
-        logger.debug("No mapping found for '%s' (stripped: '%s')", external_id, stripped)
-        return None
-
-    def to_external(self, local_id: str, ontology_uri: str) -> Optional[str]:
-        if ontology_uri not in self._ontology_mappings:
-            logger.warning("Ontology '%s' not loaded", ontology_uri)
-            return None
-        mapping = self._ontology_mappings[ontology_uri]
-        for ext_id, loc_id in mapping.items():
-            if loc_id == local_id:
-                return ext_id
-        return None
-
-    def get_loaded_ontologies(self) -> list[str]:
-        return list(self._ontology_mappings.keys())
+    def iris(self) -> list[str]:
+        """All mapped external IRIs."""
+        return list(self._to_local)
