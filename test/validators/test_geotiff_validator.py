@@ -3,7 +3,8 @@ import pytest
 from pathlib import Path
 
 from format_validator.validators.eo.geotiff_validator import GeoTIFFValidator
-from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, EOMetadata, ValidationResult, Cause, ValidationStatus
+from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
+from format_validator.validators import EOMetadata
 from test.fixtures import geotiff_input, geotiff_no_cog_input, geojson_input, geopackage_input, wgs84_crs, mercator_crs, nonexistent_input
 
 

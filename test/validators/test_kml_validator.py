@@ -3,7 +3,8 @@ import pytest
 from pathlib import Path
 
 from format_validator.validators.eo.kml_validator import KMLValidator
-from format_validator import ValidationMode, FileInput,FormatIdentifier, ValidationRequest, EOMetadata, ValidationResult, Cause, ValidationStatus
+from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
+from format_validator.validators import EOMetadata
 from shapely import GeometryType
 from test.fixtures import kml_input, geojson_input, gpx_input, wgs84_crs, mercator_crs, nonexistent_input
 

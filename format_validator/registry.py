@@ -5,7 +5,7 @@ from types import ModuleType
 from typing import Dict, Type, Optional, List, Callable
 import logging
 
-from format_validator.model import FileFormatValidator, ValidationRequest, FormatIdentifier
+from format_validator.model import FileFormatValidator, FormatIdentifier
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ class _Registry:
         return decorator
 
     def get_registered_identifiers(self) -> List[FormatIdentifier]:
-        return sorted(self._id_to_validators.keys(), key=lambda fi: fi.value)
+        return sorted(self._id_to_validators.keys(), key=lambda fi: fi.id)
 
     def get_identifier_for_validator(
         self, cls: Type[FileFormatValidator]
@@ -91,14 +91,6 @@ class _Registry:
         self, identifier: FormatIdentifier
     ) -> Optional[Type[FileFormatValidator]]:
         return self._id_to_validators.get(identifier)
-
-    def choose_and_instantiate(
-        self, request: ValidationRequest
-    ) -> Optional[FileFormatValidator]:
-        cls = self.get_validator_class(request.format_identifier)
-        if cls:
-            return cls()
-        return None
 
 
 # Module-level singleton instance – imported by validators and consumers alike.

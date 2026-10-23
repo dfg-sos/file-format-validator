@@ -4,7 +4,8 @@ from pathlib import Path
 from pyproj import CRS
 
 from format_validator.validators.eo.cog_validator import COGValidator
-from format_validator import ValidationMode, FileInput, ValidationRequest, FormatIdentifier, EOMetadata, ValidationResult, Cause, ValidationStatus
+from format_validator import ValidationMode, FileInput, ValidationRequest, FormatIdentifier, ValidationResult, Cause, ValidationStatus
+from format_validator.validators import EOMetadata
 from test.fixtures import cog_input, geojson_input, geopackage_input, wgs84_crs,mercator_crs,nonexistent_input,geotiff_no_cog_input
 
 

@@ -3,7 +3,8 @@ import pytest
 from pathlib import Path
 
 from format_validator.validators.eo.shapefile_validator import ShapefileValidator
-from format_validator import ValidationMode, MultiFileInput, FormatIdentifier, ValidationRequest, EOMetadata, ValidationResult, Cause, ValidationStatus
+from format_validator import ValidationMode, MultiFileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
+from format_validator.validators import EOMetadata
 from shapely import GeometryType
 from test.fixtures import shapefile_input, geojson_input, wgs84_crs, mercator_crs, nonexistent_input,geotiff_input
 

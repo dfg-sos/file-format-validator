@@ -3,7 +3,8 @@ import pytest
 from pathlib import Path
 
 from format_validator.validators.eo.gpx_validator import GPXValidator
-from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, EOMetadata, ValidationResult, Cause, ValidationStatus
+from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
+from format_validator.validators import EOMetadata
 from shapely import GeometryType
 from test.fixtures import gpx_input, geojson_input, kml_input, wgs84_crs, mercator_crs, nonexistent_input
 

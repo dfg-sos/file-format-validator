@@ -3,7 +3,8 @@ import pytest
 from pathlib import Path
 
 from format_validator.validators.eo.dtm_validator import DTMValidator
-from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, EOMetadata, ValidationResult, Cause, ValidationStatus
+from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
+from format_validator.validators import EOMetadata
 from test.fixtures import dtm_input, geojson_input, geopackage_input, wgs84_crs, mercator_crs, nonexistent_input
 
 

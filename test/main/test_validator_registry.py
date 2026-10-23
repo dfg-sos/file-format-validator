@@ -1,14 +1,11 @@
 """Tests for the validator registry."""
-from pathlib import Path
 from typing import List
 import pytest
 from format_validator.model import (
     FileFormatValidator,
-    FileInput,
     FormatIdentifier,
     ValidationRequest,
     ValidationResult,
-    ValidationMode,
 )
 from format_validator.registry import registry, _Registry
 
@@ -51,24 +48,6 @@ class TestRegistration:
         registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
         assert registry.get_registered_identifiers() == [FormatIdentifier.GEOTIFF]
         assert registry.get_identifier_for_validator(DummyValidator) == FormatIdentifier.GEOTIFF
-
-    def test_choose_and_instantiate_success(self):
-        registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
-        request = ValidationRequest(
-            format_identifier=FormatIdentifier.GEOTIFF,
-            actual_file=FileInput(path=Path("x.dummy")),
-            mode=ValidationMode.BASIC,
-        )
-        instance = registry.choose_and_instantiate(request)
-        assert isinstance(instance, DummyValidator)
-
-    def test_choose_and_instantiate_none(self):
-        request = ValidationRequest(
-            format_identifier=FormatIdentifier("test_unsupported"),
-            actual_file=FileInput(path=Path("x.dummy")),
-            mode=ValidationMode.BASIC,
-        )
-        assert registry.choose_and_instantiate(request) is None
 
     def test_get_validator_class(self):
         registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
@@ -145,10 +124,4 @@ class TestRegistryClass:
         """A brand-new _Registry starts empty."""
         fresh = _Registry()
         assert fresh.get_registered_identifiers() == []
-        assert fresh.choose_and_instantiate(
-            ValidationRequest(
-                format_identifier=FormatIdentifier("test_unsupported"),
-                actual_file=FileInput(path=Path("a")),
-                mode=ValidationMode.BASIC,
-            )
-        ) is None
+        assert fresh.get_validator_class(FormatIdentifier("test_unsupported")) is None
