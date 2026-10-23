@@ -40,6 +40,23 @@ class FormatTranslator:
         with path.open("r", encoding="utf-8") as fh:
             return cls(json.load(fh)["mappings"])
 
+    def merge(self, other: FormatTranslator) -> FormatTranslator:
+        """Merge two translators. An IRI may occur in both if it maps to the same format identifier.
+
+        Raises:
+            ValueError: If an IRI is mapped to different format identifiers.
+        """
+        conflicts = sorted(iri for iri, fi in other._to_local.items() if self._to_local.get(iri, fi) != fi)
+        if conflicts:
+            raise ValueError(f"Conflicting mappings for {conflicts}.")
+        return FormatTranslator({iri: fi.id for iri, fi in (self._to_local | other._to_local).items()})
+
+    def __or__(self, other: FormatTranslator) -> FormatTranslator:
+        """Same as :meth:`merge`."""
+        if not isinstance(other, FormatTranslator):
+            return NotImplemented
+        return self.merge(other)
+
     def to_local(self, iri: str) -> Optional[FormatIdentifier]:
         """The format identifier for an external IRI, or ``None`` if the IRI is not mapped."""
         return self._to_local.get(iri)

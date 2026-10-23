@@ -72,6 +72,23 @@ class TestFormatTranslator:
             FormatTranslator({f"{EO}Test": "test_translator_unknown"})
         assert FormatIdentifier.get("test_translator_unknown") is None
 
+    def test_merge(self):
+        merged = FormatTranslator({f"{EO}GeoTIFF": "GeoTIFF"}) | FormatTranslator({f"{EO}NetCDF_CF": "NetCDF"})
+        assert merged.to_local(f"{EO}GeoTIFF") is FormatIdentifier.GEOTIFF
+        assert merged.to_local(f"{EO}NetCDF_CF") is FormatIdentifier.NETCDF
+
+    def test_merge_same_mapping_twice(self):
+        merged = FormatTranslator({f"{EO}GeoTIFF": "GeoTIFF"}) | FormatTranslator({f"{EO}GeoTIFF": "geotiff"})
+        assert merged.iris() == [f"{EO}GeoTIFF"]
+
+    def test_merge_method(self):
+        merged = FormatTranslator({f"{EO}GeoTIFF": "GeoTIFF"}).merge(FormatTranslator({f"{EO}NetCDF_CF": "NetCDF"}))
+        assert merged.iris() == [f"{EO}GeoTIFF", f"{EO}NetCDF_CF"]
+
+    def test_merge_conflict_raises(self):
+        with pytest.raises(ValueError, match="Raster"):
+            FormatTranslator({f"{EO}Raster": "GISRaster"}) | FormatTranslator({f"{EO}Raster": "GISVector"})
+
 
 class TestEOFormatsMapping:
     """The test mapping against the ontology copy."""

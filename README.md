@@ -80,7 +80,7 @@ translator = FormatTranslator.from_json(Path("eo-formats.json"))   # {"mappings"
 translator.to_local("https://dfg-sos.github.io/ontologies/eo-formats#NetCDF_CF")  # FormatIdentifier.NETCDF
 ```
 
-Unknown ids raise a `ValueError` when the mapping is loaded. See the [test mapping](test/data/mappings/eo-formats.json), which is checked against a [copy of the ontology](test/data/ontologies/eo-formats.owl).
+Unknown ids raise a `ValueError` when the mapping is loaded. Translators merge with `a.merge(b)` or `a | b`. An IRI mapped to different ids raises a `ValueError`. See the [test mapping](test/data/mappings/eo-formats.json), which is checked against a [copy of the ontology](test/data/ontologies/eo-formats.owl).
 
 ## Installation
 
