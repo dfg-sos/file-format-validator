@@ -53,6 +53,11 @@ class EOMetadata:
 def eo_metadata(request: ValidationRequest) -> EOMetadata:
     return request.metadata if isinstance(request.metadata, EOMetadata) else EOMetadata()
 
+def supports_metadata(request: ValidationRequest) -> bool:
+    """Whether EO validators can check the request's metadata. No metadata counts as an empty
+    `EOMetadata`, so skipped checks are still reported."""
+    return request.metadata is None or isinstance(request.metadata, EOMetadata)
+
 class EOFileFormatValidator(FileFormatValidator):
     """EO-specific validator that enables SRS validation and expects
     an `EOMetadata` sidecar on the request's `metadata` field for SRS-related checks.
@@ -75,9 +80,7 @@ class EOFileFormatValidator(FileFormatValidator):
 
     def validate(self, request: ValidationRequest) -> ValidationResult:
         validation_result = super().validate(request)
-        if request.metadata is None:
-            return validation_result
-        if not isinstance(request.metadata, EOMetadata):
+        if not supports_metadata(request):
             # Fail instead of silently skipping metadata checks, e.g. when a raw dict was passed.
             return validation_result.set_failure(Error(message=f"Metadata of type '{type(request.metadata).__name__}' is not supported for format {request.format_identifier}, expected '{EOMetadata.__name__}'.", cause=Cause.METADATA_MISMATCH))
         match request.mode:

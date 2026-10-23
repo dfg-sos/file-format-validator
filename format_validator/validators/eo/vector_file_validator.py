@@ -5,7 +5,7 @@ from shapely import GeometryType
 import fiona
 from fiona.errors import DriverError
 
-from .eo_file_format_validator import EOFileFormatValidator, EOMetadata, eo_metadata, geometry_type_from_string
+from .eo_file_format_validator import EOFileFormatValidator, eo_metadata, supports_metadata, geometry_type_from_string
 from format_validator.model import ValidationResult, ValidationRequest, Error, Warning, Info, Cause, ValidationMode
 
 
@@ -154,8 +154,8 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
 
     def validate(self, request: ValidationRequest) -> ValidationResult:
         result = super().validate(request)
-        if not isinstance(request.metadata, EOMetadata):
-            return result
+        if not supports_metadata(request):
+            return result  # super().validate() already reported the unsupported metadata as a failure
         match request.mode:
             case ValidationMode.FULL:
                 result += self.assert_geometry_type(request)
