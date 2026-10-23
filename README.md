@@ -15,19 +15,72 @@ Currently, only EO metadata validation is supported. The metadata is passed to a
 | [EOMetadata](format_validator/validators/eo/eo_file_format_validator.py) | `crs` | Coordinate Reference System of GIS file 
 | [EOMetadata](format_validator/validators/eo/eo_file_format_validator.py) | `geometry_type` | Geometry type of (GIS) vector file 
 
-Callers don't need to build the metadata object themselves. The validator registered for a format declares the metadata keys it understands and parses plain strings into its metadata object:
+Callers don't need to build the metadata object themselves. The validator registered for a format declares the metadata keys it understands, and `build_request()` parses plain strings into its metadata object:
 
 ```python
-from format_validator import FormatValidator, FormatIdentifier
+from format_validator import FormatIdentifier, metadata_keys
 
-FormatValidator.supported_metadata_keys(FormatIdentifier.GEOJSON)  # frozenset({'crs', 'geometry_type'})
-metadata = FormatValidator.parse_metadata(FormatIdentifier.GEOJSON, {"crs": "EPSG:4326", "geometry_type": "Polygon"})
+metadata_keys(FormatIdentifier.GEOJSON)  # frozenset({'crs', 'geometry_type'})
 ```
 
-Empty values count as absent. Keys the validator doesn't understand raise `UnsupportedMetadataKeys`, and values that can't be parsed raise `InvalidMetadataValue`. To support metadata for a new domain, override `metadata_keys()` and `parse_metadata()` on its validator base class.
+Empty values count as absent. To support metadata for a new domain, override `metadata_keys()` and `parse_metadata()` on its validator base class.
 
-## Integration
-Integrating the format validator into your project can be achieved with the [ValidationRequestBuilder](format_validator/model/validation_request_builder.py) and the [ValidationResponseHandler](format_validator/model/validation_response_handler.py) interfaces. You pass your implementation of those interfaces to the [FormatValidator](format_validator/validator.py), which first creates a [ValidationRequest](format_validator/model/validation_request.py) using your builder, performs the validation and passes the [ValidationResult](format_validator/model/validation_result.py) to your response handler. Converting from your ontology identifiers to the internal identifiers should be done in the request builder utilizing the [FormatTranslator](format_validator/translator.py) with your custom mappings (e.g. [Test Mappings](test/data/mappings/http---edamontology-org.json))
+## Abstract Formats
+Abstract formats such as `FormatIdentifier.RASTER`, `VECTOR` and `GIS` group concrete formats. A file is valid for an abstract format if it is valid for any of its leaves (`FormatIdentifier.expand()`) whose extension matches. An abstract format accepts the metadata keys that all its leaves understand.
+
+# Integration
+Build a request with `build_request()`, then validate it with `validate()`:
+
+```python
+from pathlib import Path
+from format_validator import (
+    FileInput,
+    FormatIdentifier,
+    InvalidRequest,
+    ValidationMode,
+    ValidationRequest,
+    ValidationResult,
+    build_request,
+    validate,
+)
+
+try:
+    request: ValidationRequest = build_request(
+        FormatIdentifier.GEOJSON,
+        FileInput(path=Path("buildings.geojson")),
+        ValidationMode.FULL,
+        expected_metadata={"crs": "EPSG:4326", "geometry_type": "Polygon"},
+    )
+except InvalidRequest as exc:
+    ...  # the request is wrong, e.g. return HTTP 400
+
+result: ValidationResult = validate(request)  # problems with the file are in the result
+result.status                                 # ValidationStatus.SUCCESS, FAILURE or UNCERTAIN
+```
+
+`build_request()` doesn't read the files, so you can check a request before writing uploads to disk. It raises a subclass of `InvalidRequest`:
+
+| Error | Raised when |
+|---|---|
+| `UnsupportedFormat` | No validator is registered for the format or, for an abstract format, its leaves |
+| `UnsupportedMode` | The mode is not enabled for the request |
+| `UnsupportedMetadataKeys` | A metadata key is not understood by the format's validator |
+| `InvalidMetadataValue` | A metadata value cannot be parsed, e.g. an unknown CRS |
+
+`validate()` returns a `ValidationResult` for every problem with the file. An unexpected exception inside a validator becomes an `UNCERTAIN` result. `supported_formats()` lists the formats that can be validated.
+
+## Ontology Mappings
+The [FormatTranslator](format_validator/translator.py) converts external format IRIs, e.g. of the [SOS EO formats ontology](https://dfg-sos.github.io/ontologies/eo-formats), to format identifiers. You supply the mapping, with an explicit format identifier id for every IRI:
+
+```python
+from pathlib import Path
+from format_validator import FormatTranslator
+
+translator = FormatTranslator.from_json(Path("eo-formats.json"))   # {"mappings": {iri: id}}
+translator.to_local("https://dfg-sos.github.io/ontologies/eo-formats#NetCDF_CF")  # FormatIdentifier.NETCDF
+```
+
+Unknown ids raise a `ValueError` when the mapping is loaded. See the [test mapping](test/data/mappings/eo-formats.json), which is checked against a [copy of the ontology](test/data/ontologies/eo-formats.owl).
 
 ## Installation
 

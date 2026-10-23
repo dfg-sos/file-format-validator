@@ -3,7 +3,8 @@ import pytest
 from pathlib import Path
 
 from format_validator.validators.eo.geoparquet_validator import GeoParquetValidator
-from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, EOMetadata, ValidationResult, Cause, ValidationStatus
+from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
+from format_validator.validators import EOMetadata
 from shapely import GeometryType
 from test.fixtures import geoparquet_input, example_parquet_input, geojson_input, wgs84_crs, mercator_crs, nonexistent_input
 

@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from format_validator import ValidationRequest, ValidationMode, FileInput,FormatIdentifier
+from format_validator import ValidationRequest, ValidationMode, FileInput, FormatIdentifier, UnsupportedMode
 
 @pytest.fixture
 def validation_request():
@@ -42,3 +42,23 @@ def test_equality(validation_request):
     assert validation_request == validation_request
 
     
+class BasicOnlyRequest(ValidationRequest):
+    def enabled_modes(self) -> list[ValidationMode]:
+        return [ValidationMode.BASIC]
+
+def test_enabled_mode_of_subclass():
+    request = BasicOnlyRequest(
+        format_identifier=FormatIdentifier.GIS,
+        actual_file=FileInput(path=Path("test.txt")),
+        mode=ValidationMode.BASIC,
+    )
+    assert request.mode == ValidationMode.BASIC
+
+@pytest.mark.parametrize("mode", [ValidationMode.STRUCTURAL, ValidationMode.FULL])
+def test_mode_not_enabled_by_subclass(mode):
+    with pytest.raises(UnsupportedMode):
+        BasicOnlyRequest(
+            format_identifier=FormatIdentifier.GIS,
+            actual_file=FileInput(path=Path("test.txt")),
+            mode=mode,
+        )

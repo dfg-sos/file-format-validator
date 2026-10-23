@@ -1,4 +1,5 @@
 import pytest
+import json
 import datetime
 from pathlib import Path
 
@@ -8,11 +9,13 @@ from format_validator import (
     ValidationMode,
     FormatIdentifier,
     FileInput,
+    Cause,
+)
+from format_validator.model import (
     Info,
     Warning,
     Error,
     Severity,
-    Cause,
 )
 from format_validator.model.validation_result import ValidationStatus
 
@@ -237,3 +240,11 @@ class TestGetBySeverity:
         assert len(result.get(Severity.INFO)) == 1
         assert len(result.get(Severity.WARNING)) == 1
         assert len(result.get(Severity.ERROR)) == 1
+
+
+def test_to_json(validation_request, error):
+    result = ValidationResult.failure(validation_request, error)
+    data = json.loads(result.to_json())
+    assert data["status"] == "failure"
+    assert data["request"]["format_identifier"] == validation_request.format_identifier.id
+    assert data["errors"][0]["message"] == error.message

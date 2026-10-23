@@ -36,15 +36,15 @@ class TestSingleton:
         assert a is b
 
     def test_new_format_registered(self):
-        custom = FormatIdentifier("CustomFormat", description="A custom format", is_abstract=False)
+        custom = FormatIdentifier("CustomFormat", is_abstract=False)
         assert FormatIdentifier.get("CustomFormat") is custom
         assert custom in FormatIdentifier.all()
 
     def test_reuse_existing(self):
         first = FormatIdentifier("ReuseMe")
-        second = FormatIdentifier("ReuseMe", description="ignored")
+        second = FormatIdentifier("ReuseMe", is_abstract=True)
         assert first is second
-        assert second.description == ""  # first definition wins
+        assert not second.is_abstract  # first definition wins
 
 
 class TestTaxonomy:
@@ -91,8 +91,15 @@ class TestTaxonomy:
         assert FormatIdentifier.SHAPEFILE in leaves
         assert FormatIdentifier.GEOTIFF in leaves
 
+    def test_expand_abstract(self):
+        assert FormatIdentifier.RASTER.expand() == FormatIdentifier.RASTER.leaves
+
+    def test_expand_concrete(self):
+        # GEOTIFF has COG as a child, but is not abstract itself
+        assert FormatIdentifier.GEOTIFF.expand() == [FormatIdentifier.GEOTIFF]
+
     def test_all_returns_sorted(self):
         all_formats = FormatIdentifier.all()
-        labels = [f.value for f in all_formats]
-        assert labels == sorted(labels)
+        ids = [f.id for f in all_formats]
+        assert ids == sorted(ids)
         assert FormatIdentifier.GEOTIFF in all_formats

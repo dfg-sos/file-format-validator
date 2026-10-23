@@ -3,9 +3,7 @@ from .file_input import FileInput, MultiFileInput
 from .validation_result import ValidationResult, ValidationStatus, Severity, Info, Warning, Error, Cause
 from .validation_request import ValidationRequest, ValidationMode
 from .format_identifier import FormatIdentifier
-from .validation_request_builder import ValidationRequestBuilder
-from .validation_response_handler import ValidationResponseHandler
-from .metadata_errors import UnsupportedMetadataKeys, InvalidMetadataValue
+from .errors import InvalidRequest, UnsupportedFormat, UnsupportedMode, UnsupportedMetadataKeys, InvalidMetadataValue
 
 __all__ = [
     "FileFormatValidator",
@@ -16,13 +14,14 @@ __all__ = [
     "ValidationStatus",
     "Severity",
     "ValidationRequest",
-    "ValidationRequestBuilder",
-    "ValidationResponseHandler",
     "Info",
     "Warning",
     "Error",
     "FormatIdentifier",
     "Cause",
+    "InvalidRequest",
+    "UnsupportedFormat",
+    "UnsupportedMode",
     "UnsupportedMetadataKeys",
     "InvalidMetadataValue",
 ]

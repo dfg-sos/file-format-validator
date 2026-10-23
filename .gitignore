@@ -14,8 +14,9 @@ eggs/
 .python_history
 .python-version
 .venv/
-
+.coverage
 # IDEs
 .idea/
 .vscode/ 
-
+# Data
+*.idx
