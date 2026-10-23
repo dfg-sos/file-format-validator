@@ -7,7 +7,7 @@ include = ["format_validator*"]
 
 [project]
 name = "format-validator"
-version = "1.0.0"
+version = "0.1.0"
 readme = "README.md"
 license = "MIT"
 authors = [
