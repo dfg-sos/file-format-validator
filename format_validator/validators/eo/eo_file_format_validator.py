@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import Mapping, Optional
 from abc import abstractmethod
 from dataclasses import dataclass
 from pyproj import CRS
+from pyproj.exceptions import CRSError
 from shapely import GeometryType
 
-from ...model import FileFormatValidator, ValidationRequest, ValidationMode, ValidationResult,Info,Warning,Cause,Error
+from format_validator.model import FileFormatValidator, ValidationRequest, ValidationMode, ValidationResult,Info,Warning,Cause,Error,InvalidMetadataValue
 
 
 # Mapping from lowercase geometry type names (e.g. GeoJSON's "Polygon") to shapely GeometryType enum
@@ -61,10 +62,24 @@ class EOFileFormatValidator(FileFormatValidator):
     def get_crs(self,request: ValidationRequest) -> Optional[CRS]:
         pass
 
+    def metadata_keys(self) -> frozenset[str]:
+        return frozenset({"crs"})
+
+    def parse_metadata(self, values: Mapping[str, str]) -> EOMetadata:
+        # Keys are checked against metadata_keys() by the caller, so validators without
+        # "geometry_type" never receive it.
+        try:
+            return EOMetadata.from_strings(crs=values.get("crs"), geometry_type=values.get("geometry_type"))
+        except (CRSError, ValueError) as exc:
+            raise InvalidMetadataValue(str(exc)) from exc
+
     def validate(self, request: ValidationRequest) -> ValidationResult:
         validation_result = super().validate(request)
-        if  not isinstance(request.metadata, EOMetadata):
+        if request.metadata is None:
             return validation_result
+        if not isinstance(request.metadata, EOMetadata):
+            # Fail instead of silently skipping metadata checks, e.g. when a raw dict was passed.
+            return validation_result.set_failure(Error(message=f"Metadata of type '{type(request.metadata).__name__}' is not supported for format {request.format_identifier}, expected '{EOMetadata.__name__}'.", cause=Cause.METADATA_MISMATCH))
         match request.mode:
             case ValidationMode.FULL:
                 validation_result += self.assert_crs(request)

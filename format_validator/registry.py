@@ -87,10 +87,15 @@ class _Registry:
     ) -> Optional[FormatIdentifier]:
         return self._validators_to_id.get(cls)
 
+    def get_validator_class(
+        self, identifier: FormatIdentifier
+    ) -> Optional[Type[FileFormatValidator]]:
+        return self._id_to_validators.get(identifier)
+
     def choose_and_instantiate(
         self, request: ValidationRequest
     ) -> Optional[FileFormatValidator]:
-        cls = self._id_to_validators.get(request.format_identifier)
+        cls = self.get_validator_class(request.format_identifier)
         if cls:
             return cls()
         return None

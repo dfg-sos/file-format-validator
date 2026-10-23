@@ -5,6 +5,7 @@ from .validation_request import ValidationRequest, ValidationMode
 from .format_identifier import FormatIdentifier
 from .validation_request_builder import ValidationRequestBuilder
 from .validation_response_handler import ValidationResponseHandler
+from .metadata_errors import UnsupportedMetadataKeys, InvalidMetadataValue
 
 __all__ = [
     "FileFormatValidator",
@@ -22,4 +23,6 @@ __all__ = [
     "Error",
     "FormatIdentifier",
     "Cause",
+    "UnsupportedMetadataKeys",
+    "InvalidMetadataValue",
 ]

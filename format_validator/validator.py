@@ -1,10 +1,12 @@
-from typing import Any, Optional
+from typing import Any, Mapping, Optional
 from .registry import registry
 from .model import (
     ValidationRequestBuilder,
     ValidationResponseHandler,
     ValidationRequest,
     ValidationResult,
+    FormatIdentifier,
+    UnsupportedMetadataKeys,
     Warning,
     Cause,
 )
@@ -55,6 +57,35 @@ class FormatValidator:
                     cause=Cause.UNKNOWN,
                 ),
             )
+
+    @staticmethod
+    def supported_metadata_keys(format_identifier: FormatIdentifier) -> frozenset[str]:
+        """Keys of expected metadata understood by the validator registered for the format.
+
+        Empty if no validator is registered for the format.
+        """
+        cls = registry.get_validator_class(format_identifier)
+        return cls().metadata_keys() if cls else frozenset()
+
+    @staticmethod
+    def parse_metadata(format_identifier: FormatIdentifier, values: Mapping[str, str]) -> Optional[object]:
+        """Build the metadata sidecar object for ``ValidationRequest.metadata`` from plain strings,
+        so callers don't need to know the domain's metadata object.
+
+        Empty values count as absent. Returns ``None`` if no validator is registered for the format.
+
+        Raises:
+            UnsupportedMetadataKeys: If a key is not understood by the format's validator.
+            InvalidMetadataValue: If a value cannot be parsed.
+        """
+        values = {key: value for key, value in values.items() if value}
+        cls = registry.get_validator_class(format_identifier)
+        validator = cls() if cls else None
+        supported = validator.metadata_keys() if validator else frozenset()
+        unknown = set(values) - supported
+        if unknown:
+            raise UnsupportedMetadataKeys(unknown, supported)
+        return validator.parse_metadata(values) if validator else None
 
 
     def run(self) -> Any:
