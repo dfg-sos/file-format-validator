@@ -1,0 +1,24 @@
+{
+  "ontology": "https://dfg-sos.github.io/ontologies/eo-formats",
+  "version": "1.0.0",
+  "mappings": {
+    "https://dfg-sos.github.io/ontologies/eo-formats#GIS": "GIS",
+    "https://dfg-sos.github.io/ontologies/eo-formats#Raster": "GISRaster",
+    "https://dfg-sos.github.io/ontologies/eo-formats#Vector": "GISVector",
+    "https://dfg-sos.github.io/ontologies/eo-formats#COG": "COG",
+    "https://dfg-sos.github.io/ontologies/eo-formats#DEM": "DEM",
+    "https://dfg-sos.github.io/ontologies/eo-formats#DSM": "DSM",
+    "https://dfg-sos.github.io/ontologies/eo-formats#DTM": "DTM",
+    "https://dfg-sos.github.io/ontologies/eo-formats#GeoTIFF": "GeoTIFF",
+    "https://dfg-sos.github.io/ontologies/eo-formats#GRIB": "GRIB",
+    "https://dfg-sos.github.io/ontologies/eo-formats#NetCDF_CF": "NetCDF",
+    "https://dfg-sos.github.io/ontologies/eo-formats#GeoJSON": "GeoJSON",
+    "https://dfg-sos.github.io/ontologies/eo-formats#GeoPackage": "GeoPackage",
+    "https://dfg-sos.github.io/ontologies/eo-formats#GeoParquet": "GeoParquet",
+    "https://dfg-sos.github.io/ontologies/eo-formats#GML": "GML",
+    "https://dfg-sos.github.io/ontologies/eo-formats#GPX": "GPX",
+    "https://dfg-sos.github.io/ontologies/eo-formats#KML": "KML",
+    "https://dfg-sos.github.io/ontologies/eo-formats#Shapefile": "Shapefile",
+    "https://dfg-sos.github.io/ontologies/eo-formats#WKT": "WKT"
+  }
+}
