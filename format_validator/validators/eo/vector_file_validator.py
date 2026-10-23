@@ -21,6 +21,9 @@ COMPATIBLE_GEOMETRY_TYPES = {
 
 
 class VectorFileValidator(EOFileFormatValidator, ABC):
+    def metadata_keys(self) -> frozenset[str]:
+        return super().metadata_keys() | {"geometry_type"}
+
     def get_geometry_types(self, request: ValidationRequest) -> List[GeometryType]:
         """Get all geometry types found in the file using Fiona.
         

@@ -70,6 +70,11 @@ class TestRegistration:
         )
         assert registry.choose_and_instantiate(request) is None
 
+    def test_get_validator_class(self):
+        registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
+        assert registry.get_validator_class(FormatIdentifier.GEOTIFF) is DummyValidator
+        assert registry.get_validator_class(FormatIdentifier("test_unsupported")) is None
+
     def test_duplicate_identifier_raises(self):
         registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
         with pytest.raises(KeyError, match="already registered"):

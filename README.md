@@ -15,6 +15,17 @@ Currently, only EO metadata validation is supported. The metadata is passed to a
 | [EOMetadata](format_validator/validators/eo/eo_file_format_validator.py) | `crs` | Coordinate Reference System of GIS file 
 | [EOMetadata](format_validator/validators/eo/eo_file_format_validator.py) | `geometry_type` | Geometry type of (GIS) vector file 
 
+Callers don't need to build the metadata object themselves. The validator registered for a format declares the metadata keys it understands and parses plain strings into its metadata object:
+
+```python
+from format_validator import FormatValidator, FormatIdentifier
+
+FormatValidator.supported_metadata_keys(FormatIdentifier.GEOJSON)  # frozenset({'crs', 'geometry_type'})
+metadata = FormatValidator.parse_metadata(FormatIdentifier.GEOJSON, {"crs": "EPSG:4326", "geometry_type": "Polygon"})
+```
+
+Empty values count as absent. Keys the validator doesn't understand raise `UnsupportedMetadataKeys`, and values that can't be parsed raise `InvalidMetadataValue`. To support metadata for a new domain, override `metadata_keys()` and `parse_metadata()` on its validator base class.
+
 ## Integration
 Integrating the format validator into your project can be achieved with the [ValidationRequestBuilder](format_validator/model/validation_request_builder.py) and the [ValidationResponseHandler](format_validator/model/validation_response_handler.py) interfaces. You pass your implementation of those interfaces to the [FormatValidator](format_validator/validator.py), which first creates a [ValidationRequest](format_validator/model/validation_request.py) using your builder, performs the validation and passes the [ValidationResult](format_validator/model/validation_result.py) to your response handler. Converting from your ontology identifiers to the internal identifiers should be done in the request builder utilizing the [FormatTranslator](format_validator/translator.py) with your custom mappings (e.g. [Test Mappings](test/data/mappings/http---edamontology-org.json))
 
@@ -30,7 +41,7 @@ Dependencies are managed with [uv](https://docs.astral.sh/uv/). To create a virt
 ```sh
 uv sync
 ```
-# Tests
+### Tests
 ```sh
 uv run pytest
 ```

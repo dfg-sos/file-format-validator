@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Mapping, Optional
 
 from .validation_request import ValidationRequest,ValidationMode
 from .validation_result import ValidationResult,Error, Cause 
@@ -14,6 +14,19 @@ class FileFormatValidator(ABC):
     @abstractmethod
     def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
         pass
+
+    def metadata_keys(self) -> frozenset[str]:
+        """Keys of expected metadata this validator understands. Empty for validators without metadata."""
+        return frozenset()
+
+    def parse_metadata(self, values: Mapping[str, str]) -> Optional[object]:
+        """Build the metadata sidecar object for ``ValidationRequest.metadata`` from plain strings.
+
+        Callers have already removed empty values and checked the keys against ``metadata_keys()``.
+        Validators with metadata keys return an empty metadata object for empty ``values``, so that
+        skipped checks are still reported. Raises ``InvalidMetadataValue`` for values that cannot be parsed.
+        """
+        return None
 
     def assert_extension(self, request: ValidationRequest) -> ValidationResult:
         if not any(request.actual_file.path.suffix.lower() == ext.lower() for ext in self.get_extensions()):

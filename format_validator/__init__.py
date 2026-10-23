@@ -19,6 +19,8 @@ from .model import (
     FileFormatValidator,
     ValidationRequestBuilder,
     ValidationResponseHandler,
+    UnsupportedMetadataKeys,
+    InvalidMetadataValue,
 )
 
 from .validators import (
@@ -51,4 +53,6 @@ __all__ = [
     "registry",
     "FormatTranslator",
     "FormatIdentifier",
+    "UnsupportedMetadataKeys",
+    "InvalidMetadataValue",
 ]
