@@ -160,16 +160,13 @@ class ValidationResult:
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the validation result to a dictionary."""
-        request = None
-        if self._request is not None:
-            request = {
-                "format_identifier": self._request.format_identifier,
-                "file": str(self._request.actual_file.path),
-                "mode": self._request.mode.value,
-            }
         return {
             "status": self.status.value,
-            "request": request,
+            "request": {
+                "format_identifier": self._request.format_identifier.id,
+                "file": str(self._request.actual_file.path),
+                "mode": self._request.mode.value,
+            },
             "events": [e.to_dict() for e in self._events],
             "errors": [e.to_dict() for e in self.errors()],
             "warnings": [e.to_dict() for e in self.warnings()],
