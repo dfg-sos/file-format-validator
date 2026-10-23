@@ -25,16 +25,12 @@ Integrating the format validator into your project can be achieved with the [Val
 - GDAL
 
 ### Environment
-It is recommended to work in a virtual environment (venv). To create one and install the packages, run the following commands from project root:
+Dependencies are managed with [uv](https://docs.astral.sh/uv/). To create a virtual environment and install the package with its development dependencies, run from project root:
 
 ```sh
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -U pip
-python -m pip install -e .
+uv sync
 ```
 # Tests
 ```sh
-python -m pip install -e .[test]
-python -m pytest
+uv run pytest
 ```

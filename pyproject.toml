@@ -27,11 +27,15 @@ dependencies = [
     "tifffile",
     "rasterio",
     "cfgrib",
-    "rio_cogeo"
+    "rio_cogeo",
+    "eccodeslib"
 ]
 
-[project.optional-dependencies]
-test = [
+[dependency-groups]
+dev = [
     "pytest",
     "pytest-cov"
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
