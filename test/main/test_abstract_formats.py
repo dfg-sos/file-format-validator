@@ -2,7 +2,6 @@
 from pathlib import Path
 import pytest
 
-import format_validator as fv
 from format_validator import (
     FormatIdentifier,
     FileInput,
@@ -11,6 +10,9 @@ from format_validator import (
     ValidationStatus,
     UnsupportedMetadataKeys,
     Cause,
+    build_request,
+    metadata_keys,
+    validate,
 )
 from format_validator.model import (
     FileFormatValidator,
@@ -23,35 +25,35 @@ from test.fixtures import geotiff_input, geotiff_no_cog_input, geojson_input, wg
 
 
 def parse(identifier: FormatIdentifier, values) -> object:
-    """The metadata object ``fv.request`` builds from plain strings."""
-    return fv.request(identifier, FileInput(path=Path("file")), ValidationMode.BASIC, values).metadata
+    """The metadata object ``build_request`` builds from plain strings."""
+    return build_request(identifier, FileInput(path=Path("file")), ValidationMode.BASIC, values).metadata
 
 
 class TestAbstractFormats:
     @pytest.mark.parametrize("identifier", [FormatIdentifier.RASTER, FormatIdentifier.GIS])
     def test_valid_for_a_leaf(self, geotiff_input, identifier):
-        result = fv.validate(fv.request(identifier, geotiff_input, ValidationMode.FULL))
+        result = validate(build_request(identifier, geotiff_input, ValidationMode.FULL))
         assert result.status == ValidationStatus.SUCCESS
         assert any(f"a format of '{identifier}'" in info.message for info in result.infos())
 
     @pytest.mark.parametrize("mode", list(ValidationMode))
     def test_extension_of_no_leaf(self, geotiff_input, mode):
-        result = fv.validate(fv.request(FormatIdentifier.VECTOR, geotiff_input, mode))
+        result = validate(build_request(FormatIdentifier.VECTOR, geotiff_input, mode))
         assert result.status == ValidationStatus.FAILURE
         assert [error.cause for error in result.errors()] == [Cause.EXTENSION_MISMATCH]
 
     def test_invalid_for_all_leaves(self, geotiff_no_cog_input):
         # The file's CRS is EPSG:32617
-        result = fv.validate(
-            fv.request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.FULL, {"crs": "EPSG:4326"})
+        result = validate(
+            build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.FULL, {"crs": "EPSG:4326"})
         )
         assert result.status == ValidationStatus.FAILURE
         assert any(error.cause == Cause.METADATA_MISMATCH for error in result.errors())
         assert any(info.message.startswith("Validated as 'GeoTIFF'") for info in result.infos())
 
     def test_metadata_mismatch_for_vector(self, geojson_input):
-        result = fv.validate(
-            fv.request(FormatIdentifier.VECTOR, geojson_input, ValidationMode.FULL, {"geometry_type": "Point"})
+        result = validate(
+            build_request(FormatIdentifier.VECTOR, geojson_input, ValidationMode.FULL, {"geometry_type": "Point"})
         )
         assert result.status == ValidationStatus.FAILURE
 
@@ -66,7 +68,7 @@ class TestAbstractMetadata:
         ],
     )
     def test_keys_shared_by_all_leaves(self, identifier, keys):
-        assert fv.metadata_keys(identifier) == keys
+        assert metadata_keys(identifier) == keys
 
     def test_parse(self, wgs84_crs):
         assert parse(FormatIdentifier.RASTER, {"crs": "EPSG:4326"}) == EOMetadata(crs=wgs84_crs)
@@ -113,8 +115,8 @@ class TestAbstractResult:
 
         return register
 
-    def validate(self) -> ValidationResult:
-        return fv.validate(fv.request(ABSTRACT, FileInput(path=Path("file.dummy")), ValidationMode.FULL))
+    def validate_abstract(self) -> ValidationResult:
+        return validate(build_request(ABSTRACT, FileInput(path=Path("file.dummy")), ValidationMode.FULL))
 
     @pytest.mark.parametrize(
         "status_a, status_b, expected",
@@ -126,21 +128,21 @@ class TestAbstractResult:
     )
     def test_status(self, register, status_a, status_b, expected):
         register(status_a, status_b)
-        assert self.validate().status == expected
+        assert self.validate_abstract().status == expected
 
     def test_success_keeps_only_the_valid_leaf(self, register):
         register(ValidationStatus.FAILURE, ValidationStatus.SUCCESS)
-        result = self.validate()
+        result = self.validate_abstract()
         assert result.errors() == []
         assert result.infos()[-1].message == "File is valid as 'test_leaf_b', a format of 'test_abstract'."
 
     def test_uncertain_keeps_only_uncertain_leaves(self, register):
         register(ValidationStatus.FAILURE, ValidationStatus.UNCERTAIN)
-        result = self.validate()
+        result = self.validate_abstract()
         assert result.errors() == []
         assert [info.message for info in result.infos()] == ["Validated as 'test_leaf_b', a format of 'test_abstract':"]
 
     def test_failure_keeps_all_leaves(self, register):
         register(ValidationStatus.FAILURE, ValidationStatus.FAILURE)
-        result = self.validate()
+        result = self.validate_abstract()
         assert [error.message for error in result.errors()] == ["failure", "failure"]

@@ -3,7 +3,7 @@
 The extension API for writing validators lives in ``format_validator.registry``,
 ``format_validator.model`` and ``format_validator.validators``.
 """
-from .validator import supported_formats, metadata_keys, request, validate
+from .validator import supported_formats, metadata_keys, build_request, validate
 from .translator import FormatTranslator
 from .model import (
     # Input
@@ -30,7 +30,7 @@ from . import validators as _validators  # noqa: F401
 __all__ = [
     "supported_formats",
     "metadata_keys",
-    "request",
+    "build_request",
     "validate",
     "FormatTranslator",
     "FormatIdentifier",

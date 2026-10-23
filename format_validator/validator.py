@@ -37,7 +37,7 @@ def metadata_keys(format_identifier: FormatIdentifier) -> frozenset[str]:
     return frozenset.intersection(*(validator.metadata_keys() for validator in validators)) if validators else frozenset()
 
 
-def request(
+def build_request(
     format_identifier: FormatIdentifier,
     actual_file: FileInput,
     mode: ValidationMode,
