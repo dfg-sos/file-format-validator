@@ -347,11 +347,14 @@ class TestGeoPackageValidatorRegressions:
             actual_file=geopackage_input,
             mode=mode,
         )
-        with patch.object(GeoPackageValidator, "_load") as load, patch.object(GeoPackageValidator, "_read") as read:
+        module = "format_validator.validators.eo.geopackage_validator"
+        with patch(f"{module}.fiona.open") as fiona_open, patch(f"{module}.fiona.listlayers") as listlayers, \
+                patch(f"{module}.gpd.read_file") as read_file:
             result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
-        load.assert_not_called()
-        read.assert_not_called()
+        fiona_open.assert_not_called()
+        listlayers.assert_not_called()
+        read_file.assert_not_called()
 
     def test_replaced_file_at_same_path_gives_new_result(self, geopackage_validator, tmp_path, wgs84_crs):
         path = tmp_path / "stale.gpkg"
@@ -369,14 +372,34 @@ class TestGeoPackageValidatorRegressions:
         assert geopackage_validator.validate(request).status == ValidationStatus.SUCCESS
         assert GeoPackageValidator().validate(request).status == ValidationStatus.SUCCESS
 
-    def test_no_frames_kept_after_validate(self, geopackage_validator, geopackage_input):
+    def test_full_reads_no_features_of_declared_layers(self, geopackage_validator, tmp_path, wgs84_crs):
+        path = tmp_path / "declared.gpkg"
+        _write_gpkg(path, [LineString([(0, 0), (1, 1)])])
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
-            actual_file=geopackage_input,
+            actual_file=FileInput(path=path),
             mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.LINESTRING),
         )
-        geopackage_validator.validate(request)
-        assert geopackage_validator._dfs is None
+        with patch("format_validator.validators.eo.geopackage_validator.gpd.read_file") as read_file:
+            result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+        read_file.assert_not_called()
+
+    def test_generic_geometry_layer_is_read(self, geopackage_validator, tmp_path, wgs84_crs):
+        """A layer declaring GEOMETRY may hold anything, so its features decide."""
+        path = tmp_path / "generic.gpkg"
+        gpd.GeoDataFrame(geometry=[Point(0, 0), LineString([(0, 0), (1, 1)])], crs="EPSG:4326").to_file(
+            path, driver="GPKG", geometry_type="Unknown"
+        )
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=FileInput(path=path),
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
+        )
+        assert set(geopackage_validator.get_geometry_types(request)) == {GeometryType.POINT, GeometryType.LINESTRING}
+        assert geopackage_validator.validate(request).status == ValidationStatus.FAILURE
 
     def test_gdal_default_gpkg_without_metadata_tables_is_success_with_info(self, geopackage_validator, tmp_path, wgs84_crs):
         path = tmp_path / "gdal_default.gpkg"
