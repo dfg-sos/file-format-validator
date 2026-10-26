@@ -1,33 +1,36 @@
-from typing import List, Optional, Dict
-from attr import dataclass
+from typing import List, Optional
 from format_validator.model import Info
 import geopandas as gpd
 import fiona
 from pyproj import CRS
 from shapely import GeometryType
 
-from format_validator.model import ValidationResult,ValidationRequest, Warning, Cause, Error, FormatIdentifier
+from format_validator.model import ValidationResult,ValidationRequest, ValidationMode, Cause, Error, FormatIdentifier
 from .raster_file_validator import RasterFileValidator
 from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
 
 @registry.register(FormatIdentifier.GEOPACKAGE)
-@dataclass
 class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure correct use of _validate_open method, implementation of left parent is used due to MRO (https://docs.python.org/3/howto/mro.html)
-    geopandas_dfs: Dict[str,List[gpd.GeoDataFrame]] = {}
 
-    def _read(self, request: ValidationRequest) -> List[gpd.GeoDataFrame]:
-        if self.geopandas_dfs.get(str(request.actual_file.path)) is not None:
-            return self.geopandas_dfs[str(request.actual_file.path)]
+    def __init__(self):
+        super().__init__()
+        # Layers loaded for the running validate() call only, cleared when it returns.
+        self._dfs: Optional[List[gpd.GeoDataFrame]] = None
+
+    @staticmethod
+    def _load(request: ValidationRequest) -> List[gpd.GeoDataFrame]:
         layers = fiona.listlayers(str(request.actual_file.path))
         dfs = []
         for layer in layers:
             df = gpd.read_file(str(request.actual_file.path), layer=layer)
             df.attrs["layer"] = layer
             dfs.append(df)
-        self.geopandas_dfs[str(request.actual_file.path)] = dfs
         return dfs
+
+    def _read(self, request: ValidationRequest) -> List[gpd.GeoDataFrame]:
+        return self._dfs if self._dfs is not None else self._load(request)
 
     def get_extensions(self) -> List[str]:
         return ['.gpkg']
@@ -61,15 +64,16 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             )
         missing_recommended = RECOMMENDED_TABLES - tables
         if missing_recommended:
-            return ValidationResult.uncertain(
+            # Optional in the GeoPackage specification, GDAL only creates them when they are used.
+            return ValidationResult.success(
                 request,
-                Warning(message=f"GeoPackage missing recommended tables: {sorted(list(missing_recommended))}", cause=Cause.STRUCTURAL_MALFORMED)
+                Info(message=f"GeoPackage has no optional tables: {sorted(list(missing_recommended))}")
             )
         return ValidationResult.success(request)
     
     def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
         try:
-            self.geopandas_df = self._read(request)
+            self._read(request)
             return self.assert_gpkg_tables(request)
         except Exception as exc:
             return ValidationResult.failure(request,
@@ -137,7 +141,17 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
         return list(types)
 
     def validate(self, request: ValidationRequest) -> ValidationResult:
-        if self.has_vector_layers(request):
+        if request.mode != ValidationMode.FULL:
+            # Basic and structural checks are the same for both parents and must not open the file.
             return VectorFileValidator.validate(self, request)
-        else:
-            return RasterFileValidator.validate(self, request)
+        try:
+            try:
+                self._dfs = self._load(request)
+            except Exception:
+                self._dfs = None  # assert_can_open reports the read error
+            if self.has_vector_layers(request):
+                return VectorFileValidator.validate(self, request)
+            else:
+                return RasterFileValidator.validate(self, request)
+        finally:
+            self._dfs = None

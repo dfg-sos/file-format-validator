@@ -1,6 +1,11 @@
 """Test cases for GeoPackage Validator using real data files."""
+import sqlite3
 import pytest
 from pathlib import Path
+from unittest.mock import patch
+
+import geopandas as gpd
+from shapely.geometry import LineString, Point, Polygon
 
 from format_validator.validators.eo.geopackage_validator import GeoPackageValidator
 from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
@@ -324,3 +329,68 @@ class TestGeoPackageValidatorFullMode:
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
 
+
+
+# ========== Regression Tests ==========
+
+def _write_gpkg(path, geometries):
+    gpd.GeoDataFrame(geometry=geometries, crs="EPSG:4326").to_file(path, driver="GPKG")
+
+
+class TestGeoPackageValidatorRegressions:
+    """Reading only in FULL mode, no reads cached across calls, optional tables not reported as warning."""
+
+    @pytest.mark.parametrize("mode", [ValidationMode.BASIC, ValidationMode.STRUCTURAL])
+    def test_basic_and_structural_do_not_read_file(self, geopackage_validator, geopackage_input, mode):
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=geopackage_input,
+            mode=mode,
+        )
+        with patch.object(GeoPackageValidator, "_load") as load, patch.object(GeoPackageValidator, "_read") as read:
+            result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+        load.assert_not_called()
+        read.assert_not_called()
+
+    def test_replaced_file_at_same_path_gives_new_result(self, geopackage_validator, tmp_path, wgs84_crs):
+        path = tmp_path / "stale.gpkg"
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=FileInput(path=path),
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
+        )
+        _write_gpkg(path, [LineString([(0, 0), (1, 1)])])
+        assert geopackage_validator.validate(request).status == ValidationStatus.FAILURE
+
+        path.unlink()
+        _write_gpkg(path, [Polygon([(0, 0), (1, 0), (1, 1)])])
+        assert geopackage_validator.validate(request).status == ValidationStatus.SUCCESS
+        assert GeoPackageValidator().validate(request).status == ValidationStatus.SUCCESS
+
+    def test_no_frames_kept_after_validate(self, geopackage_validator, geopackage_input):
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=geopackage_input,
+            mode=ValidationMode.FULL,
+        )
+        geopackage_validator.validate(request)
+        assert geopackage_validator._dfs is None
+
+    def test_gdal_default_gpkg_without_metadata_tables_is_success_with_info(self, geopackage_validator, tmp_path, wgs84_crs):
+        path = tmp_path / "gdal_default.gpkg"
+        _write_gpkg(path, [Point(0, 0)])
+        with sqlite3.connect(path) as conn:
+            tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        assert "gpkg_metadata" not in tables
+
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=FileInput(path=path),
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+        assert any("optional tables" in info.message for info in result.infos())
