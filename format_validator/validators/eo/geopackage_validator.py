@@ -1,14 +1,15 @@
 import sqlite3
+from contextlib import closing
+from pathlib import Path
 from typing import List, Optional, Tuple
-import geopandas as gpd
 import fiona
 from pyproj import CRS
 from shapely import GeometryType
 
 from format_validator.model import Info, ValidationResult, ValidationRequest, ValidationMode, Cause, Error, FormatIdentifier
-from .eo_file_format_validator import GEOMETRY_TYPE_BY_NAME
+from .eo_file_format_validator import geometry_type_from_string
 from .raster_file_validator import RasterFileValidator
-from .vector_file_validator import VectorFileValidator
+from .vector_file_validator import VectorFileValidator, sample_geometry_types
 from ...registry import registry
 
 
@@ -17,7 +18,8 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
     """Validates a GeoPackage by its declarations, not its features: the layers, the geometry type
     each layer declares (gpkg_geometry_columns) and their CRS, read through fiona without loading
     features. This keeps the cost independent of the file size, like the Shapefile validator reading
-    the header. Only a layer declaring the generic GEOMETRY type is read to find its actual types."""
+    the header. Only a layer declaring the generic GEOMETRY type has its features sampled.
+    A GeoPackage without vector layers is validated as a raster through rasterio."""
 
     def get_extensions(self) -> List[str]:
         return ['.gpkg']
@@ -52,12 +54,13 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             - Recommended tables: gpkg_extensions, gpkg_metadata, gpkg_metadata_reference
         """
         try:
-            conn = sqlite3.connect(f"file:{request.actual_file.path}?mode=ro", uri=True)
-            conn.row_factory = sqlite3.Row
-            cur = conn.cursor()
-            cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            tables = {row["name"] for row in cur.fetchall()}
-            conn.close()
+            # as_uri() escapes characters like '#' and '?' that would otherwise end the path
+            uri = Path(request.actual_file.path).resolve().as_uri() + "?mode=ro"
+            with closing(sqlite3.connect(uri, uri=True)) as conn:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = {row["name"] for row in cur.fetchall()}
         except Exception as exc:
             return ValidationResult.failure(
                 request,
@@ -81,13 +84,11 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
         return ValidationResult.success(request)
 
     def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
-        try:
-            self._declarations(request)
-            return self.assert_gpkg_tables(request)
-        except Exception as exc:
-            return ValidationResult.failure(request,
-                Error(message=f"Could not open GeoPackage file with Fiona: \n{exc}", cause=Cause.FILE_OPEN_ERROR)
-            )
+        result = self.assert_gpkg_tables(request)
+        if not result or self.has_vector_layers(request):
+            return result
+        # Fiona found no vector layer, so the GeoPackage must hold raster tiles
+        return result + RasterFileValidator.assert_can_open(self, request)
 
     def has_vector_layers(self, request: ValidationRequest) -> bool:
         try:
@@ -96,6 +97,8 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             return False
 
     def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
+        if not self.has_vector_layers(request):
+            return RasterFileValidator.get_crs(self, request)
         try:
             # CRS of the first vector layer that declares one
             for _, _, crs in self._vector_layers(request):
@@ -108,27 +111,25 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
     def get_geometry_types(self, request: ValidationRequest) -> List[GeometryType]:
         """Get the geometry types the vector layers declare.
 
-        A layer declaring the generic GEOMETRY type (fiona: "Unknown") may hold any type, so its
-        features are read to find the types actually present.
+        Like the Shapefile validator, this uses the declared geometry type instead of the features.
+        A layer declaring the generic GEOMETRY type (Fiona: "Unknown") may hold any type, so its
+        features are sampled like in VectorFileValidator.
 
         Args:
             request: The validation request containing the file to analyze
 
         Returns:
-            List of GeometryType enum values declared in (or, for generic layers, found in) the file
+            List of GeometryType enum values declared in (or, for generic layers, sampled from) the file
         """
         path = str(request.actual_file.path)
         types = set()
         try:
-            for layer, geometry, _ in self._vector_layers(request):
-                declared = geometry.removeprefix("3D ").lower()
-                if declared in GEOMETRY_TYPE_BY_NAME and declared != "geometrycollection":
-                    types.add(GEOMETRY_TYPE_BY_NAME[declared])
+            for layer, geom_type_str, _ in self._vector_layers(request):
+                if geom_type_str != "Unknown":
+                    types.add(geometry_type_from_string(geom_type_str.removeprefix("3D ")))
                     continue
-                geometry = gpd.read_file(path, layer=layer, columns=[]).geometry
-                for name in geometry.dropna().geom_type.unique():
-                    if name.lower() in GEOMETRY_TYPE_BY_NAME:
-                        types.add(GEOMETRY_TYPE_BY_NAME[name.lower()])
+                with fiona.open(path, layer=layer) as ds:
+                    types.update(sample_geometry_types(ds))
         except Exception:
             # Return empty list on error - let assert_geometry_type handle it
             pass
@@ -143,7 +144,7 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
             try:
                 self._declared = self._read_declarations(request)
             except Exception:
-                self._declared = None  # assert_can_open reports the error
+                self._declared = []  # no vector layer Fiona can open: validated as raster
             if self.has_vector_layers(request):
                 return VectorFileValidator.validate(self, request)
             else:
