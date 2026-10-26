@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Optional, List
+from typing import Iterator, Optional, List
 from pyproj import CRS
 from shapely import GeometryType
 import fiona
@@ -19,6 +19,18 @@ COMPATIBLE_GEOMETRY_TYPES = {
     GeometryType.MULTIPOLYGON: {GeometryType.POLYGON, GeometryType.MULTIPOLYGON},
 }
 
+MAX_FEATURES_TO_INSPECT = 50  # Sample up to first 50 features
+
+
+def sample_geometry_types(collection: fiona.Collection) -> Iterator[GeometryType]:
+    """Yield the geometry types of the first MAX_FEATURES_TO_INSPECT features of an open Fiona collection."""
+    for feature, _ in zip(collection, range(MAX_FEATURES_TO_INSPECT)):
+        geom = feature.get('geometry')
+        if geom:
+            geom_type_str = geom.get('type')
+            if geom_type_str:
+                yield geometry_type_from_string(geom_type_str)
+
 
 class VectorFileValidator(EOFileFormatValidator, ABC):
     def metadata_keys(self) -> frozenset[str]:
@@ -37,18 +49,11 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
             A set of GeometryType enum values found in the file.
             Returns an empty list if no geometries are found.
         """
-        MAX_FEATURES_TO_INSPECT = 50  # Sample up to first 50 features
         types = set()
-        
+
         try:
             with fiona.open(str(request.actual_file.path)) as ds:
-                for feature, _ in zip(ds, range(MAX_FEATURES_TO_INSPECT)):
-                    geom = feature.get('geometry')
-                    if geom:
-                        geom_type_str = geom.get('type')
-                        geom_type = geometry_type_from_string(geom_type_str) if geom_type_str else None
-                        if geom_type is not None:
-                            types.add(geom_type)
+                types.update(sample_geometry_types(ds))
         except Exception:
             # Return empty list on error - let assert_geometry_type handle it
             pass

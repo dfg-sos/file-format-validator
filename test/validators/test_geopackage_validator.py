@@ -8,6 +8,7 @@ import geopandas as gpd
 from shapely.geometry import LineString, Point, Polygon
 
 from format_validator.validators.eo.geopackage_validator import GeoPackageValidator
+from format_validator.validators.eo.vector_file_validator import MAX_FEATURES_TO_INSPECT
 from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
 from format_validator.validators import EOMetadata
 from shapely import GeometryType
@@ -347,11 +348,14 @@ class TestGeoPackageValidatorRegressions:
             actual_file=geopackage_input,
             mode=mode,
         )
-        with patch.object(GeoPackageValidator, "_load") as load, patch.object(GeoPackageValidator, "_read") as read:
+        module = "format_validator.validators.eo.geopackage_validator"
+        with patch(f"{module}.fiona.open") as fiona_open, patch(f"{module}.fiona.listlayers") as listlayers, \
+                patch(f"{module}.sqlite3.connect") as connect:
             result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
-        load.assert_not_called()
-        read.assert_not_called()
+        fiona_open.assert_not_called()
+        listlayers.assert_not_called()
+        connect.assert_not_called()
 
     def test_replaced_file_at_same_path_gives_new_result(self, geopackage_validator, tmp_path, wgs84_crs):
         path = tmp_path / "stale.gpkg"
@@ -369,14 +373,34 @@ class TestGeoPackageValidatorRegressions:
         assert geopackage_validator.validate(request).status == ValidationStatus.SUCCESS
         assert GeoPackageValidator().validate(request).status == ValidationStatus.SUCCESS
 
-    def test_no_frames_kept_after_validate(self, geopackage_validator, geopackage_input):
+    def test_full_reads_no_features_of_declared_layers(self, geopackage_validator, tmp_path, wgs84_crs):
+        path = tmp_path / "declared.gpkg"
+        _write_gpkg(path, [LineString([(0, 0), (1, 1)])])
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
-            actual_file=geopackage_input,
+            actual_file=FileInput(path=path),
             mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.LINESTRING),
         )
-        geopackage_validator.validate(request)
-        assert geopackage_validator._dfs is None
+        with patch("format_validator.validators.eo.geopackage_validator.sample_geometry_types") as sample:
+            result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+        sample.assert_not_called()
+
+    def test_generic_geometry_layer_is_sampled(self, geopackage_validator, tmp_path, wgs84_crs):
+        """A layer declaring GEOMETRY may hold anything, so its features decide."""
+        path = tmp_path / "generic.gpkg"
+        gpd.GeoDataFrame(geometry=[Point(0, 0), LineString([(0, 0), (1, 1)])], crs="EPSG:4326").to_file(
+            path, driver="GPKG", geometry_type="Unknown"
+        )
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=FileInput(path=path),
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
+        )
+        assert set(geopackage_validator.get_geometry_types(request)) == {GeometryType.POINT, GeometryType.LINESTRING}
+        assert geopackage_validator.validate(request).status == ValidationStatus.FAILURE
 
     def test_gdal_default_gpkg_without_metadata_tables_is_success_with_info(self, geopackage_validator, tmp_path, wgs84_crs):
         path = tmp_path / "gdal_default.gpkg"
@@ -394,3 +418,39 @@ class TestGeoPackageValidatorRegressions:
         result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
         assert any("optional tables" in info.message for info in result.infos())
+
+    def test_generic_geometry_layer_samples_only_first_features(self, geopackage_validator, tmp_path):
+        path = tmp_path / "generic_large.gpkg"
+        geometries = [Point(i, 0) for i in range(MAX_FEATURES_TO_INSPECT)] + [LineString([(0, 0), (1, 1)])]
+        gpd.GeoDataFrame(geometry=geometries, crs="EPSG:4326").to_file(path, driver="GPKG", geometry_type="Unknown")
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=FileInput(path=path),
+            mode=ValidationMode.FULL,
+        )
+        assert geopackage_validator.get_geometry_types(request) == [GeometryType.POINT]
+
+    def test_path_with_uri_characters(self, geopackage_validator, tmp_path, wgs84_crs):
+        """'#', '?' and '%' in the path must not cut the sqlite URI short and create another database."""
+        path = tmp_path / "a#b?c%20.gpkg"
+        _write_gpkg(path, [Point(0, 0)])
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=FileInput(path=path),
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
+        )
+        assert geopackage_validator.validate(request).status == ValidationStatus.SUCCESS
+        assert list(tmp_path.iterdir()) == [path]
+
+    def test_raster_only_full(self, geopackage_validator, geopackage_raster_input, wgs84_crs):
+        """Fiona cannot open a GeoPackage without vector layers, so it is validated as a raster."""
+        request = ValidationRequest(
+            format_identifier=FormatIdentifier.GEOPACKAGE,
+            actual_file=geopackage_raster_input,
+            mode=ValidationMode.FULL,
+            metadata=EOMetadata(crs=wgs84_crs),
+        )
+        result = geopackage_validator.validate(request)
+        assert result.status == ValidationStatus.SUCCESS
+        assert geopackage_validator.get_crs(request) == wgs84_crs
