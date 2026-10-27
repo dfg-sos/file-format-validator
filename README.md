@@ -82,6 +82,24 @@ translator.to_local("https://dfg-sos.github.io/ontologies/eo-formats#NetCDF_CF")
 
 Unknown ids raise a `ValueError` when the mapping is loaded. Translators merge with `a.merge(b)` or `a | b`. An IRI mapped to different ids raises a `ValueError`. See the [test mapping](test/data/mappings/eo-formats.json), which is checked against a [copy of the ontology](test/data/ontologies/eo-formats.owl).
 
+## Validator Plugins
+Validators for other domains can ship as separate packages. A plugin package registers its validators with `@registry.register(...)` and declares the module that does so under the entry-point group `format_validator.validators` in its `pyproject.toml`:
+
+```toml
+[project.entry-points."format_validator.validators"]
+bio = "format_validator_bio.validators"
+```
+
+The consumer loads all installed plugins once at startup, before it loads mappings that refer to plugin identifiers:
+
+```python
+from format_validator.registry import registry
+
+registry.load_plugins()   # names of the loaded plugins, e.g. ["bio"]
+```
+
+A plugin that fails to import is logged and skipped. A plugin that registers an identifier or validator class that is already taken raises a `DuplicateRegistrationError` (a `KeyError`). Plugins run in-process as trusted code.
+
 ## Installation
 
 ### System Requirements

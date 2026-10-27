@@ -1,5 +1,6 @@
 import inspect
 import importlib
+import importlib.metadata
 import pkgutil
 from types import ModuleType
 from typing import Dict, Type, Optional, List, Callable
@@ -8,6 +9,12 @@ import logging
 from format_validator.model import FileFormatValidator, FormatIdentifier
 
 logger = logging.getLogger(__name__)
+
+PLUGIN_ENTRY_POINT_GROUP = "format_validator.validators"
+
+
+class DuplicateRegistrationError(KeyError):
+    """An identifier or validator class is registered twice."""
 
 
 def import_module(full_name: str) -> Optional[ModuleType]:
@@ -48,6 +55,34 @@ class _Registry:
             full_name = f"{pkg_name}.{mod_name}"
             import_module(full_name)
 
+    def load_plugins(self, group: str = PLUGIN_ENTRY_POINT_GROUP) -> List[str]:
+        """
+        Imports every module registered under the entry-point ``group`` so that
+        validators shipped by other packages auto-register. A package declares
+        its validators in its ``pyproject.toml``::
+
+            [project.entry-points."format_validator.validators"]
+            bio = "format_validator_bio.validators"
+
+        A plugin that fails to import is logged and skipped. A plugin that
+        registers an identifier or class that is already taken raises a
+        ``DuplicateRegistrationError``.
+
+        Returns the names of the entry points that were loaded.
+        """
+        loaded = []
+        for ep in importlib.metadata.entry_points(group=group):
+            try:
+                ep.load()
+            except DuplicateRegistrationError:
+                raise
+            except Exception as e:
+                logger.exception(f"Failed to load validator plugin '{ep.name}' ({ep.value}): {e}.")
+                continue
+            logger.info(f"Loaded validator plugin '{ep.name}' ({ep.value}).")
+            loaded.append(ep.name)
+        return loaded
+
     def register(
         self, identifier: str | FormatIdentifier
     ) -> Callable[[Type[FileFormatValidator]], Type[FileFormatValidator]]:
@@ -64,12 +99,12 @@ class _Registry:
 
         def decorator(cls: Type[FileFormatValidator]) -> Type[FileFormatValidator]:
             if identifier in self._id_to_validators:
-                raise KeyError(
+                raise DuplicateRegistrationError(
                     f"Identifier '{identifier}' already registered for "
                     f"{self._id_to_validators[identifier]}"
                 )
             if cls in self._validators_to_id:
-                raise KeyError(
+                raise DuplicateRegistrationError(
                     f"Validator {cls} is already registered under identifier "
                     f"'{self._validators_to_id[cls]}'"
                 )
