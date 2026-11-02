@@ -2,11 +2,13 @@
 This package provides a validation tool for file formats to examine a file according to a specified format. It provides ontology-agnostic format identifiers to uniquely reference different file formats. For existing ontologies a mapping to the internal formats can be supplied as a json file. For a supported format, the [Format Validator](format_validator/validator.py) can decide for a certain input file whether it adheres to that format specification. Depending on the selected mode, the file extension is validated, the file is opened, and additional metadata is validated. 
 
 ## Validation Modes
-| Mode | File Extension | File Open | Metadata Validation|
+| Mode | File Extension | File Open, Metadata Validation | Content Validation |
 |---|---|---|---|
 | `BASIC` | &#10004; | &#10005; | &#10005; 
-| `STRUCTURAL` | &#10004; | &#10004; | &#10005; 
-| `FULL` | &#10004; | &#10004; | &#10004;
+| `METADATA` | &#10004; | &#10004; | &#10005; 
+| `CONTENT` | &#10004; | &#10004; | &#10004;
+
+`METADATA` reads only the header or declarations of a file (e.g. the CRS, the declared geometry type), so its cost does not grow with the file size. `CONTENT` also reads every pixel, feature or record: truncated or corrupt data fails, and every geometry must be compatible with the expected geometry type, not only the declared or sampled ones. It runs only if the metadata checks did not fail. Formats without a content reader (KML, WKT) report `UNCERTAIN` in `CONTENT` mode.
 
 ## Metadata Validation
 Currently, only EO metadata validation is supported. The metadata is passed to a request by setting a sidecar *metadata object* to `ValidationRequest::metadata`
@@ -48,7 +50,7 @@ try:
     request: ValidationRequest = build_request(
         FormatIdentifier.GEOJSON,
         FileInput(path=Path("buildings.geojson")),
-        ValidationMode.FULL,
+        ValidationMode.METADATA,
         expected_metadata={"crs": "EPSG:4326", "geometry_type": "Polygon"},
     )
 except InvalidRequest as exc:

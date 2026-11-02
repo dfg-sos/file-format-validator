@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Mapping, Optional
 
 from .validation_request import ValidationRequest,ValidationMode
-from .validation_result import ValidationResult,Error, Cause 
+from .validation_result import ValidationResult, ValidationStatus, Error, Warning, Cause 
 
 """Validator base class for any file-based validation."""
 class FileFormatValidator(ABC):
@@ -43,17 +43,22 @@ class FileFormatValidator(ABC):
                 result.set_failure(Error(message=f"Input '{path}' is not a file.", cause=Cause.PATH_ERROR))
         return result
 
+    def assert_metadata(self, request: ValidationRequest) -> ValidationResult:
+        """Checks that read only the file's header or declarations, so their cost does not grow with the file size."""
+        return self.assert_can_open(request)
+
+    def assert_content(self, request: ValidationRequest) -> ValidationResult:
+        """Read every pixel, feature or record of the file. Validators that cannot read the content report UNCERTAIN."""
+        return ValidationResult.uncertain(request, Warning(message=f"Content validation is not implemented for format {request.format_identifier}, only its metadata was validated.", cause=Cause.UNKNOWN))
+
     def validate(self, request: ValidationRequest) -> ValidationResult:
         validation_result = ValidationResult(request)
-        match request.mode:
-            case ValidationMode.BASIC:
-                validation_result += self.assert_extension(request=request)
-            case ValidationMode.STRUCTURAL:
-                validation_result += self.assert_extension(request)
-                validation_result += self.assert_exists(request)
-            case ValidationMode.FULL:
-                validation_result += self.assert_extension(request)
-                validation_result += self.assert_exists(request)
-                validation_result += self.assert_can_open(request)
-                # Base validator is domain-agnostic and does not perform SRS checks.
+        validation_result += self.assert_extension(request)
+        if request.mode == ValidationMode.BASIC:
+            return validation_result
+        validation_result += self.assert_exists(request)
+        validation_result += self.assert_metadata(request)
+        # Skip the costly read when the cheap checks already failed
+        if request.mode == ValidationMode.CONTENT and validation_result.status != ValidationStatus.FAILURE:
+            validation_result += self.assert_content(request)
         return validation_result
