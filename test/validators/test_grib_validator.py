@@ -73,7 +73,7 @@ class TestGRIBValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=grib_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -83,7 +83,7 @@ class TestGRIBValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -100,7 +100,7 @@ class TestGRIBValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=grib_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -110,7 +110,7 @@ class TestGRIBValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -126,7 +126,7 @@ class TestGRIBValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=grib_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = grib_validator.get_crs(request)
         assert crs is not None
@@ -136,7 +136,7 @@ class TestGRIBValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = grib_validator.get_crs(request)
         assert crs is None
@@ -152,7 +152,7 @@ class TestGRIBValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=grib_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -162,7 +162,7 @@ class TestGRIBValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = grib_validator.assert_crs(request)
@@ -207,7 +207,7 @@ class TestGRIBValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=grib_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -217,7 +217,7 @@ class TestGRIBValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -228,7 +228,7 @@ class TestGRIBValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -239,7 +239,7 @@ class TestGRIBValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -256,7 +256,7 @@ class TestGRIBValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=grib_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -266,7 +266,7 @@ class TestGRIBValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -277,7 +277,7 @@ class TestGRIBValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GRIB,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = grib_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE

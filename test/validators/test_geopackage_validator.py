@@ -80,7 +80,7 @@ class TestGeoPackageValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -90,7 +90,7 @@ class TestGeoPackageValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -107,7 +107,7 @@ class TestGeoPackageValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -117,7 +117,7 @@ class TestGeoPackageValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -133,7 +133,7 @@ class TestGeoPackageValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = geopackage_validator.get_crs(request)
@@ -145,7 +145,7 @@ class TestGeoPackageValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = geopackage_validator.get_crs(request)
@@ -162,7 +162,7 @@ class TestGeoPackageValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geopackage_validator.assert_crs(request)
@@ -173,7 +173,7 @@ class TestGeoPackageValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = geopackage_validator.assert_crs(request)
@@ -185,7 +185,7 @@ class TestGeoPackageValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -195,7 +195,7 @@ class TestGeoPackageValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geopackage_validator.assert_crs(request)
@@ -230,38 +230,38 @@ class TestGeoPackageValidatorBasicMode:
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
 
 
-# ========== Test validate() with STRUCTURAL Mode ==========
+# ========== Test validate() with METADATA Mode: existence ==========
 
 class TestGeoPackageValidatorStructuralMode:
-    """Test validate() method with STRUCTURAL mode (extension + existence)."""
+    """Test validate() method with METADATA mode (extension + existence)."""
 
     def test_validate_structural_positive(self, geopackage_validator, geopackage_input):
-        """Test STRUCTURAL mode passes for valid existing file."""
+        """Test METADATA mode passes for valid existing file."""
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_structural_negative_wrong_extension(self, geopackage_validator, geojson_input):
-        """Test STRUCTURAL mode fails for wrong extension."""
+        """Test METADATA mode fails for wrong extension."""
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
 
     def test_validate_structural_negative_nonexistent(self, geopackage_validator, nonexistent_input):
-        """Test STRUCTURAL mode fails for non-existent file."""
+        """Test METADATA mode fails for non-existent file."""
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -272,46 +272,46 @@ class TestGeoPackageValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
 
 
-# ========== Test validate() with FULL Mode ==========
+# ========== Test validate() with METADATA Mode: open and geometry ==========
 
 class TestGeoPackageValidatorFullMode:
-    """Test validate() method with FULL mode (extension + existence + open + geometry)."""
+    """Test validate() method with METADATA mode (extension + existence + open + geometry)."""
 
     def test_validate_full_positive(self, geopackage_validator, geopackage_input, wgs84_crs):
-        """Test FULL mode passes for valid GeoPackage file."""
+        """Test METADATA mode passes for valid GeoPackage file."""
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
 
     def test_validate_full_negative_wrong_geometry_type(self, geopackage_validator, geopackage_input, wgs84_crs):
-        """Test FULL mode fails for wrong geometry type."""
+        """Test METADATA mode fails for wrong geometry type."""
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         result = geopackage_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
 
     def test_validate_full_negative_wrong_format(self, geopackage_validator, geojson_input, wgs84_crs):
-        """Test FULL mode fails for wrong file format."""
+        """Test METADATA mode fails for wrong file format."""
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geopackage_validator.validate(request)
@@ -319,11 +319,11 @@ class TestGeoPackageValidatorFullMode:
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
 
     def test_validate_full_negative_nonexistent(self, geopackage_validator, nonexistent_input, wgs84_crs):
-        """Test FULL mode fails for non-existent file."""
+        """Test METADATA mode fails for non-existent file."""
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geopackage_validator.validate(request)
@@ -339,14 +339,13 @@ def _write_gpkg(path, geometries):
 
 
 class TestGeoPackageValidatorRegressions:
-    """Reading only in FULL mode, no reads cached across calls, optional tables not reported as warning."""
+    """No reads in BASIC mode, no reads cached across calls, optional tables not reported as warning."""
 
-    @pytest.mark.parametrize("mode", [ValidationMode.BASIC, ValidationMode.STRUCTURAL])
-    def test_basic_and_structural_do_not_read_file(self, geopackage_validator, geopackage_input, mode):
+    def test_basic_does_not_read_file(self, geopackage_validator, geopackage_input):
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_input,
-            mode=mode,
+            mode=ValidationMode.BASIC,
         )
         module = "format_validator.validators.eo.geopackage_validator"
         with patch(f"{module}.fiona.open") as fiona_open, patch(f"{module}.fiona.listlayers") as listlayers, \
@@ -362,7 +361,7 @@ class TestGeoPackageValidatorRegressions:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=FileInput(path=path),
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         _write_gpkg(path, [LineString([(0, 0), (1, 1)])])
@@ -379,7 +378,7 @@ class TestGeoPackageValidatorRegressions:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=FileInput(path=path),
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.LINESTRING),
         )
         with patch("format_validator.validators.eo.geopackage_validator.sample_geometry_types") as sample:
@@ -396,7 +395,7 @@ class TestGeoPackageValidatorRegressions:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=FileInput(path=path),
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         assert set(geopackage_validator.get_geometry_types(request)) == {GeometryType.POINT, GeometryType.LINESTRING}
@@ -412,7 +411,7 @@ class TestGeoPackageValidatorRegressions:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=FileInput(path=path),
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         result = geopackage_validator.validate(request)
@@ -426,7 +425,7 @@ class TestGeoPackageValidatorRegressions:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=FileInput(path=path),
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         assert geopackage_validator.get_geometry_types(request) == [GeometryType.POINT]
 
@@ -437,7 +436,7 @@ class TestGeoPackageValidatorRegressions:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=FileInput(path=path),
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         assert geopackage_validator.validate(request).status == ValidationStatus.SUCCESS
@@ -448,7 +447,7 @@ class TestGeoPackageValidatorRegressions:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPACKAGE,
             actual_file=geopackage_raster_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geopackage_validator.validate(request)

@@ -32,7 +32,7 @@ def parse(identifier: FormatIdentifier, values) -> object:
 class TestAbstractFormats:
     @pytest.mark.parametrize("identifier", [FormatIdentifier.RASTER, FormatIdentifier.GIS])
     def test_valid_for_a_leaf(self, geotiff_input, identifier):
-        result = validate(build_request(identifier, geotiff_input, ValidationMode.FULL))
+        result = validate(build_request(identifier, geotiff_input, ValidationMode.METADATA))
         assert result.status == ValidationStatus.SUCCESS
         assert any(f"a format of '{identifier}'" in info.message for info in result.infos())
 
@@ -45,7 +45,7 @@ class TestAbstractFormats:
     def test_invalid_for_all_leaves(self, geotiff_no_cog_input):
         # The file's CRS is EPSG:32617
         result = validate(
-            build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.FULL, {"crs": "EPSG:4326"})
+            build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.METADATA, {"crs": "EPSG:4326"})
         )
         assert result.status == ValidationStatus.FAILURE
         assert any(error.cause == Cause.METADATA_MISMATCH for error in result.errors())
@@ -53,7 +53,7 @@ class TestAbstractFormats:
 
     def test_metadata_mismatch_for_vector(self, geojson_input):
         result = validate(
-            build_request(FormatIdentifier.VECTOR, geojson_input, ValidationMode.FULL, {"geometry_type": "Point"})
+            build_request(FormatIdentifier.VECTOR, geojson_input, ValidationMode.METADATA, {"geometry_type": "Point"})
         )
         assert result.status == ValidationStatus.FAILURE
 
@@ -116,7 +116,7 @@ class TestAbstractResult:
         return register
 
     def validate_abstract(self) -> ValidationResult:
-        return validate(build_request(ABSTRACT, FileInput(path=Path("file.dummy")), ValidationMode.FULL))
+        return validate(build_request(ABSTRACT, FileInput(path=Path("file.dummy")), ValidationMode.METADATA))
 
     @pytest.mark.parametrize(
         "status_a, status_b, expected",

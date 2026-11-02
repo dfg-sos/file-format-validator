@@ -74,7 +74,7 @@ class TestGPXValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -84,7 +84,7 @@ class TestGPXValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -101,7 +101,7 @@ class TestGPXValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -111,7 +111,7 @@ class TestGPXValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -127,7 +127,7 @@ class TestGPXValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = gpx_validator.get_crs(request)
@@ -139,7 +139,7 @@ class TestGPXValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = gpx_validator.get_crs(request)
         assert crs is None
@@ -155,7 +155,7 @@ class TestGPXValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = gpx_validator.assert_crs(request)
@@ -166,7 +166,7 @@ class TestGPXValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = gpx_validator.assert_crs(request)
@@ -178,7 +178,7 @@ class TestGPXValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -188,7 +188,7 @@ class TestGPXValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = gpx_validator.assert_crs(request)
@@ -233,7 +233,7 @@ class TestGPXValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -243,7 +243,7 @@ class TestGPXValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -254,7 +254,7 @@ class TestGPXValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -265,7 +265,7 @@ class TestGPXValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gpx_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -282,7 +282,7 @@ class TestGPXValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=gpx_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.LINESTRING),
         )
         result = gpx_validator.validate(request)
@@ -293,7 +293,7 @@ class TestGPXValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = gpx_validator.validate(request)
@@ -305,7 +305,7 @@ class TestGPXValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GPX,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = gpx_validator.validate(request)

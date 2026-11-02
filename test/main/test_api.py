@@ -97,7 +97,7 @@ class TestValidate:
         dummy_request_full = ValidationRequest(
             format_identifier=FormatIdentifier("geotiff"),
             actual_file=FileInput(path=Path("file.dummy")),
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = validate(dummy_request_full)
         assert result.status == ValidationStatus.UNCERTAIN
@@ -108,7 +108,7 @@ class TestValidate:
         request = ValidationRequest(
             format_identifier=FormatIdentifier("geotiff"),
             actual_file=FileInput(path=Path("test/data/o41078a2.tif")),
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         assert validate(request).status == ValidationStatus.SUCCESS
 

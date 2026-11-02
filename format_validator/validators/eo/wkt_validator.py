@@ -3,7 +3,7 @@ from typing import List, Optional
 from pyproj import CRS
 from shapely import wkt, GeometryType
 
-from ...model import ValidationResult,ValidationRequest,Error,Cause,Warning,FormatIdentifier
+from ...model import ValidationResult,ValidationRequest,Error,Cause,Warning,FormatIdentifier, FileFormatValidator
 from ...registry import registry
 from .vector_file_validator import VectorFileValidator
 
@@ -13,6 +13,10 @@ class WKTValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:
         return ['.wkt', '.txt']
+
+    def assert_content(self, request: ValidationRequest) -> ValidationResult:
+        # Fiona cannot read the features of this format
+        return FileFormatValidator.assert_content(self, request)
 
     def _read_wkt_geometries(self, path):
         """Read all geometries from a WKT file, handling various formats.

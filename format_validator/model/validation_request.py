@@ -7,8 +7,8 @@ from .errors import UnsupportedMode
 
 class ValidationMode(Enum):
     BASIC = "basic"             # file extension only
-    STRUCTURAL = "structural"   # file extension + file(s) exist
-    FULL = "full"               # file extension, file(s) exist, crs, open file, (geometry type)
+    METADATA = "metadata"       # file extension, file(s) exist, open file and read its header: crs, (declared geometry type)
+    CONTENT = "content"         # metadata, plus every pixel, feature or record is read
 
 @dataclass(frozen=True)
 class ValidationRequest:
@@ -23,4 +23,4 @@ class ValidationRequest:
             raise UnsupportedMode(f"Validation mode {self.mode!r} is not enabled for this request type.")
 
     def enabled_modes(self) -> list[ValidationMode]:
-        return [ValidationMode.BASIC, ValidationMode.STRUCTURAL, ValidationMode.FULL]
+        return [ValidationMode.BASIC, ValidationMode.METADATA, ValidationMode.CONTENT]

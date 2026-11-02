@@ -104,7 +104,7 @@ class TestParsedMetadataValidation:
                 ValidationRequest(
                     format_identifier=FormatIdentifier.GEOJSON,
                     actual_file=geojson_input,
-                    mode=ValidationMode.FULL,
+                    mode=ValidationMode.METADATA,
                     metadata=metadata,
                 )
             )
@@ -145,13 +145,13 @@ class TestUnsupportedMetadataType:
 
 class TestRequest:
     def test_parses_metadata(self, geojson_input):
-        request = build_request(FormatIdentifier.GEOJSON, geojson_input, ValidationMode.FULL, {"crs": "EPSG:4326"})
+        request = build_request(FormatIdentifier.GEOJSON, geojson_input, ValidationMode.METADATA, {"crs": "EPSG:4326"})
         assert request == ValidationRequest(
-            FormatIdentifier.GEOJSON, geojson_input, ValidationMode.FULL, EOMetadata(crs=CRS.from_epsg(4326))
+            FormatIdentifier.GEOJSON, geojson_input, ValidationMode.METADATA, EOMetadata(crs=CRS.from_epsg(4326))
         )
 
     def test_no_metadata_gives_empty_metadata(self, geojson_input):
-        assert build_request(FormatIdentifier.GEOJSON, geojson_input, ValidationMode.FULL).metadata == EOMetadata()
+        assert build_request(FormatIdentifier.GEOJSON, geojson_input, ValidationMode.METADATA).metadata == EOMetadata()
 
     @pytest.mark.parametrize(
         "metadata, error",
@@ -160,7 +160,7 @@ class TestRequest:
     )
     def test_invalid_request(self, geojson_input, metadata, error):
         with pytest.raises(error) as exc_info:
-            build_request(FormatIdentifier.GEOJSON, geojson_input, ValidationMode.FULL, metadata)
+            build_request(FormatIdentifier.GEOJSON, geojson_input, ValidationMode.METADATA, metadata)
         assert isinstance(exc_info.value, InvalidRequest)
 
 
@@ -173,7 +173,7 @@ class TestMissingMetadata:
     def test_none_reports_skipped_checks_like_empty_metadata(self, identifier, file_fixture, request):
         def validate_with(metadata):
             return validate(
-                ValidationRequest(identifier, request.getfixturevalue(file_fixture), ValidationMode.FULL, metadata)
+                ValidationRequest(identifier, request.getfixturevalue(file_fixture), ValidationMode.METADATA, metadata)
             )
 
         without = validate_with(None)

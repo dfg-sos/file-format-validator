@@ -25,7 +25,7 @@ def validation_request():
     return ValidationRequest(
         format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("test.txt")),
-        mode=ValidationMode.STRUCTURAL,
+        mode=ValidationMode.METADATA,
     )
 
 

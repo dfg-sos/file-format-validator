@@ -6,7 +6,7 @@ import re
 from pyproj import CRS
 from shapely import GeometryType
 
-from ...model import ValidationRequest, ValidationResult,Error,Cause,Warning,Cause,Info,FormatIdentifier
+from ...model import ValidationRequest, ValidationResult,Error,Cause,Warning,Cause,Info,FormatIdentifier, FileFormatValidator
 from .vector_file_validator import VectorFileValidator
 from ...registry import registry
 
@@ -16,6 +16,10 @@ class KMLValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:
         return ['.kml', '.kmz']  # .kmz for zip
+
+    def assert_content(self, request: ValidationRequest) -> ValidationResult:
+        # Fiona cannot read the features of this format
+        return FileFormatValidator.assert_content(self, request)
 
     def assert_can_open(self, request:ValidationRequest) -> ValidationResult:
         """Short open/parse check using ElementTree. Reports OPEN_OK or errors.

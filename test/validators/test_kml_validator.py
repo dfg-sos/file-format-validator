@@ -74,7 +74,7 @@ class TestKMLValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=kml_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -84,7 +84,7 @@ class TestKMLValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -101,7 +101,7 @@ class TestKMLValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=kml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -111,7 +111,7 @@ class TestKMLValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -127,7 +127,7 @@ class TestKMLValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=kml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = kml_validator.get_crs(request)
@@ -139,7 +139,7 @@ class TestKMLValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = kml_validator.get_crs(request)
         assert crs is None
@@ -155,7 +155,7 @@ class TestKMLValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=kml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = kml_validator.assert_crs(request)
@@ -166,7 +166,7 @@ class TestKMLValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=kml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = kml_validator.assert_crs(request)
@@ -178,7 +178,7 @@ class TestKMLValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=kml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -188,7 +188,7 @@ class TestKMLValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = kml_validator.assert_crs(request)
@@ -233,7 +233,7 @@ class TestKMLValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=kml_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -243,7 +243,7 @@ class TestKMLValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -254,7 +254,7 @@ class TestKMLValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -265,7 +265,7 @@ class TestKMLValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = kml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -282,7 +282,7 @@ class TestKMLValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=kml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = kml_validator.validate(request)
@@ -293,7 +293,7 @@ class TestKMLValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = kml_validator.validate(request)
@@ -305,7 +305,7 @@ class TestKMLValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.KML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = kml_validator.validate(request)

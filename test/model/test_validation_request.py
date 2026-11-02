@@ -7,33 +7,33 @@ def validation_request():
     return ValidationRequest(
         format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("test.txt")),
-        mode=ValidationMode.STRUCTURAL
+        mode=ValidationMode.METADATA
     )
 
 def test_enabled_modes(validation_request):
-    assert validation_request.enabled_modes() == [ValidationMode.BASIC, ValidationMode.STRUCTURAL, ValidationMode.FULL]
+    assert validation_request.enabled_modes() == [ValidationMode.BASIC, ValidationMode.METADATA, ValidationMode.CONTENT]
 
 def test_equality(validation_request):
     same_request = ValidationRequest(
         format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("test.txt")),
-        mode=ValidationMode.STRUCTURAL
+        mode=ValidationMode.METADATA
     )
     different_input = ValidationRequest(
         format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("different.txt")),
-        mode=ValidationMode.STRUCTURAL
+        mode=ValidationMode.METADATA
     )
     different_format = ValidationRequest(
         format_identifier=FormatIdentifier.GEOTIFF,
         actual_file=FileInput(path=Path("test.txt")),
-        mode=ValidationMode.STRUCTURAL
+        mode=ValidationMode.METADATA
     )
 
     different_mode = ValidationRequest(
         format_identifier=FormatIdentifier.GIS,
         actual_file=FileInput(path=Path("test.txt")),
-        mode=ValidationMode.FULL
+        mode=ValidationMode.CONTENT
     )
     assert validation_request == same_request
     assert validation_request != different_input
@@ -54,7 +54,7 @@ def test_enabled_mode_of_subclass():
     )
     assert request.mode == ValidationMode.BASIC
 
-@pytest.mark.parametrize("mode", [ValidationMode.STRUCTURAL, ValidationMode.FULL])
+@pytest.mark.parametrize("mode", [ValidationMode.METADATA, ValidationMode.CONTENT])
 def test_mode_not_enabled_by_subclass(mode):
     with pytest.raises(UnsupportedMode):
         BasicOnlyRequest(

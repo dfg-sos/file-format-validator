@@ -81,7 +81,7 @@ class TestShapefileValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = shapefile_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -100,7 +100,7 @@ class TestShapefileValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=file_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = shapefile_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -117,7 +117,7 @@ class TestShapefileValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = shapefile_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -127,7 +127,7 @@ class TestShapefileValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = shapefile_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -143,7 +143,7 @@ class TestShapefileValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = shapefile_validator.get_crs(request)
@@ -154,7 +154,7 @@ class TestShapefileValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = shapefile_validator.get_crs(request)
         assert crs is None
@@ -170,7 +170,7 @@ class TestShapefileValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = shapefile_validator.assert_crs(request)
@@ -181,7 +181,7 @@ class TestShapefileValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = shapefile_validator.assert_crs(request)
@@ -193,7 +193,7 @@ class TestShapefileValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = shapefile_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -209,7 +209,7 @@ class TestShapefileValidatorAssertGeometryType:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.POLYGON),
         )
         result = shapefile_validator.assert_geometry_type(request)
@@ -220,7 +220,7 @@ class TestShapefileValidatorAssertGeometryType:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.POINT),
         )
         result = shapefile_validator.assert_geometry_type(request)
@@ -265,7 +265,7 @@ class TestShapefileValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = shapefile_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -275,7 +275,7 @@ class TestShapefileValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = shapefile_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -295,7 +295,7 @@ class TestShapefileValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=file_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = shapefile_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -312,7 +312,7 @@ class TestShapefileValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=shapefile_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = shapefile_validator.validate(request)
@@ -323,7 +323,7 @@ class TestShapefileValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = shapefile_validator.validate(request)
@@ -344,7 +344,7 @@ class TestShapefileValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.SHAPEFILE,
             actual_file=file_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = shapefile_validator.validate(request)

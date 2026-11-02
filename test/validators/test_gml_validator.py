@@ -79,7 +79,7 @@ class TestGMLValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -89,7 +89,7 @@ class TestGMLValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -106,7 +106,7 @@ class TestGMLValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -116,7 +116,7 @@ class TestGMLValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -132,7 +132,7 @@ class TestGMLValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = gml_validator.get_crs(request)
         assert crs is not None
@@ -142,7 +142,7 @@ class TestGMLValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = gml_validator.get_crs(request)
         assert crs is None
@@ -158,7 +158,7 @@ class TestGMLValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=epsg_25832_crs),
         )
         result = gml_validator.assert_crs(request)
@@ -169,7 +169,7 @@ class TestGMLValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = gml_validator.assert_crs(request)
@@ -181,7 +181,7 @@ class TestGMLValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -191,7 +191,7 @@ class TestGMLValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = gml_validator.assert_crs(request)
@@ -236,7 +236,7 @@ class TestGMLValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -246,7 +246,7 @@ class TestGMLValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -257,7 +257,7 @@ class TestGMLValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -268,7 +268,7 @@ class TestGMLValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = gml_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -285,7 +285,7 @@ class TestGMLValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=epsg_25832_crs, geometry_type=GeometryType.LINESTRING),
         )
         result = gml_validator.validate(request)
@@ -296,7 +296,7 @@ class TestGMLValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = gml_validator.validate(request)
@@ -308,7 +308,7 @@ class TestGMLValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=gml_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         result = gml_validator.validate(request)
@@ -319,7 +319,7 @@ class TestGMLValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GML,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = gml_validator.validate(request)

@@ -74,7 +74,7 @@ class TestGeoTIFFValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geotiff_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -84,7 +84,7 @@ class TestGeoTIFFValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -101,7 +101,7 @@ class TestGeoTIFFValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -111,7 +111,7 @@ class TestGeoTIFFValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -127,7 +127,7 @@ class TestGeoTIFFValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = geotiff_validator.get_crs(request)
@@ -139,7 +139,7 @@ class TestGeoTIFFValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = geotiff_validator.get_crs(request)
@@ -156,7 +156,7 @@ class TestGeoTIFFValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geotiff_validator.assert_crs(request)
@@ -167,7 +167,7 @@ class TestGeoTIFFValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = geotiff_validator.assert_crs(request)
@@ -179,7 +179,7 @@ class TestGeoTIFFValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -189,7 +189,7 @@ class TestGeoTIFFValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geotiff_validator.assert_crs(request)
@@ -234,7 +234,7 @@ class TestGeoTIFFValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geotiff_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -244,7 +244,7 @@ class TestGeoTIFFValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -255,7 +255,7 @@ class TestGeoTIFFValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -266,7 +266,7 @@ class TestGeoTIFFValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geotiff_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -283,7 +283,7 @@ class TestGeoTIFFValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geotiff_validator.validate(request)
@@ -294,7 +294,7 @@ class TestGeoTIFFValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geotiff_validator.validate(request)
@@ -306,7 +306,7 @@ class TestGeoTIFFValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOTIFF,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geotiff_validator.validate(request)

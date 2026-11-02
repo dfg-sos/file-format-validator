@@ -66,7 +66,7 @@ class TestGeoParquetValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -76,7 +76,7 @@ class TestGeoParquetValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -93,7 +93,7 @@ class TestGeoParquetValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -103,7 +103,7 @@ class TestGeoParquetValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=example_parquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -113,7 +113,7 @@ class TestGeoParquetValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -129,7 +129,7 @@ class TestGeoParquetValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = geoparquet_validator.get_crs(request)
@@ -140,7 +140,7 @@ class TestGeoParquetValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = geoparquet_validator.get_crs(request)
         assert crs is None
@@ -156,7 +156,7 @@ class TestGeoParquetValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geoparquet_validator.assert_crs(request)
@@ -167,7 +167,7 @@ class TestGeoParquetValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = geoparquet_validator.assert_crs(request)
@@ -179,7 +179,7 @@ class TestGeoParquetValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -189,7 +189,7 @@ class TestGeoParquetValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geoparquet_validator.assert_crs(request)
@@ -207,7 +207,7 @@ class TestGeoParquetValidatorAssertGeometryType:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.POLYGON),
         )
         result = geoparquet_validator.assert_geometry_type(request)
@@ -218,7 +218,7 @@ class TestGeoParquetValidatorAssertGeometryType:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.POINT),
         )
         result = geoparquet_validator.assert_geometry_type(request)
@@ -263,7 +263,7 @@ class TestGeoParquetValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -273,7 +273,7 @@ class TestGeoParquetValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -284,7 +284,7 @@ class TestGeoParquetValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -295,7 +295,7 @@ class TestGeoParquetValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geoparquet_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -312,7 +312,7 @@ class TestGeoParquetValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geoparquet_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geoparquet_validator.validate(request)
@@ -323,7 +323,7 @@ class TestGeoParquetValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geoparquet_validator.validate(request)
@@ -335,7 +335,7 @@ class TestGeoParquetValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOPARQUET,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geoparquet_validator.validate(request)

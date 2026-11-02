@@ -136,18 +136,28 @@ class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure co
 
         return list(types)
 
+    def assert_metadata(self, request: ValidationRequest) -> ValidationResult:
+        if self.has_vector_layers(request):
+            return VectorFileValidator.assert_metadata(self, request)
+        return RasterFileValidator.assert_metadata(self, request)
+
+    def content_layers(self, request: ValidationRequest) -> List[str]:
+        return [layer for layer, _, _ in self._vector_layers(request)]
+
+    def assert_content(self, request: ValidationRequest) -> ValidationResult:
+        if self.has_vector_layers(request):
+            return VectorFileValidator.assert_content(self, request)
+        return RasterFileValidator.assert_content(self, request)
+
     def validate(self, request: ValidationRequest) -> ValidationResult:
-        if request.mode != ValidationMode.FULL:
-            # Basic and structural checks are the same for both parents and must not open the file.
-            return VectorFileValidator.validate(self, request)
+        if request.mode == ValidationMode.BASIC:
+            # Basic checks must not open the file.
+            return super().validate(request)
         try:
             try:
                 self._declared = self._read_declarations(request)
             except Exception:
                 self._declared = []  # no vector layer Fiona can open: validated as raster
-            if self.has_vector_layers(request):
-                return VectorFileValidator.validate(self, request)
-            else:
-                return RasterFileValidator.validate(self, request)
+            return super().validate(request)
         finally:
             self._declared = None
