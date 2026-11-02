@@ -55,6 +55,18 @@ class NetCDFValidator(RasterFileValidator):
             )
 
 
+    def assert_content(self, request: ValidationRequest) -> ValidationResult:
+        """Load the values of every variable, so truncated or corrupt data fails."""
+        try:
+            with xr.open_dataset(request.actual_file.path) as ds:
+                ds.load()
+                return ValidationResult.success(request)
+        except Exception as exc:
+            return ValidationResult.failure(
+                request,
+                Error(message=f"Failed to read the data of NetCDF file: {exc}", cause=Cause.STRUCTURAL_MALFORMED)
+            )
+
     def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         """
            Validate that the NetCDF file has a valid Coordinate Reference System.

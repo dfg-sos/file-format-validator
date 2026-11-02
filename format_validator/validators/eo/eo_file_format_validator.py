@@ -83,12 +83,13 @@ class EOFileFormatValidator(FileFormatValidator):
         if not supports_metadata(request):
             # Fail instead of silently skipping metadata checks, e.g. when a raw dict was passed.
             return validation_result.set_failure(Error(message=f"Metadata of type '{type(request.metadata).__name__}' is not supported for format {request.format_identifier}, expected '{EOMetadata.__name__}'.", cause=Cause.METADATA_MISMATCH))
-        match request.mode:
-            case ValidationMode.FULL:
-                validation_result += self.assert_crs(request)
-            case _:
-                pass
         return validation_result
+
+    def assert_metadata(self, request: ValidationRequest) -> ValidationResult:
+        result = super().assert_metadata(request)
+        if supports_metadata(request):
+            result += self.assert_crs(request)
+        return result
 
     def assert_crs(self, request:ValidationRequest) -> ValidationResult:
         actual_srs = self.get_crs(request)

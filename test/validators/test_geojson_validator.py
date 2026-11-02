@@ -74,7 +74,7 @@ class TestGeoJSONValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -84,7 +84,7 @@ class TestGeoJSONValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -101,7 +101,7 @@ class TestGeoJSONValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -111,7 +111,7 @@ class TestGeoJSONValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -127,7 +127,7 @@ class TestGeoJSONValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = geojson_validator.get_crs(request)
@@ -139,7 +139,7 @@ class TestGeoJSONValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = geojson_validator.get_crs(request)
@@ -156,7 +156,7 @@ class TestGeoJSONValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geojson_validator.assert_crs(request)
@@ -167,7 +167,7 @@ class TestGeoJSONValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = geojson_validator.assert_crs(request)
@@ -179,7 +179,7 @@ class TestGeoJSONValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -189,7 +189,7 @@ class TestGeoJSONValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = geojson_validator.assert_crs(request)
@@ -234,7 +234,7 @@ class TestGeoJSONValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -244,7 +244,7 @@ class TestGeoJSONValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geotiff_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -255,7 +255,7 @@ class TestGeoJSONValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -266,7 +266,7 @@ class TestGeoJSONValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = geojson_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -288,7 +288,7 @@ class TestGeoJSONValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geojson_validator.validate(request)
@@ -305,7 +305,7 @@ class TestGeoJSONValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         result = geojson_validator.validate(request)
@@ -318,7 +318,7 @@ class TestGeoJSONValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=geotiff_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geojson_validator.validate(request)
@@ -330,7 +330,7 @@ class TestGeoJSONValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.GEOJSON,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
         )
         result = geojson_validator.validate(request)

@@ -76,7 +76,7 @@ class TestWKTValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -86,7 +86,7 @@ class TestWKTValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -103,7 +103,7 @@ class TestWKTValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -113,7 +113,7 @@ class TestWKTValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_sparql_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -123,7 +123,7 @@ class TestWKTValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -139,7 +139,7 @@ class TestWKTValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = wkt_validator.get_crs(request)
@@ -151,7 +151,7 @@ class TestWKTValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_sparql_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = wkt_validator.get_crs(request)
         assert crs is not None
@@ -161,7 +161,7 @@ class TestWKTValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = wkt_validator.get_crs(request)
         assert crs is None
@@ -177,7 +177,7 @@ class TestWKTValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = wkt_validator.assert_crs(request)
@@ -188,7 +188,7 @@ class TestWKTValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = wkt_validator.assert_crs(request)
@@ -200,7 +200,7 @@ class TestWKTValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -216,7 +216,7 @@ class TestWKTValidatorAssertGeometryType:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.POINT),
         )
         result = wkt_validator.assert_geometry_type(request)
@@ -227,7 +227,7 @@ class TestWKTValidatorAssertGeometryType:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_sparql_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.GEOMETRYCOLLECTION),
         )
         result = wkt_validator.assert_geometry_type(request)
@@ -238,7 +238,7 @@ class TestWKTValidatorAssertGeometryType:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.GEOMETRYCOLLECTION),  # This type is not in the file
         )
         result = wkt_validator.assert_geometry_type(request)
@@ -283,7 +283,7 @@ class TestWKTValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -293,7 +293,7 @@ class TestWKTValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -304,7 +304,7 @@ class TestWKTValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -315,7 +315,7 @@ class TestWKTValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = wkt_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -332,7 +332,7 @@ class TestWKTValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         result = wkt_validator.validate(request)
@@ -343,7 +343,7 @@ class TestWKTValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=wkt_sparql_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.GEOMETRYCOLLECTION),
         )
         result = wkt_validator.validate(request)
@@ -354,7 +354,7 @@ class TestWKTValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         result = wkt_validator.validate(request)
@@ -366,7 +366,7 @@ class TestWKTValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.WKT,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
         )
         result = wkt_validator.validate(request)

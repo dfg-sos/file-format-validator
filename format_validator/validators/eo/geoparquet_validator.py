@@ -32,6 +32,14 @@ class GeoParquetValidator(VectorFileValidator):
         except Exception as exc_parquet:
             return ValidationResult.failure(request, Error(message=f"Could not open Parquet file with pyarrow:\n{exc_parquet}", cause=Cause.FILE_OPEN_ERROR))
 
+    def assert_content(self, request: ValidationRequest) -> ValidationResult:
+        """Read every row and decode every geometry with GeoPandas."""
+        try:
+            gpd.read_parquet(str(request.actual_file.path))
+            return ValidationResult.success(request)
+        except Exception as exc:
+            return ValidationResult.failure(request, Error(message=f"Could not read the rows of GeoParquet file with GeoPandas:\n{exc}", cause=Cause.STRUCTURAL_MALFORMED))
+
     def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         """Find CRS candidate(s) in the GeoParquet file and compare them to the expected one."""
         # Try to read GeoParquet metadata via pyarrow.parquet to avoid loading data with geopandas

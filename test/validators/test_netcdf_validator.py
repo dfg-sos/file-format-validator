@@ -73,7 +73,7 @@ class TestNetCDFValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=netcdf_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -83,7 +83,7 @@ class TestNetCDFValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -100,7 +100,7 @@ class TestNetCDFValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=netcdf_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -110,7 +110,7 @@ class TestNetCDFValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -126,7 +126,7 @@ class TestNetCDFValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=netcdf_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = netcdf_validator.get_crs(request)
         assert crs is not None
@@ -136,7 +136,7 @@ class TestNetCDFValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         crs = netcdf_validator.get_crs(request)
         assert crs is None
@@ -152,7 +152,7 @@ class TestNetCDFValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=netcdf_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -162,7 +162,7 @@ class TestNetCDFValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = netcdf_validator.assert_crs(request)
@@ -207,7 +207,7 @@ class TestNetCDFValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=netcdf_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -217,7 +217,7 @@ class TestNetCDFValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -228,7 +228,7 @@ class TestNetCDFValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -239,7 +239,7 @@ class TestNetCDFValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=valid_extension_nonexistent_file,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -256,7 +256,7 @@ class TestNetCDFValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=netcdf_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -266,7 +266,7 @@ class TestNetCDFValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -277,7 +277,7 @@ class TestNetCDFValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.NETCDF,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = netcdf_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE

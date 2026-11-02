@@ -32,6 +32,24 @@ class RasterFileValidator(EOFileFormatValidator, ABC):
                 Warning(message=f"Unknown exception occurred while opening '{request.actual_file.path}' with RasterIO:\n{exc.__class__}:{str(exc)}", cause=Cause.FILE_OPEN_ERROR)
             )
 
+    def assert_content(self, request: ValidationRequest) -> ValidationResult:
+        """Read every block of every band, so truncated or corrupt pixel data fails."""
+        try:
+            with rasterio.open(request.actual_file.path) as src:
+                for _, window in src.block_windows():
+                    src.read(window=window)
+                return ValidationResult.success(request)
+        except RasterioIOError as e:
+            return ValidationResult.failure(
+                request,
+                Error(message=f"Failed to read the pixel data of '{request.actual_file.path}' with RasterIO:\n{str(e)}", cause=Cause.STRUCTURAL_MALFORMED)
+            )
+        except Exception as exc:
+            return ValidationResult.uncertain(
+                request,
+                Warning(message=f"Unknown exception occurred while reading the pixel data of '{request.actual_file.path}' with RasterIO:\n{exc.__class__}:{str(exc)}", cause=Cause.UNKNOWN)
+            )
+
     def get_crs(self, request: ValidationRequest) -> Optional[CRS]:
         try:
             with rasterio.open(request.actual_file.path) as rasterGISFile:

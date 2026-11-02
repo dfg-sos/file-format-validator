@@ -73,7 +73,7 @@ class TestCOGValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=cog_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.assert_exists(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -83,7 +83,7 @@ class TestCOGValidatorAssertExists:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.assert_exists(request)
         assert result.status == ValidationStatus.FAILURE
@@ -99,7 +99,7 @@ class TestCOGValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=cog_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.assert_can_open(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -109,7 +109,7 @@ class TestCOGValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -119,7 +119,7 @@ class TestCOGValidatorAssertCanOpen:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=geotiff_no_cog_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.assert_can_open(request)
         assert result.status == ValidationStatus.FAILURE
@@ -132,7 +132,7 @@ class TestCOGValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=cog_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = cog_validator.get_crs(request)
@@ -145,7 +145,7 @@ class TestCOGValidatorGetCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         crs = cog_validator.get_crs(request)
@@ -161,7 +161,7 @@ class TestCOGValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=cog_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = cog_validator.assert_crs(request)
@@ -172,7 +172,7 @@ class TestCOGValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=cog_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
         )
         result = cog_validator.assert_crs(request)
@@ -184,7 +184,7 @@ class TestCOGValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=cog_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.assert_crs(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -194,7 +194,7 @@ class TestCOGValidatorAssertCRS:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = cog_validator.assert_crs(request)
@@ -239,7 +239,7 @@ class TestCOGValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=cog_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.validate(request)
         assert result.status == ValidationStatus.SUCCESS
@@ -249,7 +249,7 @@ class TestCOGValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=geojson_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -260,7 +260,7 @@ class TestCOGValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=nonexistent_input,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -270,7 +270,7 @@ class TestCOGValidatorStructuralMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=validExtensionNonExistentFile,
-            mode=ValidationMode.STRUCTURAL,
+            mode=ValidationMode.METADATA,
         )
         result = cog_validator.validate(request)
         assert result.status == ValidationStatus.FAILURE
@@ -287,7 +287,7 @@ class TestCOGValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=cog_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = cog_validator.validate(request)
@@ -298,7 +298,7 @@ class TestCOGValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=geojson_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = cog_validator.validate(request)
@@ -310,7 +310,7 @@ class TestCOGValidatorFullMode:
         request = ValidationRequest(
             format_identifier=FormatIdentifier.COG,
             actual_file=nonexistent_input,
-            mode=ValidationMode.FULL,
+            mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
         )
         result = cog_validator.validate(request)

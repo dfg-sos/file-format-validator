@@ -1,4 +1,5 @@
 from abc import ABC
+from collections import Counter
 from typing import Iterator, Optional, List
 from pyproj import CRS
 from shapely import GeometryType
@@ -157,13 +158,44 @@ class VectorFileValidator(EOFileFormatValidator, ABC):
                 Warning(message=f"Unexpected error while validating geometry type:\n{str(e)}", cause=Cause.UNKNOWN)
             )
 
-    def validate(self, request: ValidationRequest) -> ValidationResult:
-        result = super().validate(request)
-        if not supports_metadata(request):
-            return result  # super().validate() already reported the unsupported metadata as a failure
-        match request.mode:
-            case ValidationMode.FULL:
-                result += self.assert_geometry_type(request)
-            case _:
-                pass
+    def assert_metadata(self, request: ValidationRequest) -> ValidationResult:
+        result = super().assert_metadata(request)
+        if supports_metadata(request):
+            result += self.assert_geometry_type(request)
         return result
+
+    def content_layers(self, request: ValidationRequest) -> List[str]:
+        """Layers whose features assert_content() reads."""
+        return fiona.listlayers(str(request.actual_file.path))
+
+    def assert_content(self, request: ValidationRequest) -> ValidationResult:
+        """Read every feature of every layer. If an expected geometry type is given, every geometry must be
+        compatible with it, unlike assert_geometry_type(), which accepts a file if any declared or sampled type matches."""
+        expected_geometry_type = eo_metadata(request).geometry_type if supports_metadata(request) else None
+        compatible_types = COMPATIBLE_GEOMETRY_TYPES.get(expected_geometry_type, {expected_geometry_type})
+        path = str(request.actual_file.path)
+        features = 0
+        incompatible: Counter[GeometryType] = Counter()
+        try:
+            for layer in self.content_layers(request):
+                with fiona.open(path, layer=layer) as ds:
+                    for feature in ds:
+                        features += 1
+                        geom = feature.geometry
+                        if geom is None or expected_geometry_type is None:
+                            continue
+                        geometry_type = geometry_type_from_string(geom.type)
+                        if geometry_type not in compatible_types:
+                            incompatible[geometry_type] += 1
+        except Exception as exc:
+            return ValidationResult.failure(
+                request,
+                Error(message=f"Failed to read the features of '{path}' with Fiona:\n{exc.__class__}:{str(exc)}", cause=Cause.STRUCTURAL_MALFORMED)
+            )
+        if incompatible:
+            found = {t.name: n for t, n in incompatible.items()}
+            return ValidationResult.failure(
+                request,
+                Error(message=f"{incompatible.total()} of {features} features have geometry types incompatible with expected type '{expected_geometry_type.name}': {found}.", cause=Cause.METADATA_MISMATCH)
+            )
+        return ValidationResult.success(request, Info(message=f"Read {features} features."))
