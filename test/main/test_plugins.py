@@ -6,10 +6,13 @@ import textwrap
 
 import pytest
 
-from format_validator.model import FormatIdentifier
+from typing import List
+
+from format_validator.model import FileFormatValidator, FormatIdentifier, ValidationRequest, ValidationResult
 from format_validator.registry import (
     PLUGIN_ENTRY_POINT_GROUP,
     DuplicateRegistrationError,
+    _Registry,
     registry,
 )
 
@@ -106,3 +109,36 @@ class TestLoadPlugins:
     def test_duplicate_error_is_key_error(self):
         """Existing callers that catch KeyError keep working."""
         assert issubclass(DuplicateRegistrationError, KeyError)
+
+
+class _Validator(FileFormatValidator):
+    def get_extensions(self) -> List[str]:
+        return [".plugin"]
+
+    def assert_can_open(self, request: ValidationRequest) -> ValidationResult:
+        return ValidationResult.success(request)
+
+
+class TestRegisterSeveralIdentifiers:
+    @pytest.fixture
+    def fresh(self):
+        return _Registry()
+
+    def test_one_class_for_several_identifiers(self, fresh):
+        @fresh.register("test_main", "test_alias")
+        class Shared(_Validator):
+            pass
+
+        assert fresh.get_validator_class(FormatIdentifier("test_main")) is Shared
+        assert fresh.get_validator_class(FormatIdentifier("test_alias")) is Shared
+        assert fresh.get_identifier_for_validator(Shared) == FormatIdentifier("test_main")
+
+    def test_taken_identifier_registers_none(self, fresh):
+        fresh.register("test_alias")(type("First", (_Validator,), {}))
+        with pytest.raises(DuplicateRegistrationError, match="already registered"):
+            fresh.register("test_main", "test_alias")(type("Second", (_Validator,), {}))
+        assert fresh.get_validator_class(FormatIdentifier("test_main")) is None
+
+    def test_requires_an_identifier(self, fresh):
+        with pytest.raises(ValueError):
+            fresh.register()

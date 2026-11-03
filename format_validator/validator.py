@@ -90,15 +90,53 @@ def validate(validation_request: ValidationRequest) -> ValidationResult:
     return _validate_abstract(validation_request, leaf_validators)
 
 
-def _leaf_validators(format_identifier: FormatIdentifier) -> list[tuple[FormatIdentifier, FileFormatValidator]]:
-    """Validators of the formats the format expands to, sorted by format."""
-    return [(leaf, cls()) for leaf in sorted(format_identifier.expand()) if (cls := registry.get_validator_class(leaf))]
+def _validated_leaves(format_identifier: FormatIdentifier) -> list[FormatIdentifier]:
+    """The most general formats with a validator below an abstract format.
+
+    The walk down the children stops at a format with a validator: its children refine it, so a
+    file valid as one of them is valid as the format too (e.g. a COG is a GeoTIFF). A format that
+    is not abstract only covers itself.
+    """
+    if not format_identifier.is_abstract:
+        return [format_identifier]
+    found, seen, stack = [], set(), list(format_identifier.children)
+    while stack:
+        child = stack.pop()
+        if child in seen:
+            continue
+        seen.add(child)
+        if registry.get_validator_class(child):
+            found.append(child)
+        else:
+            stack.extend(child.children)
+    return found
+
+
+def _leaf_validators(format_identifier: FormatIdentifier) -> list[tuple[list[FormatIdentifier], FileFormatValidator]]:
+    """Validators of the formats the format covers, see ``_validated_leaves``, each with the formats
+    it validates, so a validator registered for several formats (e.g. GeoTIFF and DEM) runs once.
+    Its own identifier comes first, see ``registry.register``. Sorted by that identifier."""
+    leaves_by_class: dict[type[FileFormatValidator], list[FormatIdentifier]] = {}
+    for leaf in _validated_leaves(format_identifier):
+        if cls := registry.get_validator_class(leaf):
+            leaves_by_class.setdefault(cls, []).append(leaf)
+    grouped = [
+        (sorted(leaves, key=lambda leaf: (leaf != registry.get_identifier_for_validator(cls), leaf)), cls())
+        for cls, leaves in leaves_by_class.items()
+    ]
+    return sorted(grouped, key=lambda item: item[0][0])
 
 
 def _validators(format_identifier: FormatIdentifier) -> list[FileFormatValidator]:
     """Validators that check a request for the format: its own, or those of its leaves."""
     cls = registry.get_validator_class(format_identifier)
     return [cls()] if cls else [validator for _, validator in _leaf_validators(format_identifier)]
+
+
+def _names(leaves: list[FormatIdentifier]) -> str:
+    """E.g. "'GeoTIFF' (also 'DEM', 'DSM', 'DTM')"."""
+    first, *others = [f"'{leaf}'" for leaf in leaves]
+    return f"{first} (also {', '.join(others)})" if others else first
 
 
 def _run(validator: FileFormatValidator, validation_request: ValidationRequest) -> ValidationResult:
@@ -116,12 +154,14 @@ def _run(validator: FileFormatValidator, validation_request: ValidationRequest) 
 
 def _validate_abstract(
     validation_request: ValidationRequest,
-    leaf_validators: list[tuple[FormatIdentifier, FileFormatValidator]],
+    leaf_validators: list[tuple[list[FormatIdentifier], FileFormatValidator]],
 ) -> ValidationResult:
     """Valid if the file is valid for any leaf whose extension matches. Otherwise UNCERTAIN if any
-    of those leaves is uncertain, else FAILURE, with the events of each of those leaves."""
+    of those leaves is uncertain, else FAILURE, with the events of each of those leaves.
+    Each validator runs once for all its leaves, and validation stops at the first valid one.
+    """
     format_identifier = validation_request.format_identifier
-    candidates = [(leaf, validator) for leaf, validator in leaf_validators if validator.assert_extension(validation_request)]
+    candidates = [(leaves, validator) for leaves, validator in leaf_validators if validator.assert_extension(validation_request)]
     if not candidates:
         extensions = sorted({ext.lower() for _, validator in leaf_validators for ext in validator.get_extensions()})
         return ValidationResult.failure(
@@ -133,14 +173,16 @@ def _validate_abstract(
             ),
         )
 
-    results = [(leaf, _run(validator, validation_request)) for leaf, validator in candidates]
-    for leaf, result in results:
+    results = []
+    for leaves, validator in candidates:
+        result = _run(validator, validation_request)
         if result.status == ValidationStatus.SUCCESS:
-            return result.set_success(Info(message=f"File is valid as '{leaf}', a format of '{format_identifier}'."))
+            return result.set_success(Info(message=f"File is valid as {_names(leaves)}, a format of '{format_identifier}'."))
+        results.append((leaves, result))
 
-    uncertain = [(leaf, result) for leaf, result in results if result.status == ValidationStatus.UNCERTAIN]
+    uncertain = [(leaves, result) for leaves, result in results if result.status == ValidationStatus.UNCERTAIN]
     merged = ValidationResult(validation_request)
-    for leaf, result in uncertain or results:
-        merged.add(Info(message=f"Validated as '{leaf}', a format of '{format_identifier}':"))
+    for leaves, result in uncertain or results:
+        merged.add(Info(message=f"Validated as {_names(leaves)}, a format of '{format_identifier}':"))
         merged += result
     return merged

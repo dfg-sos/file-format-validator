@@ -146,3 +146,82 @@ class TestAbstractResult:
         register(ValidationStatus.FAILURE, ValidationStatus.FAILURE)
         result = self.validate_abstract()
         assert [error.message for error in result.errors()] == ["failure", "failure"]
+
+
+class TestAbstractContent:
+    """The costly content read runs once for the leaves of one validator."""
+
+    @pytest.fixture
+    def reads(self, monkeypatch):
+        from format_validator.validators.eo.raster_file_validator import RasterFileValidator
+
+        calls = []
+        outcome = {"result": None}
+        original = RasterFileValidator.assert_content
+
+        def counting(validator, request):
+            calls.append(type(validator).__name__)
+            return outcome["result"](request) if outcome["result"] else original(validator, request)
+
+        monkeypatch.setattr(RasterFileValidator, "assert_content", counting)
+        return calls, outcome
+
+    def test_stops_at_first_valid_leaf(self, geotiff_no_cog_input, reads):
+        calls, _ = reads
+        result = validate(build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.CONTENT))
+        assert result.status == ValidationStatus.SUCCESS
+        assert len(calls) == 1
+
+    def test_failed_read_is_not_repeated(self, geotiff_no_cog_input, reads):
+        calls, outcome = reads
+        outcome["result"] = lambda request: ValidationResult.failure(
+            request, Error(message="corrupt", cause=Cause.STRUCTURAL_MALFORMED)
+        )
+        result = validate(build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.CONTENT))
+        assert result.status == ValidationStatus.FAILURE
+        assert len(calls) == 1
+        assert [error.message for error in result.errors()].count("corrupt") == 1
+
+
+class TestAbstractSharedValidator:
+    """Formats registered for one validator (GeoTIFF, DEM, DSM, DTM) are validated once."""
+
+    def test_reports_all_formats_of_the_validator(self, geotiff_no_cog_input):
+        result = validate(build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.METADATA))
+        assert result.status == ValidationStatus.SUCCESS
+        assert result.infos()[-1].message == (
+            "File is valid as 'GeoTIFF' (also 'DEM', 'DSM', 'DTM'), a format of 'GISRaster'."
+        )
+
+    @pytest.mark.parametrize("identifier", [FormatIdentifier.DEM, FormatIdentifier.DSM, FormatIdentifier.DTM])
+    def test_concrete_format_uses_the_shared_validator(self, geotiff_no_cog_input, identifier):
+        result = validate(build_request(identifier, geotiff_no_cog_input, ValidationMode.METADATA))
+        assert result.status == ValidationStatus.SUCCESS
+
+
+class TestMostGeneralLeaves:
+    """An abstract format covers the most general formats with a validator below it."""
+
+    def test_refinement_is_not_validated(self):
+        from format_validator.validator import _validated_leaves
+
+        leaves = _validated_leaves(FormatIdentifier.RASTER)
+        assert FormatIdentifier.GEOTIFF in leaves
+        assert FormatIdentifier.COG not in leaves
+
+    def test_cog_is_valid_as_geotiff(self, geotiff_input):
+        result = validate(build_request(FormatIdentifier.RASTER, geotiff_input, ValidationMode.METADATA))
+        assert result.infos()[-1].message.startswith("File is valid as 'GeoTIFF'")
+
+    def test_children_refine_their_parent(self):
+        # A file of a child must pass its parent's extension check, else the abstract format rejects it.
+        from format_validator.registry import registry
+
+        for parent in FormatIdentifier.all():
+            parent_cls = registry.get_validator_class(parent)
+            for child in parent.children:
+                child_cls = registry.get_validator_class(child)
+                if parent_cls and child_cls:
+                    parent_ext = {ext.lower() for ext in parent_cls().get_extensions()}
+                    child_ext = {ext.lower() for ext in child_cls().get_extensions()}
+                    assert child_ext <= parent_ext, f"{child} accepts extensions that {parent} does not"
