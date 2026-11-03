@@ -84,35 +84,46 @@ class _Registry:
         return loaded
 
     def register(
-        self, identifier: str | FormatIdentifier
+        self, *identifiers: str | FormatIdentifier
     ) -> Callable[[Type[FileFormatValidator]], Type[FileFormatValidator]]:
-        """Registers a validator class implementation according to the identifier set in the decorator.
+        """Registers a validator class implementation according to the identifiers set in the decorator.
 
-        Identifier must not be empty. Registration is case-sensitive, e.g.
-        ``'format_1234'`` and ``'Format_1234'`` can be registered separately.
+        Several identifiers register one class for formats that the file cannot tell apart, e.g.
+        GeoTIFF and DEM. The first one is the validator's own identifier, see
+        ``get_identifier_for_validator``. Identifiers must not be empty. Registration is
+        case-sensitive, e.g. ``'format_1234'`` and ``'Format_1234'`` can be registered separately.
         """
-        if isinstance(identifier, str):
-            stripped = identifier.strip()
-            if not stripped:
-                raise ValueError("Identifier must be non-empty")
-            identifier = FormatIdentifier(stripped)
+        if not identifiers:
+            raise ValueError("At least one identifier is required")
+        ids = [self._to_identifier(identifier) for identifier in identifiers]
 
         def decorator(cls: Type[FileFormatValidator]) -> Type[FileFormatValidator]:
-            if identifier in self._id_to_validators:
-                raise DuplicateRegistrationError(
-                    f"Identifier '{identifier}' already registered for "
-                    f"{self._id_to_validators[identifier]}"
-                )
+            for identifier in ids:
+                if identifier in self._id_to_validators:
+                    raise DuplicateRegistrationError(
+                        f"Identifier '{identifier}' already registered for "
+                        f"{self._id_to_validators[identifier]}"
+                    )
             if cls in self._validators_to_id:
                 raise DuplicateRegistrationError(
                     f"Validator {cls} is already registered under identifier "
                     f"'{self._validators_to_id[cls]}'"
                 )
-            self._id_to_validators[identifier] = cls
-            self._validators_to_id[cls] = identifier
+            for identifier in ids:
+                self._id_to_validators[identifier] = cls
+            self._validators_to_id[cls] = ids[0]
             return cls
 
         return decorator
+
+    @staticmethod
+    def _to_identifier(identifier: str | FormatIdentifier) -> FormatIdentifier:
+        if isinstance(identifier, FormatIdentifier):
+            return identifier
+        stripped = identifier.strip()
+        if not stripped:
+            raise ValueError("Identifier must be non-empty")
+        return FormatIdentifier(stripped)
 
     def get_registered_identifiers(self) -> List[FormatIdentifier]:
         return sorted(self._id_to_validators.keys(), key=lambda fi: fi.id)

@@ -4,9 +4,6 @@ from .raster_file_validator import RasterFileValidator
 
 # Import concrete validators to trigger their @registry.register decorators
 from .cog_validator import COGValidator
-from .dem_validator import DEMValidator
-from .dsm_validator import DSMValidator
-from .dtm_validator import DTMValidator
 from .geojson_validator import GeoJSONValidator
 from .geopackage_validator import GeoPackageValidator
 from .geoparquet_validator import GeoParquetValidator
@@ -25,9 +22,6 @@ __all__ = [
     "EOFileFormatValidator",
     "EOMetadata",
     "COGValidator",
-    "DEMValidator",
-    "DSMValidator",
-    "DTMValidator",
     "GeoJSONValidator",
     "GeoPackageValidator",
     "GeoParquetValidator",
