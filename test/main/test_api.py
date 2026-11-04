@@ -127,3 +127,6 @@ class TestRequest:
     def test_metadata_keys_of_unsupported_format(self):
         assert metadata_keys(UNREGISTERED) == frozenset()
 
+    def test_metadata_keys_of_no_format(self):
+        assert metadata_keys(None) == frozenset()
+

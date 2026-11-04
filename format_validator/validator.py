@@ -28,11 +28,14 @@ def supported_formats() -> list[FormatIdentifier]:
     return sorted({*registry.get_registered_identifiers(), *abstract})
 
 
-def metadata_keys(format_identifier: FormatIdentifier) -> frozenset[str]:
+def metadata_keys(format_identifier: Optional[FormatIdentifier]) -> frozenset[str]:
     """Keys of expected metadata understood by the validator registered for the format.
 
-    For an abstract format, the keys that all its leaves understand. Empty for unsupported formats.
+    For an abstract format, the keys that all formats below it understand. Empty for unsupported
+    formats and for ``None``, e.g. the result of ``FormatIdentifier.get()`` for an unknown id.
     """
+    if format_identifier is None:
+        return frozenset()
     validators = _validators(format_identifier)
     return frozenset.intersection(*(validator.metadata_keys() for validator in validators)) if validators else frozenset()
 

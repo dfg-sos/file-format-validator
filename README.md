@@ -54,9 +54,9 @@ result.to_json()            # status, request and events, each with a severity a
 `expected_metadata` holds plain strings. The validator of a format declares the keys it understands, and `build_request()` parses the values into the validator's metadata object, e.g. [EOMetadata](plugins/eo/README.md#metadata) with the CRS and geometry type of a GIS file. Empty values count as absent.
 
 ```python
-from format_validator import metadata_keys
+from format_validator import FormatIdentifier, metadata_keys
 
-metadata_keys(geojson)  # frozenset({'crs', 'geometry_type'})
+metadata_keys(FormatIdentifier.get("GeoJSON"))  # frozenset({'crs', 'geometry_type'})
 ```
 
 ### Abstract Formats
