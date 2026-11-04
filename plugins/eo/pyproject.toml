@@ -7,7 +7,7 @@ include = ["format_validator_eo*"]
 
 [project]
 name = "format-validator-eo"
-version = "0.4.1"
+version = "0.1.0"
 description = "EO formats and validators for the format validator."
 readme = "README.md"
 license = "MIT"
@@ -19,7 +19,7 @@ authors = [
 requires-python = ">=3.13"
 
 dependencies = [
-    "format-validator",
+    "format-validator>=0.5,<0.6",
     "geopandas",
     "pyarrow",
     "pandas",
