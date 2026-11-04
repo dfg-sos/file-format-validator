@@ -390,7 +390,7 @@ wheels = [
 
 [[package]]
 name = "format-validator"
-version = "0.4.1"
+version = "0.5.0"
 source = { editable = "." }
 
 [package.dev-dependencies]
@@ -411,7 +411,7 @@ dev = [
 
 [[package]]
 name = "format-validator-eo"
-version = "0.4.1"
+version = "0.1.0"
 source = { editable = "plugins/eo" }
 dependencies = [
     { name = "cfgrib" },
