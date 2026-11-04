@@ -1,4 +1,4 @@
-"""Tests for validating against abstract formats, which cover all their leaves."""
+"""Tests for validating against abstract formats, with dummy formats and validators."""
 from pathlib import Path
 import pytest
 
@@ -8,74 +8,14 @@ from format_validator import (
     ValidationMode,
     ValidationResult,
     ValidationStatus,
-    UnsupportedMetadataKeys,
     Cause,
     build_request,
-    metadata_keys,
     validate,
 )
-from format_validator.model import (
-    FileFormatValidator,
-    Warning,
-    Error,
-)
-from format_validator.validators import EOMetadata
+from format_validator.model import FileFormatValidator, Warning, Error
 from format_validator.registry import _Registry
-from test.fixtures import geotiff_input, geotiff_no_cog_input, geojson_input, wgs84_crs
-
-
-def parse(identifier: FormatIdentifier, values) -> object:
-    """The metadata object ``build_request`` builds from plain strings."""
-    return build_request(identifier, FileInput(path=Path("file")), ValidationMode.BASIC, values).metadata
-
-
-class TestAbstractFormats:
-    @pytest.mark.parametrize("identifier", [FormatIdentifier.RASTER, FormatIdentifier.GIS])
-    def test_valid_for_a_leaf(self, geotiff_input, identifier):
-        result = validate(build_request(identifier, geotiff_input, ValidationMode.METADATA))
-        assert result.status == ValidationStatus.SUCCESS
-        assert any(f"a format of '{identifier}'" in info.message for info in result.infos())
-
-    @pytest.mark.parametrize("mode", list(ValidationMode))
-    def test_extension_of_no_leaf(self, geotiff_input, mode):
-        result = validate(build_request(FormatIdentifier.VECTOR, geotiff_input, mode))
-        assert result.status == ValidationStatus.FAILURE
-        assert [error.cause for error in result.errors()] == [Cause.EXTENSION_MISMATCH]
-
-    def test_invalid_for_all_leaves(self, geotiff_no_cog_input):
-        # The file's CRS is EPSG:32617
-        result = validate(
-            build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.METADATA, {"crs": "EPSG:4326"})
-        )
-        assert result.status == ValidationStatus.FAILURE
-        assert any(error.cause == Cause.METADATA_MISMATCH for error in result.errors())
-        assert any(info.message.startswith("Validated as 'GeoTIFF'") for info in result.infos())
-
-    def test_metadata_mismatch_for_vector(self, geojson_input):
-        result = validate(
-            build_request(FormatIdentifier.VECTOR, geojson_input, ValidationMode.METADATA, {"geometry_type": "Point"})
-        )
-        assert result.status == ValidationStatus.FAILURE
-
-
-class TestAbstractMetadata:
-    @pytest.mark.parametrize(
-        "identifier, keys",
-        [
-            (FormatIdentifier.GIS, {"crs"}),
-            (FormatIdentifier.RASTER, {"crs"}),
-            (FormatIdentifier.VECTOR, {"crs", "geometry_type"}),
-        ],
-    )
-    def test_keys_shared_by_all_leaves(self, identifier, keys):
-        assert metadata_keys(identifier) == keys
-
-    def test_parse(self, wgs84_crs):
-        assert parse(FormatIdentifier.RASTER, {"crs": "EPSG:4326"}) == EOMetadata(crs=wgs84_crs)
-
-    def test_key_not_shared_by_all_leaves(self):
-        with pytest.raises(UnsupportedMetadataKeys):
-            parse(FormatIdentifier.GIS, {"geometry_type": "Point"})
+from format_validator.validator import _validated_leaves
+from test.dummy_formats import GROUP, BASE, REFINED, OTHER, INNER, NESTED
 
 
 ABSTRACT = FormatIdentifier("test_abstract", children_ids=["test_leaf_a", "test_leaf_b"], is_abstract=True)
@@ -148,80 +88,42 @@ class TestAbstractResult:
         assert [error.message for error in result.errors()] == ["failure", "failure"]
 
 
-class TestAbstractContent:
-    """The costly content read runs once for the leaves of one validator."""
-
-    @pytest.fixture
-    def reads(self, monkeypatch):
-        from format_validator.validators.eo.raster_file_validator import RasterFileValidator
-
-        calls = []
-        outcome = {"result": None}
-        original = RasterFileValidator.assert_content
-
-        def counting(validator, request):
-            calls.append(type(validator).__name__)
-            return outcome["result"](request) if outcome["result"] else original(validator, request)
-
-        monkeypatch.setattr(RasterFileValidator, "assert_content", counting)
-        return calls, outcome
-
-    def test_stops_at_first_valid_leaf(self, geotiff_no_cog_input, reads):
-        calls, _ = reads
-        result = validate(build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.CONTENT))
-        assert result.status == ValidationStatus.SUCCESS
-        assert len(calls) == 1
-
-    def test_failed_read_is_not_repeated(self, geotiff_no_cog_input, reads):
-        calls, outcome = reads
-        outcome["result"] = lambda request: ValidationResult.failure(
-            request, Error(message="corrupt", cause=Cause.STRUCTURAL_MALFORMED)
-        )
-        result = validate(build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.CONTENT))
-        assert result.status == ValidationStatus.FAILURE
-        assert len(calls) == 1
-        assert [error.message for error in result.errors()].count("corrupt") == 1
-
-
-class TestAbstractSharedValidator:
-    """Formats registered for one validator (GeoTIFF, DEM, DSM, DTM) are validated once."""
-
-    def test_reports_all_formats_of_the_validator(self, geotiff_no_cog_input):
-        result = validate(build_request(FormatIdentifier.RASTER, geotiff_no_cog_input, ValidationMode.METADATA))
-        assert result.status == ValidationStatus.SUCCESS
-        assert result.infos()[-1].message == (
-            "File is valid as 'GeoTIFF' (also 'DEM', 'DSM', 'DTM'), a format of 'GISRaster'."
-        )
-
-    @pytest.mark.parametrize("identifier", [FormatIdentifier.DEM, FormatIdentifier.DSM, FormatIdentifier.DTM])
-    def test_concrete_format_uses_the_shared_validator(self, geotiff_no_cog_input, identifier):
-        result = validate(build_request(identifier, geotiff_no_cog_input, ValidationMode.METADATA))
-        assert result.status == ValidationStatus.SUCCESS
-
-
 class TestMostGeneralLeaves:
     """An abstract format covers the most general formats with a validator below it."""
 
-    def test_refinement_is_not_validated(self):
-        from format_validator.validator import _validated_leaves
+    @pytest.fixture
+    def fresh(self, monkeypatch):
+        fresh = _Registry()
+        monkeypatch.setattr("format_validator.validator.registry", fresh)
+        return fresh
 
-        leaves = _validated_leaves(FormatIdentifier.RASTER)
-        assert FormatIdentifier.GEOTIFF in leaves
-        assert FormatIdentifier.COG not in leaves
+    def test_stops_at_a_format_with_a_validator(self, fresh):
+        fresh.register(BASE)(dummy_validator(ValidationStatus.SUCCESS))
+        fresh.register(REFINED)(dummy_validator(ValidationStatus.SUCCESS))
+        assert _validated_leaves(GROUP) == [BASE]
 
-    def test_cog_is_valid_as_geotiff(self, geotiff_input):
-        result = validate(build_request(FormatIdentifier.RASTER, geotiff_input, ValidationMode.METADATA))
-        assert result.infos()[-1].message.startswith("File is valid as 'GeoTIFF'")
+    def test_descends_below_a_format_without_validator(self, fresh):
+        fresh.register(REFINED)(dummy_validator(ValidationStatus.SUCCESS))
+        fresh.register(NESTED)(dummy_validator(ValidationStatus.SUCCESS))
+        assert set(_validated_leaves(GROUP)) == {REFINED, NESTED}
 
-    def test_children_refine_their_parent(self):
-        # A file of a child must pass its parent's extension check, else the abstract format rejects it.
-        from format_validator.registry import registry
+    def test_format_below_two_parents_once(self, fresh):
+        fresh.register(OTHER)(dummy_validator(ValidationStatus.SUCCESS))
+        assert _validated_leaves(GROUP) == [OTHER]
 
-        for parent in FormatIdentifier.all():
-            parent_cls = registry.get_validator_class(parent)
-            for child in parent.children:
-                child_cls = registry.get_validator_class(child)
-                if parent_cls and child_cls:
-                    parent_ext = {ext.lower() for ext in parent_cls().get_extensions()}
-                    child_ext = {ext.lower() for ext in child_cls().get_extensions()}
-                    assert child_ext <= parent_ext, f"{child} accepts extensions that {parent} does not"
+    def test_concrete_format_covers_only_itself(self, fresh):
+        fresh.register(REFINED)(dummy_validator(ValidationStatus.SUCCESS))
+        assert _validated_leaves(BASE) == [BASE]
+
+    def test_validator_of_several_formats_runs_once(self, fresh):
+        calls = []
+
+        class Shared(dummy_validator(ValidationStatus.FAILURE)):
+            def validate(self, request):
+                calls.append(request)
+                return super().validate(request)
+
+        fresh.register(OTHER, NESTED)(Shared)
+        result = validate(build_request(INNER, FileInput(path=Path("file.dummy")), ValidationMode.METADATA))
+        assert len(calls) == 1
+        assert result.infos()[0].message == "Validated as 'test_other' (also 'test_nested'), a format of 'test_inner':"

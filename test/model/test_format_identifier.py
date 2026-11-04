@@ -1,39 +1,34 @@
 """Tests for the FormatIdentifier value object."""
-import pytest
 from format_validator.model.format_identifier import FormatIdentifier
+from test.dummy_formats import GROUP, BASE, REFINED, OTHER, INNER, NESTED
 
 
 class TestStringRepr:
     def test_str(self):
-        assert str(FormatIdentifier.GEOTIFF) == "GeoTIFF"
+        assert str(BASE) == "test_base"
 
     def test_repr(self):
-        assert "FormatIdentifier" in repr(FormatIdentifier.GEOTIFF)
-        assert "GeoTIFF" in repr(FormatIdentifier.GEOTIFF)
+        assert repr(BASE) == "FormatIdentifier('test_base')"
 
 
 class TestEqualityHash:
     def test_equality(self):
-        a = FormatIdentifier.GEOTIFF
-        b = FormatIdentifier.GEOTIFF
-        c = FormatIdentifier.COG
-        assert a == b
-        assert a != c
-        assert a != "GeoTIFF"
+        assert BASE == FormatIdentifier("test_base")
+        assert BASE != OTHER
+        assert BASE != "test_base"
 
     def test_hash(self):
-        a = FormatIdentifier.GEOTIFF
-        b = FormatIdentifier.GEOTIFF
-        assert hash(a) == hash(b)
-        d = {a: "found"}
-        assert d[b] == "found"
+        d = {BASE: "found"}
+        assert d[FormatIdentifier("test_base")] == "found"
 
 
 class TestSingleton:
     def test_same_instance(self):
-        a = FormatIdentifier.GEOTIFF
-        b = FormatIdentifier("GeoTIFF")
-        assert a is b
+        assert FormatIdentifier("test_base") is BASE
+
+    def test_case_insensitive(self):
+        assert FormatIdentifier("TEST_BASE") is BASE
+        assert FormatIdentifier.get(" Test_Base ") is BASE
 
     def test_new_format_registered(self):
         custom = FormatIdentifier("CustomFormat", is_abstract=False)
@@ -49,57 +44,36 @@ class TestSingleton:
 
 class TestTaxonomy:
     def test_abstract_format_has_children(self):
-        raster = FormatIdentifier.RASTER
-        assert raster.is_abstract
-        assert len(raster.children) > 0
-        assert FormatIdentifier.GEOTIFF in raster.children
+        assert GROUP.is_abstract
+        assert GROUP.children == [BASE, OTHER, INNER]
 
     def test_concrete_format_no_children(self):
-        gml = FormatIdentifier.GML
-        assert not gml.is_abstract
-        assert gml.children == []
+        assert not OTHER.is_abstract
+        assert OTHER.children == []
 
-    def test_geotiff_is_not_abstract_despite_children(self):
-        geotiff = FormatIdentifier.GEOTIFF
-        assert not geotiff.is_abstract
-        assert len(geotiff.children) > 0
-        assert FormatIdentifier.COG in geotiff.children
+    def test_concrete_format_with_children(self):
+        assert not BASE.is_abstract
+        assert BASE.children == [REFINED]
+
     def test_parent(self):
-        assert FormatIdentifier.GEOTIFF.parent == FormatIdentifier.RASTER
-        assert FormatIdentifier.COG.parent == FormatIdentifier.GEOTIFF
-        assert FormatIdentifier.RASTER.parent == FormatIdentifier.GIS
-        assert FormatIdentifier.GIS.parent is None
+        assert BASE.parent == GROUP
+        assert REFINED.parent == BASE
+        assert GROUP.parent is None
+
+    def test_format_with_two_parents(self):
+        assert set(OTHER.parents) == {GROUP, INNER}
 
     def test_leaves(self):
-        raster = FormatIdentifier.RASTER
-        leaves = raster.leaves
-        assert FormatIdentifier.COG in leaves
-        assert FormatIdentifier.GEOTIFF in leaves # GEOTIFF is a leaf because it is not abstract
-        assert FormatIdentifier.SHAPEFILE not in leaves
-
-    def test_vector_leaves(self):
-        vector = FormatIdentifier.VECTOR
-        leaves = vector.leaves
-        assert FormatIdentifier.SHAPEFILE in leaves
-        assert FormatIdentifier.GEOJSON in leaves
-        assert FormatIdentifier.GEOPARQUET in leaves
-
-    def test_gis_data_leaves(self):
-        gis = FormatIdentifier.GIS
-        leaves = gis.leaves
-        assert FormatIdentifier.COG in leaves
-        assert FormatIdentifier.SHAPEFILE in leaves
-        assert FormatIdentifier.GEOTIFF in leaves
+        # Concrete formats are leaves even with children, abstract ones never are.
+        assert set(GROUP.leaves) == {BASE, REFINED, OTHER, NESTED}
 
     def test_expand_abstract(self):
-        assert FormatIdentifier.RASTER.expand() == FormatIdentifier.RASTER.leaves
+        assert GROUP.expand() == GROUP.leaves
 
     def test_expand_concrete(self):
-        # GEOTIFF has COG as a child, but is not abstract itself
-        assert FormatIdentifier.GEOTIFF.expand() == [FormatIdentifier.GEOTIFF]
+        assert BASE.expand() == [BASE]
 
     def test_all_returns_sorted(self):
-        all_formats = FormatIdentifier.all()
-        ids = [f.id for f in all_formats]
+        ids = [f.id for f in FormatIdentifier.all()]
         assert ids == sorted(ids)
-        assert FormatIdentifier.GEOTIFF in all_formats
+        assert BASE in FormatIdentifier.all()

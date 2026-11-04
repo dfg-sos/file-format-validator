@@ -17,26 +17,21 @@ authors = [
 
 requires-python = ">=3.13"
 
-dependencies = [
-    "geopandas",
-    "pyarrow",
-    "pandas",
-    "shapely",
-    "netcdf4",
-    "xarray",
-    "pyproj",
-    "fiona",
-    "rasterio",
-    "cfgrib",
-    "rio_cogeo",
-    "eccodeslib"
-]
+dependencies = []
 
 [dependency-groups]
 dev = [
     "pytest",
-    "pytest-cov"
+    "pytest-cov",
+    "format-validator-eo",
 ]
 
+[tool.uv.workspace]
+members = ["plugins/eo"]
+
+[tool.uv.sources]
+format-validator-eo = { workspace = true }
+
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "plugins/eo"]
+testpaths = ["test", "plugins/eo/tests"]

@@ -87,7 +87,8 @@ class TestLoadPlugins:
         assert FormatIdentifier("test_fasta") in registry.get_registered_identifiers()
 
     def test_duplicate_identifier_raises(self, plugins):
-        plugins("clash", PLUGIN_TEMPLATE.format(identifier=FormatIdentifier.GEOTIFF.id))
+        registry.register("test_taken")(type("Taken", (_Validator,), {}))
+        plugins("clash", PLUGIN_TEMPLATE.format(identifier="test_taken"))
         with pytest.raises(DuplicateRegistrationError, match="already registered"):
             registry.load_plugins()
 

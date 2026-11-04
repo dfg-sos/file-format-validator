@@ -1,127 +1,70 @@
-"""Tests for the format identifier translation layer, against a copy of the SOS EO formats ontology."""
+"""Tests for the format identifier translation layer. The EO ontology mapping is tested in the EO plugin."""
 import json
-import xml.etree.ElementTree as ET
-from pathlib import Path
 import pytest
 
 from format_validator.translator import FormatTranslator
 from format_validator.model import FormatIdentifier
+from test.dummy_formats import BASE, GROUP, OTHER, REFINED
 
-
-ONTOLOGY = Path("test/data/ontologies/eo-formats.owl")
-MAPPING = Path("test/data/mappings/eo-formats.json")
-EO = "https://dfg-sos.github.io/ontologies/eo-formats#"
-
-RDF = "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}"
-RDFS = "{http://www.w3.org/2000/01/rdf-schema#}"
-OWL = "{http://www.w3.org/2002/07/owl#}"
-
-
-def ontology_classes() -> dict[str, set[str]]:
-    """IRI of each class in the ontology copy, with the IRIs of its direct superclasses."""
-    root = ET.parse(ONTOLOGY).getroot()
-    return {
-        cls.attrib[f"{RDF}about"]: {sup.attrib[f"{RDF}resource"] for sup in cls.findall(f"{RDFS}subClassOf")}
-        for cls in root.findall(f"{OWL}Class")
-    }
+NS = "https://example.org/formats#"
+MAPPING = {f"{NS}Base": "test_base", f"{NS}Group": "test_group", f"{NS}Other_Format": "test_other"}
 
 
 @pytest.fixture
 def translator():
-    return FormatTranslator.from_json(MAPPING)
+    return FormatTranslator(MAPPING)
 
 
 class TestFormatTranslator:
     def test_to_local(self, translator):
-        assert translator.to_local(f"{EO}GeoTIFF") is FormatIdentifier.GEOTIFF
-        assert translator.to_local(f"{EO}Shapefile") is FormatIdentifier.SHAPEFILE
+        assert translator.to_local(f"{NS}Base") is BASE
+        assert translator.to_local(f"{NS}Group") is GROUP
 
-    @pytest.mark.parametrize(
-        "fragment, expected",
-        [
-            ("GIS", FormatIdentifier.GIS),
-            ("Raster", FormatIdentifier.RASTER),
-            ("Vector", FormatIdentifier.VECTOR),
-            ("NetCDF_CF", FormatIdentifier.NETCDF),
-        ],
-    )
-    def test_to_local_where_fragment_and_id_differ(self, translator, fragment, expected):
-        assert translator.to_local(f"{EO}{fragment}") is expected
+    def test_to_local_where_fragment_and_id_differ(self, translator):
+        assert translator.to_local(f"{NS}Other_Format") is OTHER
 
-    @pytest.mark.parametrize("iri", [f"{EO}VRT", f"{EO}Unknown", "GeoTIFF", "eo:GeoTIFF"])
+    @pytest.mark.parametrize("iri", [f"{NS}Unknown", "Base", "ns:Base"])
     def test_to_local_unmapped(self, translator, iri):
         assert translator.to_local(iri) is None
 
     def test_to_external(self, translator):
-        assert translator.to_external(FormatIdentifier.GEOTIFF) == f"{EO}GeoTIFF"
-        assert translator.to_external(FormatIdentifier.NETCDF) == f"{EO}NetCDF_CF"
+        assert translator.to_external(BASE) == f"{NS}Base"
+        assert translator.to_external(OTHER) == f"{NS}Other_Format"
 
     def test_to_external_unmapped(self, translator):
-        assert translator.to_external(FormatIdentifier.CSV) is None
+        assert translator.to_external(REFINED) is None
+
+    def test_from_json(self, tmp_path):
+        path = tmp_path / "mapping.json"
+        path.write_text(json.dumps({"ontology": f"{NS}", "mappings": MAPPING}))
+        assert FormatTranslator.from_json(path).iris() == sorted(MAPPING)
 
     def test_ids_are_case_insensitive(self):
-        translator = FormatTranslator({f"{EO}GeoTIFF": "geotiff"})
-        assert translator.to_local(f"{EO}GeoTIFF") is FormatIdentifier.GEOTIFF
+        translator = FormatTranslator({f"{NS}Base": "TEST_BASE"})
+        assert translator.to_local(f"{NS}Base") is BASE
 
     def test_unknown_id_raises(self):
-        with pytest.raises(ValueError, match="raster"):
-            FormatTranslator({f"{EO}Raster": "raster"})
+        with pytest.raises(ValueError, match="test_unknown_id"):
+            FormatTranslator({f"{NS}Unknown": "test_unknown_id"})
 
     def test_unknown_id_creates_no_identifier(self):
         with pytest.raises(ValueError):
-            FormatTranslator({f"{EO}Test": "test_translator_unknown"})
+            FormatTranslator({f"{NS}Test": "test_translator_unknown"})
         assert FormatIdentifier.get("test_translator_unknown") is None
 
     def test_merge(self):
-        merged = FormatTranslator({f"{EO}GeoTIFF": "GeoTIFF"}) | FormatTranslator({f"{EO}NetCDF_CF": "NetCDF"})
-        assert merged.to_local(f"{EO}GeoTIFF") is FormatIdentifier.GEOTIFF
-        assert merged.to_local(f"{EO}NetCDF_CF") is FormatIdentifier.NETCDF
+        merged = FormatTranslator({f"{NS}Base": "test_base"}) | FormatTranslator({f"{NS}Other_Format": "test_other"})
+        assert merged.to_local(f"{NS}Base") is BASE
+        assert merged.to_local(f"{NS}Other_Format") is OTHER
 
     def test_merge_same_mapping_twice(self):
-        merged = FormatTranslator({f"{EO}GeoTIFF": "GeoTIFF"}) | FormatTranslator({f"{EO}GeoTIFF": "geotiff"})
-        assert merged.iris() == [f"{EO}GeoTIFF"]
+        merged = FormatTranslator({f"{NS}Base": "test_base"}) | FormatTranslator({f"{NS}Base": "TEST_BASE"})
+        assert merged.iris() == [f"{NS}Base"]
 
     def test_merge_method(self):
-        merged = FormatTranslator({f"{EO}GeoTIFF": "GeoTIFF"}).merge(FormatTranslator({f"{EO}NetCDF_CF": "NetCDF"}))
-        assert merged.iris() == [f"{EO}GeoTIFF", f"{EO}NetCDF_CF"]
+        merged = FormatTranslator({f"{NS}Base": "test_base"}).merge(FormatTranslator({f"{NS}Other_Format": "test_other"}))
+        assert merged.iris() == [f"{NS}Base", f"{NS}Other_Format"]
 
     def test_merge_conflict_raises(self):
-        with pytest.raises(ValueError, match="Raster"):
-            FormatTranslator({f"{EO}Raster": "GISRaster"}) | FormatTranslator({f"{EO}Raster": "GISVector"})
-
-
-class TestEOFormatsMapping:
-    """The test mapping against the ontology copy."""
-
-    def test_mapped_iris_exist_in_ontology(self, translator):
-        assert set(translator.iris()) <= set(ontology_classes())
-
-    def test_maps_every_ontology_class_with_a_local_validator(self, translator):
-        # Ontology classes without a local identifier are known to be unsupported.
-        unmapped = {iri.removeprefix(EO) for iri in ontology_classes() if translator.to_local(iri) is None}
-        assert unmapped == {"EsriJSON", "GeoZarr", "OSM_JSON", "OSM_XML", "PBF", "VRT", "WKB", "XDMF"}
-
-    def test_hierarchy_matches_ontology(self, translator):
-        # Every subClassOf between mapped classes is a parent-child relation of the format identifiers.
-        for iri, superclasses in ontology_classes().items():
-            child = translator.to_local(iri)
-            for superclass in superclasses:
-                parent = translator.to_local(superclass)
-                if child and parent:
-                    assert child in parent.children, f"{child} is not a child of {parent}"
-
-    def test_children_are_subclasses_in_ontology(self, translator):
-        classes = ontology_classes()
-        for iri in translator.iris():
-            parent = translator.to_local(iri)
-            for child in parent.children:
-                child_iri = translator.to_external(child)
-                assert child_iri is not None, f"{child} is not mapped"
-                assert iri in classes[child_iri], f"{child_iri} is not a subclass of {iri}"
-
-    def test_mapping_file_is_for_the_ontology_copy(self):
-        data = json.loads(MAPPING.read_text())
-        root = ET.parse(ONTOLOGY).getroot()
-        ontology = root.find(f"{OWL}Ontology")
-        assert data["ontology"] == ontology.attrib[f"{RDF}about"]
-        assert data["version"] == ontology.find(f"{OWL}versionInfo").text
+        with pytest.raises(ValueError, match="Group"):
+            FormatTranslator({f"{NS}Group": "test_group"}) | FormatTranslator({f"{NS}Group": "test_base"})

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["format_validator_eo*"]
+
+[project]
+name = "format-validator-eo"
+version = "0.4.1"
+description = "EO formats and validators for the format validator."
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Moritz Pataky", email = "moritz.pataky@stud-mail.uni-wuerzburg.de" },
+    { name = "Lorenz Gruber", email = "lorenz.gruber@uni-wuerzburg.de" }
+]
+
+requires-python = ">=3.13"
+
+dependencies = [
+    "format-validator",
+    "geopandas",
+    "pyarrow",
+    "pandas",
+    "shapely",
+    "netcdf4",
+    "xarray",
+    "pyproj",
+    "fiona",
+    "rasterio",
+    "cfgrib",
+    "rio_cogeo",
+    "eccodeslib"
+]
+
+[project.entry-points."format_validator.validators"]
+eo = "format_validator_eo"
+
+[tool.uv.sources]
+format-validator = { workspace = true }

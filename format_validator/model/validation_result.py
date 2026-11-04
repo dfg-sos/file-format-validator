@@ -14,8 +14,8 @@ class Severity(Enum):
 class Cause(Enum):
     PATH_ERROR = "path_error"
     EXTENSION_MISMATCH = "extension_mismatch"
-    METADATA_MISMATCH = "invalid_metadata"
-    MISSING_METADATA = "srs_missing"
+    METADATA_MISMATCH = "metadata_mismatch"
+    MISSING_METADATA = "missing_metadata"
     FILE_OPEN_ERROR = "file_open_error"
     STRUCTURAL_MALFORMED = "structural_malformed"
     UNKNOWN = "unknown"

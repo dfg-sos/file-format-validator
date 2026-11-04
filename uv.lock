@@ -10,6 +10,12 @@ resolution-markers = [
     "python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
+[manifest]
+members = [
+    "format-validator",
+    "format-validator-eo",
+]
+
 [[package]]
 name = "affine"
 version = "3.0.1"
@@ -386,10 +392,32 @@ wheels = [
 name = "format-validator"
 version = "0.4.1"
 source = { editable = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "format-validator-eo" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "format-validator-eo", editable = "plugins/eo" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[[package]]
+name = "format-validator-eo"
+version = "0.4.1"
+source = { editable = "plugins/eo" }
 dependencies = [
     { name = "cfgrib" },
     { name = "eccodeslib" },
     { name = "fiona" },
+    { name = "format-validator" },
     { name = "geopandas" },
     { name = "netcdf4" },
     { name = "pandas" },
@@ -399,12 +427,6 @@ dependencies = [
     { name = "rio-cogeo" },
     { name = "shapely" },
     { name = "xarray" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "pytest-cov" },
 ]
 
 [package.metadata]
@@ -412,6 +434,7 @@ requires-dist = [
     { name = "cfgrib" },
     { name = "eccodeslib" },
     { name = "fiona" },
+    { name = "format-validator", editable = "." },
     { name = "geopandas" },
     { name = "netcdf4" },
     { name = "pandas" },
@@ -421,12 +444,6 @@ requires-dist = [
     { name = "rio-cogeo" },
     { name = "shapely" },
     { name = "xarray" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest" },
-    { name = "pytest-cov" },
 ]
 
 [[package]]

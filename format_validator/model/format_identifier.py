@@ -1,7 +1,8 @@
 """Strongly-typed format identifier with singleton-like behavior.
 
 Each distinct format instance only exists once. Format identifiers are case-insensitive. All registered formats are stored
-in a module-level dictionary, enabling consumers to add their own identifiers.
+in a module-level dictionary. The core defines no formats: plugins define their identifiers and
+their hierarchy, see ``format_validator.registry.load_plugins``.
 
 Members:
     ::id: Identifier string.
@@ -26,27 +27,6 @@ class FormatIdentifier:
 
     # Module-level registry for singleton-like behaviour
     _REGISTRY: Dict[str, "FormatIdentifier"] = {}
-
-    # -- forward declarations of canonical built-in instances (populated below) --
-    GIS: "FormatIdentifier"
-    RASTER: "FormatIdentifier"
-    VECTOR: "FormatIdentifier"
-    GEOTIFF: "FormatIdentifier"
-    COG: "FormatIdentifier"
-    DEM: "FormatIdentifier"
-    DSM: "FormatIdentifier"
-    DTM: "FormatIdentifier"
-    GRIB: "FormatIdentifier"
-    NETCDF: "FormatIdentifier"
-    SHAPEFILE: "FormatIdentifier"
-    GEOJSON: "FormatIdentifier"
-    GEOPACKAGE: "FormatIdentifier"
-    GEOPARQUET: "FormatIdentifier"
-    GML: "FormatIdentifier"
-    GPX: "FormatIdentifier"
-    KML: "FormatIdentifier"
-    WKT: "FormatIdentifier"
-    CSV: "FormatIdentifier"
 
     def __new__(
         cls,
@@ -177,27 +157,3 @@ class FormatIdentifier:
         """Remove *all* formats from the registry.  Useful for testing."""
         FormatIdentifier._REGISTRY.clear()
 
-
-# ------------------------------------------------------------------
-# Built-in canonical instances
-# ------------------------------------------------------------------
-
-FormatIdentifier.GIS = FormatIdentifier("GIS", children_ids=["GISRaster", "GISVector"], is_abstract=True)
-FormatIdentifier.RASTER = FormatIdentifier("GISRaster", children_ids=["GeoTIFF", "DEM", "DSM", "DTM", "GRIB", "NetCDF", "GeoPackage"], is_abstract=True)
-FormatIdentifier.VECTOR = FormatIdentifier("GISVector", children_ids=["Shapefile", "GeoJSON", "GeoPackage", "GeoParquet", "GML", "GPX", "KML", "WKT"], is_abstract=True)
-FormatIdentifier.GEOTIFF = FormatIdentifier("GeoTIFF", children_ids=["COG"])
-FormatIdentifier.COG = FormatIdentifier("COG")
-FormatIdentifier.DEM = FormatIdentifier("DEM")
-FormatIdentifier.DSM = FormatIdentifier("DSM")
-FormatIdentifier.DTM = FormatIdentifier("DTM")
-FormatIdentifier.GRIB = FormatIdentifier("GRIB")
-FormatIdentifier.NETCDF = FormatIdentifier("NetCDF")
-FormatIdentifier.SHAPEFILE = FormatIdentifier("Shapefile")
-FormatIdentifier.GEOJSON = FormatIdentifier("GeoJSON")
-FormatIdentifier.GEOPACKAGE = FormatIdentifier("GeoPackage")
-FormatIdentifier.GEOPARQUET = FormatIdentifier("GeoParquet")
-FormatIdentifier.GML = FormatIdentifier("GML")
-FormatIdentifier.GPX = FormatIdentifier("GPX")
-FormatIdentifier.KML = FormatIdentifier("KML")
-FormatIdentifier.WKT = FormatIdentifier("WKT")
-FormatIdentifier.CSV = FormatIdentifier("CSV")

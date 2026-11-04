@@ -3,6 +3,7 @@ import json
 import datetime
 from pathlib import Path
 
+from test import dummy_formats
 from format_validator import (
     ValidationRequest,
     ValidationResult,
@@ -23,7 +24,7 @@ from format_validator.model.validation_result import ValidationStatus
 @pytest.fixture
 def validation_request():
     return ValidationRequest(
-        format_identifier=FormatIdentifier.GIS,
+        format_identifier=dummy_formats.GROUP,
         actual_file=FileInput(path=Path("test.txt")),
         mode=ValidationMode.METADATA,
     )
@@ -216,12 +217,12 @@ class TestMerge:
 
     def test_merge_different_requests_raises(self):
         req1 = ValidationRequest(
-            format_identifier=FormatIdentifier.GEOTIFF,
+            format_identifier=dummy_formats.BASE,
             actual_file=FileInput(path=Path("a.txt")),
             mode=ValidationMode.BASIC,
         )
         req2 = ValidationRequest(
-            format_identifier=FormatIdentifier.KML,
+            format_identifier=dummy_formats.OTHER,
             actual_file=FileInput(path=Path("b.txt")),
             mode=ValidationMode.BASIC,
         )
@@ -248,3 +249,10 @@ def test_to_json(validation_request, error):
     assert data["status"] == "failure"
     assert data["request"]["format_identifier"] == validation_request.format_identifier.id
     assert data["errors"][0]["message"] == error.message
+
+
+class TestCause:
+    @pytest.mark.parametrize("cause", list(Cause))
+    def test_serialized_value_is_the_member_name(self, cause):
+        # The values are part of the JSON output, so they must stay domain-neutral and stable.
+        assert cause.value == cause.name.lower()

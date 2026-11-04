@@ -1,7 +1,8 @@
 """Validate files against a format: list the supported formats, build a request and validate it.
 
-The extension API for writing validators lives in ``format_validator.registry``,
-``format_validator.model`` and ``format_validator.validators``.
+The core defines no formats. Plugins define format identifiers and register validators, see
+``format_validator.registry.load_plugins``. The extension API for writing them lives in
+``format_validator.registry`` and ``format_validator.model``.
 """
 from .validator import supported_formats, metadata_keys, build_request, validate
 from .translator import FormatTranslator
@@ -24,8 +25,10 @@ from .model import (
     InvalidMetadataValue,
 )
 
-# Registers the built-in validators.
-from . import validators as _validators  # noqa: F401
+from .registry import registry as _registry
+
+# Registers the formats and validators of the installed plugins.
+_registry.load_plugins()
 
 __all__ = [
     "supported_formats",

@@ -8,6 +8,7 @@ from format_validator.model import (
     ValidationResult,
 )
 from format_validator.registry import registry, _Registry
+from test.dummy_formats import BASE, REFINED, OTHER, NESTED
 
 
 class DummyValidator(FileFormatValidator):
@@ -45,37 +46,26 @@ def reset_registry():
 @pytest.mark.usefixtures("reset_registry")
 class TestRegistration:
     def test_register_and_retrieve(self):
-        registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
-        assert registry.get_registered_identifiers() == [FormatIdentifier.GEOTIFF]
-        assert registry.get_identifier_for_validator(DummyValidator) == FormatIdentifier.GEOTIFF
+        registry.register(BASE)(DummyValidator)
+        assert registry.get_registered_identifiers() == [BASE]
+        assert registry.get_identifier_for_validator(DummyValidator) == BASE
 
     def test_get_validator_class(self):
-        registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
-        assert registry.get_validator_class(FormatIdentifier.GEOTIFF) is DummyValidator
+        registry.register(BASE)(DummyValidator)
+        assert registry.get_validator_class(BASE) is DummyValidator
         assert registry.get_validator_class(FormatIdentifier("test_unsupported")) is None
 
     def test_duplicate_identifier_raises(self):
-        registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
+        registry.register(BASE)(DummyValidator)
         with pytest.raises(KeyError, match="already registered"):
-            registry.register(FormatIdentifier.GEOTIFF)(AnotherDummyValidator)
+            registry.register(BASE)(AnotherDummyValidator)
 
     def test_duplicate_class_raises(self):
-        registry.register(FormatIdentifier.GEOTIFF)(DummyValidator)
+        registry.register(BASE)(DummyValidator)
         with pytest.raises(KeyError, match="already registered"):
-            registry.register(FormatIdentifier.COG)(DummyValidator)
+            registry.register(REFINED)(DummyValidator)
 
-    @pytest.mark.parametrize(
-        "identifier",
-        [
-            FormatIdentifier.COG,
-            FormatIdentifier.GEOJSON,
-            FormatIdentifier.SHAPEFILE,
-            FormatIdentifier.GEOPACKAGE,
-            FormatIdentifier.NETCDF,
-            FormatIdentifier.GRIB,
-            FormatIdentifier.GML,
-        ],
-    )
+    @pytest.mark.parametrize("identifier", [BASE, REFINED, OTHER, NESTED])
     def test_various_identifier_formats(self, identifier):
         registry.register(identifier)(DummyValidator)
         assert identifier in registry.get_registered_identifiers()
@@ -83,39 +73,6 @@ class TestRegistration:
     def test_empty_identifier_raises(self):
         with pytest.raises(ValueError, match="non-empty"):
             registry.register(FormatIdentifier(""))(DummyValidator)
-
-
-class TestModuleLevelRegistry:
-    def test_module_level_registry_has_defaults(self):
-        """
-        The module-level registry must contain the production validators
-        without relying on any prior test imports.  We spawn a fresh
-        subprocess so that validator test modules (which import concrete
-        validators and trigger their decorators as a side effect) do not
-        pollute the state.
-        """
-        import subprocess
-        import sys
-
-        code = (
-            "from format_validator.registry import registry; "
-            "from format_validator.model.format_identifier import FormatIdentifier; "
-            "ids = registry.get_registered_identifiers(); "
-            "assert len(ids) >= 15, f'Registry under-populated: {ids}'; "
-            "assert FormatIdentifier.COG in ids, 'Missing COG validator'; "
-            "assert FormatIdentifier.GEOTIFF in ids, 'Missing GeoTIFF validator'; "
-            "print('registry_ok')"
-        )
-        result = subprocess.run(
-            [sys.executable, "-c", code],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            pytest.fail(
-                f"Registry not correctly initialised in fresh process.\n"
-                f"stdout: {result.stdout}\nstderr: {result.stderr}"
-            )
 
 
 @pytest.mark.usefixtures("reset_registry")
