@@ -118,6 +118,12 @@ class TestRequest:
         with pytest.raises(UnsupportedFormat):
             build_request(UNREGISTERED, FileInput(path=Path("file.dummy")), ValidationMode.BASIC, {"crs": "EPSG:4326"})
 
+    def test_no_format_raises_unsupported_format(self):
+        # e.g. FormatIdentifier.get() for an id no plugin defines
+        with pytest.raises(UnsupportedFormat, match="No format given") as exc_info:
+            build_request(None, FileInput(path=Path("file.dummy")), ValidationMode.BASIC)
+        assert exc_info.value.format_identifier is None
+
     def test_metadata_keys_of_unsupported_format(self):
         assert metadata_keys(UNREGISTERED) == frozenset()
 

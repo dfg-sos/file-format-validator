@@ -13,9 +13,7 @@ Formats are referenced by their `FormatIdentifier`. Look one up by its id with `
 from pathlib import Path
 from format_validator import FileInput, FormatIdentifier, InvalidRequest, ValidationMode, build_request, validate
 
-geojson = FormatIdentifier.get("GeoJSON")
-if geojson is None:
-    ...  # unknown format, e.g. return HTTP 400
+geojson = FormatIdentifier.get("GeoJSON")  # None if no installed plugin defines it
 
 try:
     request = build_request(
@@ -36,7 +34,7 @@ result.to_json()            # status, request and events, each with a severity a
 
 | Error | Raised when |
 |---|---|
-| `UnsupportedFormat` | No validator is registered for the format or, for an abstract format, for any format below it |
+| `UnsupportedFormat` | The format is `None`, e.g. an unknown id, or no validator is registered for the format or, for an abstract format, for any format below it |
 | `UnsupportedMode` | The mode is not enabled for the request |
 | `UnsupportedMetadataKeys` | A metadata key is not understood by the format's validator |
 | `InvalidMetadataValue` | A metadata value cannot be parsed, e.g. an unknown CRS |

@@ -38,7 +38,7 @@ def metadata_keys(format_identifier: FormatIdentifier) -> frozenset[str]:
 
 
 def build_request(
-    format_identifier: FormatIdentifier,
+    format_identifier: Optional[FormatIdentifier],
     actual_file: FileInput,
     mode: ValidationMode,
     expected_metadata: Optional[Mapping[str, str]] = None,
@@ -49,12 +49,17 @@ def build_request(
     don't need to know the domain's metadata object. Empty values count as absent. Without values,
     a validator with metadata keys still gets an empty metadata object.
 
+    ``format_identifier`` may be ``None``, so the result of ``FormatIdentifier.get()`` can be passed
+    directly.
+
     Raises:
-        UnsupportedFormat: If no validator is registered for the format or, for an abstract format, its leaves.
+        UnsupportedFormat: If the format is ``None``, or no validator is registered for the format or, for an abstract format, any format below it.
         UnsupportedMode: If the mode is not enabled for the request.
-        UnsupportedMetadataKeys: If a key is not understood by the format's validator, or by all leaves of an abstract format.
+        UnsupportedMetadataKeys: If a key is not understood by the format's validator, or by all formats below an abstract format.
         InvalidMetadataValue: If a value cannot be parsed.
     """
+    if format_identifier is None:
+        raise UnsupportedFormat(None)
     validators = _validators(format_identifier)
     if not validators:
         raise UnsupportedFormat(format_identifier)

@@ -1,4 +1,5 @@
 """Errors raised for requests that cannot be validated. Problems with the file itself are reported in the ``ValidationResult``."""
+from typing import Optional
 from .format_identifier import FormatIdentifier
 
 
@@ -7,11 +8,15 @@ class InvalidRequest(ValueError):
 
 
 class UnsupportedFormat(InvalidRequest):
-    """Raised when no validator is registered for a format or, for an abstract format, any of its leaves."""
+    """Raised when no validator is registered for a format or, for an abstract format, any format below
+    it, or when no format is given, e.g. because ``FormatIdentifier.get()`` found none for an id."""
 
-    def __init__(self, format_identifier: FormatIdentifier):
+    def __init__(self, format_identifier: Optional[FormatIdentifier]):
         self.format_identifier = format_identifier
-        super().__init__(f"Format '{format_identifier}' is not supported, no validator is registered for it.")
+        if format_identifier is None:
+            super().__init__("No format given, e.g. because no installed plugin defines a format with the requested id.")
+        else:
+            super().__init__(f"Format '{format_identifier}' is not supported, no validator is registered for it.")
 
 
 class UnsupportedMode(InvalidRequest):
