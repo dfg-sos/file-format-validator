@@ -1,32 +1,34 @@
 # EO Format Validator Plugin
-Formats and validators for Earth observation data, as a plugin of the [format validator](../../README.md). Installing the package registers its validators through the `format_validator.validators` entry point. Its format identifiers are in [`format_validator_eo.eo_formats`](format_validator_eo/eo_formats.py):
+Formats and validators for Earth observation data, as a plugin of the [format validator](../../README.md). Installing the package registers its formats and validators through the `format_validator.validators` entry point, so callers only use the core and refer to the formats by id:
 
 ```python
 from pathlib import Path
-from format_validator import build_request, validate, FileInput, ValidationMode
-from format_validator_eo import eo_formats
+from format_validator import FormatIdentifier, FileInput, ValidationMode, build_request, validate
 
-validate(build_request(eo_formats.RASTER, FileInput(path=Path("dem.tif")), ValidationMode.CONTENT))
+raster = FormatIdentifier.get("GISRaster")  # None without this plugin
+validate(build_request(raster, FileInput(path=Path("dem.tif")), ValidationMode.CONTENT))
 ```
 
+The constants in [`format_validator_eo.eo_formats`](format_validator_eo/eo_formats.py), e.g. `eo_formats.GEOTIFF`, define the formats and their hierarchy for the plugin's own code.
+
 ## Formats
-| Format | Identifier | Extensions | Parent |
+| Format | Id | Extensions | Parent |
 |---|---|---|---|
-| GeoTIFF | `GEOTIFF` | `.tif`, `.tiff` | `GISRaster` |
+| GeoTIFF | `GeoTIFF` | `.tif`, `.tiff` | `GISRaster` |
 | Cloud Optimized GeoTIFF | `COG` | `.tif`, `.tiff` | `GeoTIFF` |
 | DEM, DSM, DTM | `DEM`, `DSM`, `DTM` | `.tif`, `.tiff` | `GISRaster` |
 | GRIB | `GRIB` | `.grib`, `.grib1`, `.grib2`, `.grb`, `.grb2`, `.gb` | `GISRaster` |
-| NetCDF | `NETCDF` | `.nc`, `.nc4`, `.cdf` | `GISRaster` |
-| GeoPackage | `GEOPACKAGE` | `.gpkg` | `GISRaster`, `GISVector` |
-| Shapefile | `SHAPEFILE` | `.shp` | `GISVector` |
-| GeoJSON | `GEOJSON` | `.geojson`, `.json` | `GISVector` |
-| GeoParquet | `GEOPARQUET` | `.parquet`, `.geoparquet` | `GISVector` |
+| NetCDF | `NetCDF` | `.nc`, `.nc4`, `.cdf` | `GISRaster` |
+| GeoPackage | `GeoPackage` | `.gpkg` | `GISRaster`, `GISVector` |
+| Shapefile | `Shapefile` | `.shp` | `GISVector` |
+| GeoJSON | `GeoJSON` | `.geojson`, `.json` | `GISVector` |
+| GeoParquet | `GeoParquet` | `.parquet`, `.geoparquet` | `GISVector` |
 | GML | `GML` | `.gml`, `.xml` | `GISVector` |
 | GPX | `GPX` | `.gpx` | `GISVector` |
 | KML | `KML` | `.kml`, `.kmz` | `GISVector` |
 | WKT | `WKT` | `.wkt`, `.txt` | `GISVector` |
 
-The abstract formats `GIS`, `GISRaster` (`RASTER`) and `GISVector` (`VECTOR`) group them. DEMs, DSMs and DTMs are validated as GeoTIFFs, since the file does not declare what its pixels hold. KML and WKT have no content reader and report `UNCERTAIN` in `CONTENT` mode.
+The abstract formats `GIS`, `GISRaster` and `GISVector` group them. DEMs, DSMs and DTMs are validated as GeoTIFFs, since the file does not declare what its pixels hold. KML and WKT have no content reader and report `UNCERTAIN` in `CONTENT` mode.
 
 ## Metadata
 Validators of this plugin use [EOMetadata](format_validator_eo/eo_file_format_validator.py) as metadata object:
