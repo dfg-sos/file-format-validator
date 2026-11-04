@@ -4,7 +4,7 @@ import sys
 
 from format_validator import FileInput, ValidationMode, ValidationRequest, ValidationStatus, supported_formats, validate
 from format_validator.registry import registry
-from format_validator_eo import formats
+from format_validator_eo import eo_formats
 from tests.fixtures import geotiff_no_cog_input
 
 
@@ -23,14 +23,14 @@ def test_importing_the_core_registers_the_plugin():
 
 
 def test_abstract_formats_are_supported():
-    assert {formats.GIS, formats.RASTER, formats.VECTOR} <= set(supported_formats())
+    assert {eo_formats.GIS, eo_formats.RASTER, eo_formats.VECTOR} <= set(supported_formats())
 
 
 def test_format_without_validator():
-    assert formats.CSV not in supported_formats()
-    assert registry.get_validator_class(formats.CSV) is None
+    assert eo_formats.CSV not in supported_formats()
+    assert registry.get_validator_class(eo_formats.CSV) is None
 
 
 def test_validate_real_geotiff(geotiff_no_cog_input):
-    request = ValidationRequest(formats.GEOTIFF, geotiff_no_cog_input, ValidationMode.METADATA)
+    request = ValidationRequest(eo_formats.GEOTIFF, geotiff_no_cog_input, ValidationMode.METADATA)
     assert validate(request).status == ValidationStatus.SUCCESS

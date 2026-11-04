@@ -7,10 +7,10 @@ from rio_cogeo.cogeo import cog_validate
 from format_validator.model import ValidationRequest,ValidationResult,Error,Warning,Cause, FormatIdentifier
 from .raster_file_validator import RasterFileValidator
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 
 
-@registry.register(formats.COG)
+@registry.register(eo_formats.COG)
 class COGValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

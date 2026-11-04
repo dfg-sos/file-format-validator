@@ -7,7 +7,7 @@ from format_validator import ValidationMode, MultiFileInput, FormatIdentifier, V
 from format_validator_eo import EOMetadata
 from shapely import GeometryType
 from tests.fixtures import shapefile_input, geojson_input, wgs84_crs, mercator_crs, nonexistent_input,geotiff_input
-from format_validator_eo import formats
+from format_validator_eo import eo_formats
 
 
 # ========== Local Fixtures ==========
@@ -38,7 +38,7 @@ class TestShapefileValidatorAssertExtension:
     def test_assert_extension_valid(self, shapefile_validator, shapefile_input):
         """Test extension validation passes for .shp file with all required files."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.BASIC,
         )
@@ -48,7 +48,7 @@ class TestShapefileValidatorAssertExtension:
     def test_assert_extension_failure(self, shapefile_validator, geojson_input):
         """Test extension validation fails for non-.shp files."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC,
         )
@@ -64,7 +64,7 @@ class TestShapefileValidatorAssertExtension:
             secondary_files=set()
         )
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=file_input,
             mode=ValidationMode.BASIC,
         )
@@ -80,7 +80,7 @@ class TestShapefileValidatorAssertExists:
     def test_assert_exists_passes(self, shapefile_validator, shapefile_input):
         """Test file existence passes for existing files."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
         )
@@ -99,7 +99,7 @@ class TestShapefileValidatorAssertExists:
             secondary_files={shx_file, dbf_file, prj_file, cpg_file}
         )
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=file_input,
             mode=ValidationMode.METADATA,
         )
@@ -116,7 +116,7 @@ class TestShapefileValidatorAssertCanOpen:
     def test_assert_can_open_passes(self, shapefile_validator, shapefile_input):
         """Test opening a real Shapefile."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
         )
@@ -126,7 +126,7 @@ class TestShapefileValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, shapefile_validator, geotiff_input):
         """Test that assert_can_open fails for GeoJSON file."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=geotiff_input,
             mode=ValidationMode.METADATA,
         )
@@ -142,7 +142,7 @@ class TestShapefileValidatorGetCRS:
     def test_get_crs(self, shapefile_validator, shapefile_input, wgs84_crs):
         """Test CRS extraction returns the expected CRS."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -153,7 +153,7 @@ class TestShapefileValidatorGetCRS:
     def test_get_crs_none(self, shapefile_validator, geotiff_input):
         """Test CRS extraction returns None for non-Shapefile."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=geotiff_input,
             mode=ValidationMode.METADATA,
         )
@@ -169,7 +169,7 @@ class TestShapefileValidatorAssertCRS:
     def test_assert_crs_passes(self, shapefile_validator, shapefile_input, wgs84_crs):
         """Test CRS validation passes with matching expected CRS."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -180,7 +180,7 @@ class TestShapefileValidatorAssertCRS:
     def test_assert_crs_fails(self, shapefile_validator, shapefile_input, mercator_crs):
         """Test CRS validation fails with mismatching expected CRS."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
@@ -192,7 +192,7 @@ class TestShapefileValidatorAssertCRS:
     def test_assert_crs_no_expected(self, shapefile_validator, shapefile_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
         )
@@ -208,7 +208,7 @@ class TestShapefileValidatorAssertGeometryType:
     def test_assert_geometry_type_passes(self, shapefile_validator, shapefile_input):
         """Test geometry type validation passes with matching expected type."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.POLYGON),
@@ -219,7 +219,7 @@ class TestShapefileValidatorAssertGeometryType:
     def test_assert_geometry_type_fails(self, shapefile_validator, shapefile_input):
         """Test geometry type validation fails with mismatching expected type."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(geometry_type=GeometryType.POINT),
@@ -237,7 +237,7 @@ class TestShapefileValidatorBasicMode:
     def test_validate_basic_passes(self, shapefile_validator, shapefile_input):
         """Test BASIC mode passes for valid .shp file."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.BASIC,
         )
@@ -247,7 +247,7 @@ class TestShapefileValidatorBasicMode:
     def test_validate_basic_failure(self, shapefile_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC,
         )
@@ -264,7 +264,7 @@ class TestShapefileValidatorStructuralMode:
     def test_validate_structural_positive(self, shapefile_validator, shapefile_input):
         """Test STRUCTURAL mode passes for valid existing files."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
         )
@@ -274,7 +274,7 @@ class TestShapefileValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, shapefile_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -294,7 +294,7 @@ class TestShapefileValidatorStructuralMode:
             secondary_files={shx_file, dbf_file, prj_file, cpg_file}
         )
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=file_input,
             mode=ValidationMode.METADATA,
         )
@@ -311,7 +311,7 @@ class TestShapefileValidatorFullMode:
     def test_validate_full_positive(self, shapefile_validator, shapefile_input, wgs84_crs):
         """Test FULL mode passes for valid Shapefile."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=shapefile_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
@@ -322,7 +322,7 @@ class TestShapefileValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, shapefile_validator, geojson_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
@@ -343,7 +343,7 @@ class TestShapefileValidatorFullMode:
             secondary_files={shx_file, dbf_file, prj_file, cpg_file}
         )
         request = ValidationRequest(
-            format_identifier=formats.SHAPEFILE,
+            format_identifier=eo_formats.SHAPEFILE,
             actual_file=file_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),

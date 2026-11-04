@@ -8,7 +8,7 @@ from shapely import GeometryType
 from format_validator.model import ValidationRequest, ValidationResult,Error,Cause,Warning,FormatIdentifier
 from .vector_file_validator import VectorFileValidator
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 
 
 GPX_NAMESPACES = {
@@ -19,7 +19,7 @@ GPX_NAMESPACES = {
 # the required root element name that identifies a GPX document
 GPX_ROOT_ELEMENT = 'gpx'
 
-@registry.register(formats.GPX)
+@registry.register(eo_formats.GPX)
 class GPXValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

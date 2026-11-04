@@ -6,7 +6,7 @@ from format_validator_eo.netcdf_validator import NetCDFValidator
 from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
 from format_validator_eo import EOMetadata
 from tests.fixtures import netcdf_input, geojson_input, geopackage_input, wgs84_crs, mercator_crs, nonexistent_input
-from format_validator_eo import formats
+from format_validator_eo import eo_formats
 
 
 # ========== Local Fixtures ==========
@@ -36,7 +36,7 @@ class TestNetCDFValidatorAssertExtension:
     def test_assert_extension_valid(self, netcdf_validator, netcdf_input):
         """Test extension validation passes for .nc file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=netcdf_input,
             mode=ValidationMode.BASIC,
         )
@@ -46,7 +46,7 @@ class TestNetCDFValidatorAssertExtension:
     def test_assert_extension_failure(self, netcdf_validator, geojson_input, geopackage_input):
         """Test extension validation fails for non-.nc files."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC,
         )
@@ -55,7 +55,7 @@ class TestNetCDFValidatorAssertExtension:
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=geopackage_input,
             mode=ValidationMode.BASIC,
         )
@@ -72,7 +72,7 @@ class TestNetCDFValidatorAssertExists:
     def test_assert_exists_passes(self, netcdf_validator, netcdf_input):
         """Test file existence passes for existing file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=netcdf_input,
             mode=ValidationMode.METADATA,
         )
@@ -82,7 +82,7 @@ class TestNetCDFValidatorAssertExists:
     def test_assert_exists_fails_for_nonexistent(self, netcdf_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -99,7 +99,7 @@ class TestNetCDFValidatorAssertCanOpen:
     def test_assert_can_open_passes(self, netcdf_validator, netcdf_input):
         """Test opening a real NetCDF file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=netcdf_input,
             mode=ValidationMode.METADATA,
         )
@@ -109,7 +109,7 @@ class TestNetCDFValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, netcdf_validator, geojson_input):
         """Test that assert_can_open fails for GeoJSON file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -125,7 +125,7 @@ class TestNetCDFValidatorGetCRS:
     def test_get_crs(self, netcdf_validator, netcdf_input):
         """Test CRS extraction returns a CRS."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=netcdf_input,
             mode=ValidationMode.METADATA,
         )
@@ -135,7 +135,7 @@ class TestNetCDFValidatorGetCRS:
     def test_get_crs_none(self, netcdf_validator, geojson_input):
         """Test CRS extraction returns None for non-NetCDF file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -151,7 +151,7 @@ class TestNetCDFValidatorAssertCRS:
     def test_assert_crs_no_expected(self, netcdf_validator, netcdf_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=netcdf_input,
             mode=ValidationMode.METADATA,
         )
@@ -161,7 +161,7 @@ class TestNetCDFValidatorAssertCRS:
     def test_assert_crs_no_actual(self, netcdf_validator, geojson_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -179,7 +179,7 @@ class TestNetCDFValidatorBasicMode:
     def test_validate_basic_passes(self, netcdf_validator, netcdf_input):
         """Test BASIC mode passes for valid .nc file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=netcdf_input,
             mode=ValidationMode.BASIC,
         )
@@ -189,7 +189,7 @@ class TestNetCDFValidatorBasicMode:
     def test_validate_basic_failure(self, netcdf_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC,
         )
@@ -206,7 +206,7 @@ class TestNetCDFValidatorStructuralMode:
     def test_validate_structural_positive(self, netcdf_validator, netcdf_input):
         """Test STRUCTURAL mode passes for valid existing file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=netcdf_input,
             mode=ValidationMode.METADATA,
         )
@@ -216,7 +216,7 @@ class TestNetCDFValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, netcdf_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -227,7 +227,7 @@ class TestNetCDFValidatorStructuralMode:
     def test_validate_structural_negative_nonexistent(self, netcdf_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -238,7 +238,7 @@ class TestNetCDFValidatorStructuralMode:
         
         valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.nc'))
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=valid_extension_nonexistent_file,
             mode=ValidationMode.METADATA,
         )
@@ -255,7 +255,7 @@ class TestNetCDFValidatorFullMode:
     def test_validate_full_positive(self, netcdf_validator, netcdf_input):
         """Test FULL mode passes for valid NetCDF file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=netcdf_input,
             mode=ValidationMode.METADATA,
         )
@@ -265,7 +265,7 @@ class TestNetCDFValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, netcdf_validator, geojson_input):
         """Test FULL mode fails for wrong file format."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -276,7 +276,7 @@ class TestNetCDFValidatorFullMode:
     def test_validate_full_negative_nonexistent(self, netcdf_validator, nonexistent_input):
         """Test FULL mode fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.NETCDF,
+            format_identifier=eo_formats.NETCDF,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )

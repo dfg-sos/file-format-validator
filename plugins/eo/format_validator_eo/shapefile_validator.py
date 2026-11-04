@@ -5,7 +5,7 @@ import fiona
 from format_validator.model import ValidationRequest,ValidationResult,Error,Cause,Info,FormatIdentifier
 from .vector_file_validator import VectorFileValidator, geometry_type_from_string
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 
 # Define required, recommended, and optional Shapefile components
 REQUIRED_EXTENSIONS = {'.shx', '.dbf', '.prj'} # .shp is also required, but checked separately
@@ -25,7 +25,7 @@ OPTIONAL_EXTENSIONS = {
     '.mxs'  # Geocoding index
 }
 
-@registry.register(formats.SHAPEFILE)
+@registry.register(eo_formats.SHAPEFILE)
 class ShapefileValidator(VectorFileValidator):
     """Shapefile validator, lightweight validation for ESRI Shapefiles:
         - extension check (.shp), additional files check (REQUIRED: .shp (geometry), .shx (index), .dbf (attributes), .prj (CRS)

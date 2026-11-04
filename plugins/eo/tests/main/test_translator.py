@@ -6,7 +6,7 @@ import pytest
 
 from format_validator.translator import FormatTranslator
 from format_validator.model import FormatIdentifier
-from format_validator_eo import formats
+from format_validator_eo import eo_formats
 
 
 ONTOLOGY = Path(__file__).parent.parent / "data/ontologies/eo-formats.owl"
@@ -34,16 +34,16 @@ def translator():
 
 class TestEOTranslator:
     def test_to_local(self, translator):
-        assert translator.to_local(f"{EO}GeoTIFF") is formats.GEOTIFF
-        assert translator.to_local(f"{EO}Shapefile") is formats.SHAPEFILE
+        assert translator.to_local(f"{EO}GeoTIFF") is eo_formats.GEOTIFF
+        assert translator.to_local(f"{EO}Shapefile") is eo_formats.SHAPEFILE
 
     @pytest.mark.parametrize(
         "fragment, expected",
         [
-            ("GIS", formats.GIS),
-            ("Raster", formats.RASTER),
-            ("Vector", formats.VECTOR),
-            ("NetCDF_CF", formats.NETCDF),
+            ("GIS", eo_formats.GIS),
+            ("Raster", eo_formats.RASTER),
+            ("Vector", eo_formats.VECTOR),
+            ("NetCDF_CF", eo_formats.NETCDF),
         ],
     )
     def test_to_local_where_fragment_and_id_differ(self, translator, fragment, expected):
@@ -54,11 +54,11 @@ class TestEOTranslator:
         assert translator.to_local(iri) is None
 
     def test_to_external(self, translator):
-        assert translator.to_external(formats.GEOTIFF) == f"{EO}GeoTIFF"
-        assert translator.to_external(formats.NETCDF) == f"{EO}NetCDF_CF"
+        assert translator.to_external(eo_formats.GEOTIFF) == f"{EO}GeoTIFF"
+        assert translator.to_external(eo_formats.NETCDF) == f"{EO}NetCDF_CF"
 
     def test_to_external_unmapped(self, translator):
-        assert translator.to_external(formats.CSV) is None
+        assert translator.to_external(eo_formats.CSV) is None
 
 
 class TestEOFormatsMapping:

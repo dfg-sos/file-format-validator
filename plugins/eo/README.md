@@ -1,12 +1,12 @@
 # EO Format Validator Plugin
-Formats and validators for Earth observation data, as a plugin of the [format validator](../../README.md). Installing the package registers its validators through the `format_validator.validators` entry point. Its format identifiers are in [`format_validator_eo.formats`](format_validator_eo/formats.py):
+Formats and validators for Earth observation data, as a plugin of the [format validator](../../README.md). Installing the package registers its validators through the `format_validator.validators` entry point. Its format identifiers are in [`format_validator_eo.eo_formats`](format_validator_eo/eo_formats.py):
 
 ```python
 from pathlib import Path
 from format_validator import build_request, validate, FileInput, ValidationMode
-from format_validator_eo import formats
+from format_validator_eo import eo_formats
 
-validate(build_request(formats.RASTER, FileInput(path=Path("dem.tif")), ValidationMode.CONTENT))
+validate(build_request(eo_formats.RASTER, FileInput(path=Path("dem.tif")), ValidationMode.CONTENT))
 ```
 
 ## Formats

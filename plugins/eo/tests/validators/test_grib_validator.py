@@ -6,7 +6,7 @@ from format_validator_eo.grib_validator import GRIBValidator
 from format_validator import ValidationMode, FileInput, FormatIdentifier, ValidationRequest, ValidationResult, Cause, ValidationStatus
 from format_validator_eo import EOMetadata
 from tests.fixtures import grib_input, nonexistent_input, geopackage_input, wgs84_crs, mercator_crs
-from format_validator_eo import formats
+from format_validator_eo import eo_formats
 
 
 # ========== Local Fixtures ==========
@@ -36,7 +36,7 @@ class TestGRIBValidatorAssertExtension:
     def test_assert_extension_valid(self, grib_validator, grib_input):
         """Test extension validation passes for .grb file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=grib_input,
             mode=ValidationMode.BASIC,
         )
@@ -46,7 +46,7 @@ class TestGRIBValidatorAssertExtension:
     def test_assert_extension_failure(self, grib_validator, nonexistent_input, geopackage_input):
         """Test extension validation fails for non-.grb files."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.BASIC,
         )
@@ -55,7 +55,7 @@ class TestGRIBValidatorAssertExtension:
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=geopackage_input,
             mode=ValidationMode.BASIC,
         )
@@ -72,7 +72,7 @@ class TestGRIBValidatorAssertExists:
     def test_assert_exists_passes(self, grib_validator, grib_input):
         """Test file existence passes for existing file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=grib_input,
             mode=ValidationMode.METADATA,
         )
@@ -82,7 +82,7 @@ class TestGRIBValidatorAssertExists:
     def test_assert_exists_fails_for_nonexistent(self, grib_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -99,7 +99,7 @@ class TestGRIBValidatorAssertCanOpen:
     def test_assert_can_open_passes(self, grib_validator, grib_input):
         """Test opening a real GRIB file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=grib_input,
             mode=ValidationMode.METADATA,
         )
@@ -109,7 +109,7 @@ class TestGRIBValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, grib_validator, nonexistent_input):
         """Test that assert_can_open fails for GeoJSON file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -125,7 +125,7 @@ class TestGRIBValidatorGetCRS:
     def test_get_crs(self, grib_validator, grib_input):
         """Test CRS extraction returns a CRS."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=grib_input,
             mode=ValidationMode.METADATA,
         )
@@ -135,7 +135,7 @@ class TestGRIBValidatorGetCRS:
     def test_get_crs_none(self, grib_validator, nonexistent_input):
         """Test CRS extraction returns None for non-GRIB file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -151,7 +151,7 @@ class TestGRIBValidatorAssertCRS:
     def test_assert_crs_no_expected(self, grib_validator, grib_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=grib_input,
             mode=ValidationMode.METADATA,
         )
@@ -161,7 +161,7 @@ class TestGRIBValidatorAssertCRS:
     def test_assert_crs_no_actual(self, grib_validator, nonexistent_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -179,7 +179,7 @@ class TestGRIBValidatorBasicMode:
     def test_validate_basic_passes(self, grib_validator, grib_input):
         """Test BASIC mode passes for valid .grb file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=grib_input,
             mode=ValidationMode.BASIC,
         )
@@ -189,7 +189,7 @@ class TestGRIBValidatorBasicMode:
     def test_validate_basic_failure(self, grib_validator, nonexistent_input):
         """Test BASIC mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.BASIC,
         )
@@ -206,7 +206,7 @@ class TestGRIBValidatorStructuralMode:
     def test_validate_structural_positive(self, grib_validator, grib_input):
         """Test STRUCTURAL mode passes for valid existing file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=grib_input,
             mode=ValidationMode.METADATA,
         )
@@ -216,7 +216,7 @@ class TestGRIBValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, grib_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -227,7 +227,7 @@ class TestGRIBValidatorStructuralMode:
     def test_validate_structural_negative_nonexistent(self, grib_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -238,7 +238,7 @@ class TestGRIBValidatorStructuralMode:
         
         valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.grb'))
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=valid_extension_nonexistent_file,
             mode=ValidationMode.METADATA,
         )
@@ -255,7 +255,7 @@ class TestGRIBValidatorFullMode:
     def test_validate_full_positive(self, grib_validator, grib_input):
         """Test FULL mode passes for valid GRIB file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=grib_input,
             mode=ValidationMode.METADATA,
         )
@@ -265,7 +265,7 @@ class TestGRIBValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, grib_validator, nonexistent_input):
         """Test FULL mode fails for wrong file format."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -276,7 +276,7 @@ class TestGRIBValidatorFullMode:
     def test_validate_full_negative_nonexistent(self, grib_validator, nonexistent_input):
         """Test FULL mode fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.GRIB,
+            format_identifier=eo_formats.GRIB,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )

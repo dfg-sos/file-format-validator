@@ -1,9 +1,9 @@
-"""EO plugin of the format validator: the EO format identifiers (``formats``) and their validators.
+"""EO plugin of the format validator: the EO format identifiers (``eo_formats``) and their validators.
 
 Installing this package registers the validators through the ``format_validator.validators``
 entry point, so ``format_validator`` loads them on import.
 """
-from . import formats
+from . import eo_formats
 from .eo_file_format_validator import EOFileFormatValidator, EOMetadata
 from .vector_file_validator import VectorFileValidator
 from .raster_file_validator import RasterFileValidator
@@ -23,7 +23,7 @@ from .shapefile_validator import ShapefileValidator
 from .wkt_validator import WKTValidator
 
 __all__ = [
-    "formats",
+    "eo_formats",
     "VectorFileValidator",
     "RasterFileValidator",
     "EOFileFormatValidator",

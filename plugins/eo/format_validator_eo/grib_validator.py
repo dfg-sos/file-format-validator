@@ -5,10 +5,10 @@ from pyproj import CRS
 from format_validator.model import ValidationRequest,ValidationResult,Error,Cause,FormatIdentifier
 from .raster_file_validator import RasterFileValidator
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 
 
-@registry.register(formats.GRIB)
+@registry.register(eo_formats.GRIB)
 class GRIBValidator(RasterFileValidator):
 
     def get_extensions(self) -> List[str]:

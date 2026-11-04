@@ -7,7 +7,7 @@ from format_validator_eo.cog_validator import COGValidator
 from format_validator import ValidationMode, FileInput, ValidationRequest, FormatIdentifier, ValidationResult, Cause, ValidationStatus
 from format_validator_eo import EOMetadata
 from tests.fixtures import cog_input, geojson_input, geopackage_input, wgs84_crs,mercator_crs,nonexistent_input,geotiff_no_cog_input
-from format_validator_eo import formats
+from format_validator_eo import eo_formats
 
 
 # ========== Local Fixtures ==========
@@ -37,7 +37,7 @@ class TestCOGValidatorAssertExtension:
     def test_assert_extension_valid(self, cog_validator, cog_input):
         """Test extension validation passes for .tif file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.BASIC,
         )
@@ -47,7 +47,7 @@ class TestCOGValidatorAssertExtension:
     def test_assert_extension_failure(self, cog_validator, geojson_input,geopackage_input):
         """Test extension validation fails for .json file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC,
         )
@@ -55,7 +55,7 @@ class TestCOGValidatorAssertExtension:
         assert result.status == ValidationStatus.FAILURE
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geopackage_input,
             mode=ValidationMode.BASIC,
         )
@@ -72,7 +72,7 @@ class TestCOGValidatorAssertExists:
     def test_assert_exists_passes(self, cog_validator, cog_input):
         """Test file existence passes for existing file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.METADATA,
         )
@@ -82,7 +82,7 @@ class TestCOGValidatorAssertExists:
     def test_assert_exists_fails_for_nonexistent(self, cog_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -98,7 +98,7 @@ class TestCOGValidatorAssertCanOpen:
 
     def test_assert_can_open_passes(self, cog_validator, cog_input):
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.METADATA,
         )
@@ -108,7 +108,7 @@ class TestCOGValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, cog_validator, geojson_input):
         """Test that assert_can_open fails for GeoJSON file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -118,7 +118,7 @@ class TestCOGValidatorAssertCanOpen:
     def test_assert_can_open_failure_no_cog(self, cog_validator, geotiff_no_cog_input):
         """Test that assert_can_open fails for non-COG TIFF file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geotiff_no_cog_input,
             mode=ValidationMode.METADATA,
         )
@@ -131,7 +131,7 @@ class TestCOGValidatorAssertCanOpen:
 class TestCOGValidatorGetCRS:
     def test_get_crs(self, cog_validator, cog_input, wgs84_crs):
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -144,7 +144,7 @@ class TestCOGValidatorGetCRS:
 
     def test_get_crs_none(self, cog_validator, geojson_input,wgs84_crs):
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -160,7 +160,7 @@ class TestCOGValidatorAssertCRS:
     def test_assert_crs_passes(self, cog_validator, cog_input,wgs84_crs):
         """Test CRS validation passes with matching expected CRS."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -171,7 +171,7 @@ class TestCOGValidatorAssertCRS:
     def test_assert_crs_fails(self, cog_validator, cog_input, mercator_crs):
         """Test CRS validation fails with mismatching expected CRS."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
@@ -183,7 +183,7 @@ class TestCOGValidatorAssertCRS:
     def test_assert_crs_no_expected(self, cog_validator, cog_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.METADATA,
         )
@@ -193,7 +193,7 @@ class TestCOGValidatorAssertCRS:
     def test_assert_crs_no_actual(self, cog_validator, geojson_input,wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -210,7 +210,7 @@ class TestCOGValidatorBasicMode:
     def test_validate_basic_passes(self, cog_validator, cog_input):
         """Test BASIC mode passes for valid .tif file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.BASIC,
         )
@@ -220,7 +220,7 @@ class TestCOGValidatorBasicMode:
     def test_validate_basic_failure(self, cog_validator, geojson_input):
         """Test BASIC mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC,
         )
@@ -238,7 +238,7 @@ class TestCOGValidatorStructuralMode:
     def test_validate_structural_positive(self, cog_validator, cog_input):
         """Test STRUCTURAL mode passes for valid existing file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.METADATA,
         )
@@ -248,7 +248,7 @@ class TestCOGValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, cog_validator, geojson_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -259,7 +259,7 @@ class TestCOGValidatorStructuralMode:
     def test_validate_structural_negative_nonexistent(self, cog_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -269,7 +269,7 @@ class TestCOGValidatorStructuralMode:
         assert any(err.cause == Cause.PATH_ERROR for err in result.errors())
         validExtensionNonExistentFile = FileInput(path=nonexistent_input.path.with_suffix('.tif'))
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=validExtensionNonExistentFile,
             mode=ValidationMode.METADATA,
         )
@@ -286,7 +286,7 @@ class TestCOGValidatorFullMode:
     def test_validate_full_positive(self, cog_validator, cog_input,wgs84_crs):
         """Test FULL mode passes for valid COG file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=cog_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -297,7 +297,7 @@ class TestCOGValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, cog_validator, geojson_input,wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -309,7 +309,7 @@ class TestCOGValidatorFullMode:
     def test_validate_full_negative_nonexistent(self, cog_validator, nonexistent_input,wgs84_crs):
         """Test FULL mode fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.COG,
+            format_identifier=eo_formats.COG,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),

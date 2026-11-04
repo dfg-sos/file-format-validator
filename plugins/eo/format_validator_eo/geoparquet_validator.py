@@ -11,10 +11,10 @@ from shapely import GeometryType
 from format_validator.model import ValidationResult,ValidationRequest, Error,Warning,Cause, FormatIdentifier
 from .vector_file_validator import VectorFileValidator
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 
 
-@registry.register(formats.GEOPARQUET)
+@registry.register(eo_formats.GEOPARQUET)
 class GeoParquetValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

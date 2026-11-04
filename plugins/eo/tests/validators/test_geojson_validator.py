@@ -7,7 +7,7 @@ from format_validator import ValidationMode, FileInput, FormatIdentifier, Valida
 from format_validator_eo import EOMetadata
 from shapely import GeometryType
 from tests.fixtures import geojson_input, geotiff_input, gpx_input, wgs84_crs, mercator_crs, nonexistent_input
-from format_validator_eo import formats
+from format_validator_eo import eo_formats
 
 
 # ========== Local Fixtures ==========
@@ -37,7 +37,7 @@ class TestGeoJSONValidatorAssertExtension:
     def test_assert_extension_valid(self, geojson_validator, geojson_input):
         """Test extension validation passes for .json file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC,
         )
@@ -47,7 +47,7 @@ class TestGeoJSONValidatorAssertExtension:
     def test_assert_extension_failure(self, geojson_validator, geotiff_input, gpx_input):
         """Test extension validation fails for non-.json files."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geotiff_input,
             mode=ValidationMode.BASIC,
         )
@@ -56,7 +56,7 @@ class TestGeoJSONValidatorAssertExtension:
         assert any(err.cause == Cause.EXTENSION_MISMATCH for err in result.errors())
         
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=gpx_input,
             mode=ValidationMode.BASIC,
         )
@@ -73,7 +73,7 @@ class TestGeoJSONValidatorAssertExists:
     def test_assert_exists_passes(self, geojson_validator, geojson_input):
         """Test file existence passes for existing file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -83,7 +83,7 @@ class TestGeoJSONValidatorAssertExists:
     def test_assert_exists_fails_for_nonexistent(self, geojson_validator, nonexistent_input):
         """Test file existence fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -100,7 +100,7 @@ class TestGeoJSONValidatorAssertCanOpen:
     def test_assert_can_open_passes(self, geojson_validator, geojson_input):
         """Test opening a real GeoJSON file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -110,7 +110,7 @@ class TestGeoJSONValidatorAssertCanOpen:
     def test_assert_can_open_failure(self, geojson_validator, geotiff_input):
         """Test that assert_can_open fails for GeoPackage file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geotiff_input,
             mode=ValidationMode.METADATA,
         )
@@ -126,7 +126,7 @@ class TestGeoJSONValidatorGetCRS:
     def test_get_crs(self, geojson_validator, geojson_input, wgs84_crs):
         """Test CRS extraction returns the expected CRS."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -138,7 +138,7 @@ class TestGeoJSONValidatorGetCRS:
     def test_get_crs_none(self, geojson_validator, geotiff_input, wgs84_crs):
         """Test CRS extraction returns None for non-GeoJSON file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geotiff_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -155,7 +155,7 @@ class TestGeoJSONValidatorAssertCRS:
     def test_assert_crs_passes(self, geojson_validator, geojson_input, wgs84_crs):
         """Test CRS validation passes with matching expected CRS."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -166,7 +166,7 @@ class TestGeoJSONValidatorAssertCRS:
     def test_assert_crs_fails(self, geojson_validator, geojson_input, mercator_crs):
         """Test CRS validation fails with mismatching expected CRS."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=mercator_crs),
@@ -178,7 +178,7 @@ class TestGeoJSONValidatorAssertCRS:
     def test_assert_crs_no_expected(self, geojson_validator, geojson_input):
         """Test CRS validation skips when no expected CRS is provided."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -188,7 +188,7 @@ class TestGeoJSONValidatorAssertCRS:
     def test_assert_crs_no_actual(self, geojson_validator, geotiff_input, wgs84_crs):
         """Test CRS validation is uncertain when CRS could not be read from file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geotiff_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs),
@@ -206,7 +206,7 @@ class TestGeoJSONValidatorBasicMode:
     def test_validate_basic_passes(self, geojson_validator, geojson_input):
         """Test BASIC mode passes for valid .json file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.BASIC,
         )
@@ -216,7 +216,7 @@ class TestGeoJSONValidatorBasicMode:
     def test_validate_basic_failure(self, geojson_validator, geotiff_input):
         """Test BASIC mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geotiff_input,
             mode=ValidationMode.BASIC,
         )
@@ -233,7 +233,7 @@ class TestGeoJSONValidatorStructuralMode:
     def test_validate_structural_positive(self, geojson_validator, geojson_input):
         """Test STRUCTURAL mode passes for valid existing file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
         )
@@ -243,7 +243,7 @@ class TestGeoJSONValidatorStructuralMode:
     def test_validate_structural_negative_wrong_extension(self, geojson_validator, geotiff_input):
         """Test STRUCTURAL mode fails for wrong extension."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geotiff_input,
             mode=ValidationMode.METADATA,
         )
@@ -254,7 +254,7 @@ class TestGeoJSONValidatorStructuralMode:
     def test_validate_structural_negative_nonexistent(self, geojson_validator, nonexistent_input):
         """Test STRUCTURAL mode fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
         )
@@ -265,7 +265,7 @@ class TestGeoJSONValidatorStructuralMode:
         
         valid_extension_nonexistent_file = FileInput(path=nonexistent_input.path.with_suffix('.json'))
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=valid_extension_nonexistent_file,
             mode=ValidationMode.METADATA,
         )
@@ -287,7 +287,7 @@ class TestGeoJSONValidatorFullMode:
         The expected type is present, but mixed types trigger a warning.
         """
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
@@ -304,7 +304,7 @@ class TestGeoJSONValidatorFullMode:
         so validation with POINT returns FAILURE.
         """
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geojson_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POINT),
@@ -317,7 +317,7 @@ class TestGeoJSONValidatorFullMode:
     def test_validate_full_negative_wrong_format(self, geojson_validator, geotiff_input, wgs84_crs):
         """Test FULL mode fails for wrong file format."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=geotiff_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),
@@ -329,7 +329,7 @@ class TestGeoJSONValidatorFullMode:
     def test_validate_full_negative_nonexistent(self, geojson_validator, nonexistent_input, wgs84_crs):
         """Test FULL mode fails for non-existent file."""
         request = ValidationRequest(
-            format_identifier=formats.GEOJSON,
+            format_identifier=eo_formats.GEOJSON,
             actual_file=nonexistent_input,
             mode=ValidationMode.METADATA,
             metadata=EOMetadata(crs=wgs84_crs, geometry_type=GeometryType.POLYGON),

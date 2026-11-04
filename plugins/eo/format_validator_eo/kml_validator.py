@@ -9,10 +9,10 @@ from shapely import GeometryType
 from format_validator.model import ValidationRequest, ValidationResult,Error,Cause,Warning,Cause,Info,FormatIdentifier, FileFormatValidator
 from .vector_file_validator import VectorFileValidator
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 
 
-@registry.register(formats.KML)
+@registry.register(eo_formats.KML)
 class KMLValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

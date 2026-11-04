@@ -5,11 +5,11 @@ from shapely import wkt, GeometryType
 
 from format_validator.model import ValidationResult,ValidationRequest,Error,Cause,Warning,FormatIdentifier, FileFormatValidator
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 from .vector_file_validator import VectorFileValidator
 
 
-@registry.register(formats.WKT)
+@registry.register(eo_formats.WKT)
 class WKTValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:

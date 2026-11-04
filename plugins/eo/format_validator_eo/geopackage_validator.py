@@ -11,10 +11,10 @@ from .eo_file_format_validator import geometry_type_from_string
 from .raster_file_validator import RasterFileValidator
 from .vector_file_validator import VectorFileValidator, sample_geometry_types
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 
 
-@registry.register(formats.GEOPACKAGE)
+@registry.register(eo_formats.GEOPACKAGE)
 class GeoPackageValidator(VectorFileValidator, RasterFileValidator): # ensure correct use of _validate_open method, implementation of left parent is used due to MRO (https://docs.python.org/3/howto/mro.html)
     """Validates a GeoPackage by its declarations, not its features: the layers, the geometry type
     each layer declares (gpkg_geometry_columns) and their CRS, read through fiona without loading

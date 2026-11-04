@@ -1,12 +1,12 @@
 from typing import List
 
 from format_validator.registry import registry
-from . import formats
+from . import eo_formats
 from format_validator.model import FormatIdentifier
 from .vector_file_validator import VectorFileValidator
 
 
-@registry.register(formats.GEOJSON)
+@registry.register(eo_formats.GEOJSON)
 class GeoJSONValidator(VectorFileValidator):
 
     def get_extensions(self) -> List[str]:
