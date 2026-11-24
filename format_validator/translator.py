@@ -36,9 +36,39 @@ class FormatTranslator:
 
     @classmethod
     def from_json(cls, path: Path) -> FormatTranslator:
-        """Load the mapping from the ``mappings`` object of a JSON file. Other keys are ignored."""
+        """Load the mapping from the ``mappings`` object of a JSON file. Other keys are ignored.
+
+        If the file has an ``ontology_uri``, the keys of ``mappings`` are identifiers in that
+        namespace, e.g. ``{"ontology_uri": "https://…/eo-formats#", "mappings": {"GeoTIFF": "GeoTIFF"}}``;
+        otherwise they are full IRIs.
+
+        Raises:
+            ValueError: If an id is not a known ``FormatIdentifier``.
+        """
         with path.open("r", encoding="utf-8") as fh:
-            return cls(json.load(fh)["mappings"])
+            data = json.load(fh)
+        namespace = data.get("ontology_uri", "")
+        return cls({namespace + key: fid for key, fid in data["mappings"].items()})
+
+    @classmethod
+    def from_directory(cls, directory: Path) -> FormatTranslator:
+        """Merge the mapping files (``*.json``, see :meth:`from_json`) of a directory, in name order.
+
+        A missing or empty directory yields a translator without mappings.
+
+        Raises:
+            ValueError: If a file is not valid JSON, has no ``mappings`` object, maps to an unknown
+                id, or maps an IRI to another id than an earlier file; the message names the file.
+        """
+        translator = cls({})
+        for path in sorted(directory.glob("*.json")):
+            try:
+                translator |= cls.from_json(path)
+            except KeyError as exc:
+                raise ValueError(f"{path.name}: no {exc} object") from exc
+            except ValueError as exc:
+                raise ValueError(f"{path.name}: {exc}") from exc
+        return translator
 
     def merge(self, other: FormatTranslator) -> FormatTranslator:
         """Merge two translators. An IRI may occur in both if it maps to the same format identifier.

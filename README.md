@@ -4,7 +4,14 @@ Checks whether a file adheres to an expected format. Depending on the mode, the 
 Formats are referenced by ontology-agnostic format identifiers, and external ontologies are mapped to them. The core is domain-agnostic and defines no formats: format identifiers, their hierarchy and validators come from [plugins](#writing-a-plugin). The [EO plugin](plugins/eo/README.md) provides formats for Earth observation data, e.g. GeoTIFF, NetCDF and GeoJSON, and is used in the examples below.
 
 ## Installation
-Requires Python 3.13+. The core has no dependencies. Install it together with the plugins of your domains, e.g. `format-validator-eo`, which requires GDAL.
+Requires Python 3.13+. The core has no dependencies. Install it together with the plugins of your domains, e.g. `format-validator-eo`, which requires GDAL: on Python 3.13 the wheels of its dependencies bundle it, on 3.14 fiona has no wheel yet and is built against a system GDAL.
+
+As a [command line tool](#command-line), with the EO plugin and without a system GDAL:
+
+```sh
+uv tool install --python 3.13 "format-validator @ git+https://github.com/dfg-sos/file-format-validator.git" \
+  --with "format-validator-eo @ git+https://github.com/dfg-sos/file-format-validator.git#subdirectory=plugins/eo"
+```
 
 ## Usage
 Formats are referenced by their `FormatIdentifier`. Look one up by its id with `FormatIdentifier.get("GeoJSON")`, which returns `None` if no installed plugin defines it, or map an ontology IRI to it, see [Ontology Mappings](#ontology-mappings). Ids are case-insensitive, and each format exists once, so callers don't import a plugin to name its formats. Build a request with `build_request()`, then validate it with `validate()`:
@@ -71,9 +78,30 @@ from format_validator import FormatTranslator
 
 translator = FormatTranslator.from_json(Path("eo-formats.json"))  # {"mappings": {iri: id}}
 translator.to_local("https://dfg-sos.github.io/ontologies/eo-formats#NetCDF_CF")  # FormatIdentifier('NetCDF')
+
+translator = FormatTranslator.from_directory(Path("mappings"))  # all *.json files, merged
 ```
 
-Unknown ids raise a `ValueError` when the mapping is loaded. Translators merge with `a.merge(b)` or `a | b`. An IRI mapped to different ids raises a `ValueError`. See the EO plugin's [mapping](plugins/eo/tests/data/mappings/eo-formats.json), which is checked against a [copy of the ontology](plugins/eo/tests/data/ontologies/eo-formats.owl).
+A mapping file has full IRIs as keys of `mappings`, or, if it gives an `ontology_uri`, the identifiers in that namespace: `{"ontology_uri": "https://dfg-sos.github.io/ontologies/eo-formats#", "mappings": {"NetCDF_CF": "NetCDF"}}`. Unknown ids raise a `ValueError` when the mapping is loaded. Translators merge with `a.merge(b)` or `a | b`. An IRI mapped to different ids raises a `ValueError`. See the EO plugin's [mapping](plugins/eo/tests/data/mappings/eo-formats.json), which is checked against a [copy of the ontology](plugins/eo/tests/data/ontologies/eo-formats.owl).
+
+## Command Line
+`format-validator validate` (or `python -m format_validator validate`) validates files against formats given as IRIs, translated by the mapping files of a directory (`--mappings DIR` or `$FORMAT_VALIDATOR_MAPPINGS`):
+
+```sh
+format-validator validate --mappings mappings/ \
+  --format "https://dfg-sos.github.io/ontologies/eo-formats#NetCDF_CF" data/file.nc
+format-validator validate --mappings mappings/ --format "<IRI>" --expect crs=EPSG:4326 \
+  --secondary buildings.shx --secondary buildings.dbf buildings.shp     # multi-file format, expected metadata
+format-validator validate --mappings mappings/ --manifest files.json   # several files, '-' reads stdin
+```
+
+`--mode` is `basic`, `metadata` (default) or `content`. Each line of the output starts with `format-validator:`, so it stands out in a shared log. `--color auto|always|never` colors it, by default only on a terminal and unless `$NO_COLOR` is set. `--json` prints the status and events of each file instead. A manifest names the files: `{"<name>": {"format": "<IRI>", "path": "data/file.nc", "secondary_paths": [], "expected_metadata": {}}}`, where `<name>` is any label that identifies the file in the output.
+
+| Exit status | Meaning |
+|---|---|
+| `0` | every file `SUCCESS` or `UNCERTAIN` (`UNCERTAIN` is reported as a warning on stderr) |
+| `1` | a file is `FAILURE`, or `ERROR`: it could not be validated, e.g. its format has no mapping |
+| `2` | usage or configuration error (arguments, manifest, mappings); nothing was validated |
 
 ## Writing a Plugin
 A plugin is a package with the formats and validators of a domain, like the [EO plugin](plugins/eo):
