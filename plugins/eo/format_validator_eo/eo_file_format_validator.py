@@ -99,5 +99,5 @@ class EOFileFormatValidator(FileFormatValidator):
         if actual_srs is None:
             return ValidationResult.uncertain(request,Warning(message="File has no CRS defined, cannot validate against expected CRS.", cause=Cause.MISSING_METADATA))
         if actual_srs != expected_srs:
-            return ValidationResult.failure(request, Error(message=f"File CRS'{actual_srs}' does not match expected CRS '{expected_srs}'.", cause=Cause.METADATA_MISMATCH))
+            return ValidationResult.failure(request, Error(message=f"File CRS '{actual_srs}' does not match expected CRS '{expected_srs}'.", cause=Cause.METADATA_MISMATCH))
         return ValidationResult.success(request)
